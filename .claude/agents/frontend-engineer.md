@@ -263,7 +263,7 @@ if (error) {
 ### Error Boundaries
 - Wrap route components with error boundaries
 - Show user-friendly error messages
-- Log errors to Sentry (already configured)
+- Log errors using the project's logging/monitoring setup if configured
 
 ### Form Errors
 - Display validation errors inline
@@ -339,9 +339,9 @@ const MyPage = () => {
 
 ### Modal/Dialog Pattern
 ```typescript
-// FIRST: Check if Dialog exists in @karmo-co/component-library
-import { Dialog } from "@karmo-co/component-library";
-// If not available, check @/components or use Radix UI
+// FIRST: Check if Dialog exists in @/components
+import { Dialog } from "@/components/ui";
+// If not available, use Radix UI primitives
 
 const [isOpen, setIsOpen] = useState(false);
 
@@ -464,7 +464,6 @@ if (isEnabled) {
 - **TypeScript**: https://www.typescriptlang.org/docs
 
 **Common Libraries (check if project uses them):**
-- **Karmo Components**: `@karmo-co/component-library` (PRIMARY UI library for this project)
 - **React Query**: https://tanstack.com/query/latest
 - **tRPC**: https://trpc.io/docs
 - **Tailwind CSS**: https://tailwindcss.com/docs
