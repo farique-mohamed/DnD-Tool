@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1920" height="1080" viewBox="0 0 1920 1080">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="45%" r="70%">
+      <stop offset="0%" stop-color="#3d2508"/>
+      <stop offset="40%" stop-color="#1e0e04"/>
+      <stop offset="100%" stop-color="#080402"/>
+    </radialGradient>
+    <filter id="noise">
+      <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+      <feBlend in="SourceGraphic" mode="multiply"/>
+    </filter>
+    <!-- Stone texture pattern -->
+    <pattern id="stones" x="0" y="0" width="120" height="120" patternUnits="userSpaceOnUse">
+      <rect width="120" height="120" fill="none"/>
+      <rect x="2" y="2" width="56" height="56" fill="rgba(40,22,8,0.35)" rx="1"/>
+      <rect x="62" y="2" width="56" height="56" fill="rgba(35,18,6,0.3)" rx="1"/>
+      <rect x="2" y="62" width="56" height="56" fill="rgba(38,20,7,0.3)" rx="1"/>
+      <rect x="62" y="62" width="56" height="56" fill="rgba(42,24,9,0.35)" rx="1"/>
+    </pattern>
+    <!-- Vignette -->
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="50%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.75)"/>
+    </radialGradient>
+  </defs>
+  <!-- Base gradient -->
+  <rect width="1920" height="1080" fill="url(#bg)"/>
+  <!-- Stone overlay -->
+  <rect width="1920" height="1080" fill="url(#stones)" opacity="0.4"/>
+  <!-- Noise texture -->
+  <rect width="1920" height="1080" filter="url(#noise)" opacity="0.07"/>
+  <!-- Central glow (torch/candle effect) -->
+  <ellipse cx="960" cy="480" rx="500" ry="400" fill="rgba(120,60,10,0.12)"/>
+  <!-- Vignette -->
+  <rect width="1920" height="1080" fill="url(#vignette)"/>
+  <!-- Subtle rune-like decorations in corners -->
+  <g opacity="0.12" fill="#c9a84c">
+    <!-- Top-left rune -->
+    <text x="80" y="140" font-size="120" font-family="serif">᛭</text>
+    <!-- Top-right rune -->
+    <text x="1720" y="140" font-size="120" font-family="serif">᛭</text>
+    <!-- Bottom-left rune -->
+    <text x="80" y="1020" font-size="120" font-family="serif">᛭</text>
+    <!-- Bottom-right rune -->
+    <text x="1720" y="1020" font-size="120" font-family="serif">᛭</text>
+  </g>
+  <!-- Horizontal decorative lines -->
+  <line x1="0" y1="200" x2="1920" y2="200" stroke="rgba(100,60,15,0.2)" stroke-width="1"/>
+  <line x1="0" y1="880" x2="1920" y2="880" stroke="rgba(100,60,15,0.2)" stroke-width="1"/>
+</svg>
