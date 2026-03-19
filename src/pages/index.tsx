@@ -18,21 +18,13 @@ const LoginPage: NextPage = () => {
     },
   });
 
-  const register = api.auth.register.useMutation({
-    onSuccess: (data) => {
-      setMessage({ text: `Adventurer ${data.user.username} has joined the realm!`, type: "success" });
-      setIsRegistering(false);
-    },
-    onError: (err) => {
-      setMessage({ text: err.message, type: "error" });
-    },
-  });
+  const register = api.auth.register.useMutation({});
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     if (isRegistering) {
-      register.mutate({ username, password });
+      register.mutateAsync({ username, password });
     } else {
       login.mutate({ username, password });
     }

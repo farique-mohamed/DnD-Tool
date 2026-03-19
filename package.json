@@ -2,6 +2,7 @@
   "name": "dnd-tool",
   "version": "0.1.0",
   "private": true,
+  "packageManager": "pnpm@10.11.0",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -10,7 +11,10 @@
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
     "db:migrate": "prisma migrate dev",
-    "db:studio": "prisma studio"
+    "db:studio": "prisma studio",
+    "docker:up": "docker compose up -d",
+    "docker:down": "docker compose down",
+    "dev:setup": "pnpm docker:down && pnpm docker:up && pnpm db:migrate && pnpm dev"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
@@ -25,6 +29,13 @@
     "react-dom": "^18.2.0",
     "superjson": "^2.2.1",
     "zod": "^3.22.4"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "@prisma/client",
+      "@prisma/engines",
+      "prisma"
+    ]
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
