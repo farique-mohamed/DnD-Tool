@@ -16,13 +16,32 @@ enum UserRole {
   ADMIN
 }
 
+enum DmRequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
 model User {
-  id        String   @id @default(cuid())
-  username  String   @unique
-  password  String
-  role      UserRole @default(PLAYER)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String      @id @default(cuid())
+  username   String      @unique
+  password   String
+  role       UserRole    @default(PLAYER)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  dmRequests DmRequest[]
 
   @@map("users")
+}
+
+model DmRequest {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id])
+  status      DmRequestStatus @default(PENDING)
+  requestedAt DateTime        @default(now())
+  resolvedAt  DateTime?
+  resolvedBy  String?
+
+  @@map("dm_requests")
 }

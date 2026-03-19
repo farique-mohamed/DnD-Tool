@@ -1,12 +1,28 @@
-import { initTRPC } from "@trpc/server";
+import { initTRPC, TRPCError } from "@trpc/server";
+import type { NextApiRequest } from "next";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { db } from "./db";
+import { verifyToken } from "../lib/jwt";
+import type { JwtPayload } from "../lib/jwt";
 
-export const createTRPCContext = async (opts: { req?: unknown }) => {
+export const createTRPCContext = async (opts: { req?: NextApiRequest }) => {
+  let user: JwtPayload | null = null;
+
+  const authHeader = opts.req?.headers?.authorization;
+  if (authHeader?.startsWith("Bearer ")) {
+    const token = authHeader.slice(7);
+    try {
+      user = verifyToken(token);
+    } catch {
+      user = null;
+    }
+  }
+
   return {
     db,
-    ...opts,
+    req: opts.req,
+    user,
   };
 };
 
@@ -26,3 +42,15 @@ const t = initTRPC.context<typeof createTRPCContext>().create({
 
 export const createTRPCRouter = t.router;
 export const publicProcedure = t.procedure;
+
+export const protectedProcedure = t.procedure.use(({ ctx, next }) => {
+  if (!ctx.user) {
+    throw new TRPCError({ code: "UNAUTHORIZED" });
+  }
+  return next({
+    ctx: {
+      ...ctx,
+      user: ctx.user,
+    },
+  });
+});

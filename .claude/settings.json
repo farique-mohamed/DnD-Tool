@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm db:migrate)",
+      "Bash(pnpm db:generate)"
+    ]
+  }
+}

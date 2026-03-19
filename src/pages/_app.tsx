@@ -14,6 +14,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         httpBatchLink({
           url: "/api/trpc",
           transformer: superjson,
+          headers() {
+            const token =
+              typeof window !== "undefined"
+                ? localStorage.getItem("dnd_token")
+                : null;
+            return token ? { Authorization: `Bearer ${token}` } : {};
+          },
         }),
       ],
     })
