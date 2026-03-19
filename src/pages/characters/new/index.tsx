@@ -1,8 +1,9 @@
 import Head from "next/head";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { ThisIsYourLifeGenerator } from "@/components/ThisIsYourLifeGenerator";
 
 const CHARACTER_CLASSES = [
   "Barbarian",
@@ -84,12 +85,23 @@ function CreateCharacterContent() {
     void router.push("/characters");
   };
 
+  const handleUseBackstory = useCallback((text: string) => {
+    setForm((prev) => ({
+      ...prev,
+      backstory: prev.backstory
+        ? `${prev.backstory}\n\n${text}`
+        : text,
+    }));
+    // Scroll the backstory textarea into view so the adventurer can see it
+    document.getElementById("backstory")?.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, []);
+
   return (
     <>
       <Head>
         <title>Create Character — DnD Tool</title>
       </Head>
-      <div style={{ maxWidth: "600px" }}>
+      <div style={{ maxWidth: "680px" }}>
         <h1
           style={{
             color: "#c9a84c",
@@ -259,6 +271,8 @@ function CreateCharacterContent() {
             </div>
           </div>
         </form>
+
+        <ThisIsYourLifeGenerator onUseBackstory={handleUseBackstory} />
       </div>
     </>
   );
