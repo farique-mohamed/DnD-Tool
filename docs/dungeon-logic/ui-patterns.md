@@ -146,11 +146,48 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 
 ## Pages Reference
 
-| Route | File | Auth Required | Notes |
-|-------|------|--------------|-------|
-| `/` | `src/pages/index.tsx` | No | Login + Register dual-mode form |
-| `/dashboard` | `src/pages/dashboard/index.tsx` | Yes | Empty placeholder |
-| `/unauthorized` | `src/pages/unauthorized.tsx` | No | 10s countdown, D&D humour |
+| Route | File | Auth Required | Role | Notes |
+|-------|------|--------------|------|-------|
+| `/` | `src/pages/index.tsx` | No | All | Login + Register dual-mode form |
+| `/dashboard` | `src/pages/dashboard/index.tsx` | Yes | All | Role-aware greeting, wrapped in Layout |
+| `/unauthorized` | `src/pages/unauthorized.tsx` | No | All | 10s countdown, D&D humour |
+| `/admin/dm-requests` | `src/pages/admin/dm-requests/index.tsx` | Yes | ADMIN | DM request list with approve button + confirmation dialog; uses `admin.getDmRequests` + `admin.approveDmRequest` |
+| `/admin/settings` | `src/pages/admin/settings/index.tsx` | Yes | ADMIN | Blank global settings placeholder |
+| `/adventures` | `src/pages/adventures/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Adventure list placeholder |
+| `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Monster list with fuzzy search bar (mock data) |
+| `/dm/rules` | `src/pages/dm/rules/index.tsx` | Yes | DUNGEON_MASTER | Rules for DM list skeleton |
+| `/rules` | `src/pages/rules/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Rules for players list skeleton |
+| `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list with link to creation |
+| `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character creation form (name, race, class, backstory) |
+
+---
+
+## Layout & Navigation Components
+
+### `NavBar` (`src/components/NavBar.tsx`)
+
+Vertical sidebar (left side, 220px wide). Reads role from `useAuth()` and renders role-specific nav items. Active route highlighted with gold left-border accent using `useRouter().pathname`. Logout button at the bottom.
+
+Role → nav items mapping:
+- **ADMIN**: DM Requests, Global Settings
+- **DUNGEON_MASTER**: Adventures, Monster Manual, Rules For DM, Rules For Players, My Characters, Create New Character
+- **PLAYER**: Adventures, Rules For Players, My Characters, Create New Character
+
+### `Layout` (`src/components/Layout.tsx`)
+
+Flex wrapper: `NavBar` on the left, `children` in a scrollable `<main>` on the right. Applies the standard dark navy gradient background. Wrap all authenticated pages with both `<ProtectedRoute>` and `<Layout>`:
+
+```tsx
+export default function MyPage() {
+  return (
+    <ProtectedRoute>
+      <Layout>
+        <MyPageContent />
+      </Layout>
+    </ProtectedRoute>
+  );
+}
+```
 
 ---
 
