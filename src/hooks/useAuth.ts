@@ -1,8 +1,10 @@
 import { useState, useEffect } from "react";
+import type { UserRoleType } from "../lib/constants";
 
 export interface AuthUser {
   userId: string;
   username: string;
+  role: UserRoleType;
   exp: number;
 }
 

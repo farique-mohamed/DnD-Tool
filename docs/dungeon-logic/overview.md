@@ -26,20 +26,22 @@ src/
 │   ├── _app.tsx              # App root — tRPC + React Query providers
 │   ├── index.tsx             # Login / Register page (public)
 │   ├── dashboard/
-│   │   └── index.tsx         # Main dashboard (protected)
+│   │   └── index.tsx         # Main dashboard (protected, role-aware greeting)
 │   └── unauthorized.tsx      # Auth guard fallback with D&D countdown
 ├── components/
 │   └── ProtectedRoute.tsx    # Reusable auth wrapper for any page
 ├── hooks/
-│   └── useAuth.ts            # Reads JWT from localStorage, exposes user/logout
+│   └── useAuth.ts            # Reads JWT from localStorage, exposes user/logout/role
 ├── lib/
-│   └── jwt.ts                # Server-only: signToken / verifyToken
+│   ├── jwt.ts                # Server-only: signToken / verifyToken (includes role)
+│   └── constants.ts          # USER_ROLES tuple + UserRoleType for type-safe role checks
 ├── server/
 │   ├── db.ts                 # Prisma singleton
 │   ├── trpc.ts               # tRPC init, context, publicProcedure
 │   └── routers/
 │       ├── _app.ts           # Root router (aggregates all sub-routers)
-│       └── auth.ts           # auth.login, auth.register mutations
+│       ├── auth.ts           # auth.login, auth.register mutations
+│       └── user.ts           # user.requestDungeonMaster mutation (stub)
 ├── styles/
 │   └── globals.css           # Box-sizing reset, Georgia font, full-height body
 └── utils/
@@ -48,9 +50,10 @@ src/
 docs/
 └── dungeon-logic/
     ├── overview.md           # ← this file
-    ├── authentication.md     # JWT flow, login/register, token storage
+    ├── authentication.md     # JWT flow, login/register, token storage, role in payload
     ├── architecture.md       # tRPC setup, conventions, how to add features
-    └── ui-patterns.md        # D&D theme, colors, component conventions
+    ├── ui-patterns.md        # D&D theme, colors, component conventions
+    └── roles.md              # Role system: PLAYER, DUNGEON_MASTER, ADMIN
 ```
 
 ## Environment Variables
