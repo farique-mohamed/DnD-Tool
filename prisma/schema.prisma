@@ -10,10 +10,17 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum UserRole {
+  PLAYER
+  DUNGEON_MASTER
+  ADMIN
+}
+
 model User {
   id        String   @id @default(cuid())
   username  String   @unique
   password  String
+  role      UserRole @default(PLAYER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -3,6 +3,7 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
 import { signToken } from "../../lib/jwt";
+import { UserRole } from "@prisma/client";
 
 const SALT_ROUNDS = 12;
 
@@ -34,8 +35,9 @@ export const authRouter = createTRPCRouter({
         user: {
           id: user.id,
           username: user.username,
+          role: user.role,
         },
-        token: signToken({ userId: user.id, username: user.username }),
+        token: signToken({ userId: user.id, username: user.username, role: user.role }),
       };
     }),
 
@@ -64,6 +66,7 @@ export const authRouter = createTRPCRouter({
         data: {
           username: input.username,
           password: hashedPassword,
+          role: UserRole.PLAYER,
         },
       });
 
@@ -72,8 +75,9 @@ export const authRouter = createTRPCRouter({
         user: {
           id: user.id,
           username: user.username,
+          role: user.role,
         },
-        token: signToken({ userId: user.id, username: user.username }),
+        token: signToken({ userId: user.id, username: user.username, role: user.role }),
       };
     }),
 });

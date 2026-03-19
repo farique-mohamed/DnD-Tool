@@ -2,6 +2,19 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "../../components/ProtectedRoute";
 import { useAuth } from "../../hooks/useAuth";
+import type { UserRoleType } from "../../lib/constants";
+
+function getRoleGreeting(role: UserRoleType, username: string): string {
+  switch (role) {
+    case "DUNGEON_MASTER":
+      return `Hail, Dungeon Master ${username}!`;
+    case "ADMIN":
+      return `Hail, Admin ${username}!`;
+    case "PLAYER":
+    default:
+      return `Hail, Adventurer ${username}!`;
+  }
+}
 
 function DashboardContent() {
   const { user, logout } = useAuth();
@@ -11,6 +24,11 @@ function DashboardContent() {
     logout();
     void router.replace("/");
   };
+
+  const greeting =
+    user !== null
+      ? getRoleGreeting(user.role, user.username)
+      : "";
 
   return (
     <>
@@ -82,7 +100,7 @@ function DashboardContent() {
               fontSize: "22px",
               marginBottom: "12px",
             }}>
-              The Adventure Awaits
+              {greeting}
             </h2>
             <p style={{ color: "#a89060", fontSize: "14px", lineHeight: "1.7" }}>
               Your dashboard is being prepared by the Dungeon Master. Check back soon for quests, campaigns, and epic adventures!

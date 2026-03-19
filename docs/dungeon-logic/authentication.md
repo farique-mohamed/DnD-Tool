@@ -11,10 +11,17 @@ There are no sessions, no cookies, no server-side session store. All auth state 
 ## User Model (Prisma)
 
 ```prisma
+enum UserRole {
+  PLAYER
+  DUNGEON_MASTER
+  ADMIN
+}
+
 model User {
   id        String   @id @default(cuid())
   username  String   @unique
   password  String                        // bcrypt hash, never plaintext
+  role      UserRole @default(PLAYER)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@map("users")
@@ -24,6 +31,7 @@ model User {
 - IDs are **cuid** strings (not integers).
 - `username` is the only identifier — no email field.
 - Passwords are hashed with **bcryptjs at 12 salt rounds**.
+- `role` defaults to `PLAYER` on every new registration. See `docs/dungeon-logic/roles.md` for the full role system.
 
 ---
 
@@ -113,9 +121,11 @@ useAuth().logout()
 
 - **Algorithm:** HS256 (jsonwebtoken default)
 - **Expiry:** 7 days
-- **Payload:** `{ userId: string, username: string, iat: number, exp: number }`
+- **Payload:** `{ userId: string, username: string, role: UserRoleType, iat: number, exp: number }`
 - **Storage:** `localStorage` key `"dnd_token"`
 - **Verification on client:** Decode base64 payload, check `exp`. No signature verification on client — server verifies via `verifyToken` when needed for protected API calls.
+
+The `role` field is a `UserRoleType` string (`"PLAYER"`, `"DUNGEON_MASTER"`, or `"ADMIN"`) drawn from the `USER_ROLES` tuple in `src/lib/constants.ts`.
 
 ---
 
