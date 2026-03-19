@@ -1,9 +1,11 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import { useState } from "react";
+import { useRouter } from "next/router";
 import { api } from "../utils/api";
 
 const LoginPage: NextPage = () => {
+  const router = useRouter();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -11,20 +13,33 @@ const LoginPage: NextPage = () => {
 
   const login = api.auth.login.useMutation({
     onSuccess: (data) => {
-      setMessage({ text: `Welcome back, ${data.user.username}! Your quest begins...`, type: "success" });
+      if (data.token) {
+        localStorage.setItem("dnd_token", data.token);
+      }
+      void router.push("/dashboard");
     },
     onError: (err) => {
       setMessage({ text: err.message, type: "error" });
     },
   });
 
-  const register = api.auth.register.useMutation({});
+  const register = api.auth.register.useMutation({
+    onSuccess: (data) => {
+      if (data.token) {
+        localStorage.setItem("dnd_token", data.token);
+      }
+      void router.push("/dashboard");
+    },
+    onError: (err) => {
+      setMessage({ text: err.message, type: "error" });
+    },
+  });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setMessage(null);
     if (isRegistering) {
-      register.mutateAsync({ username, password });
+      register.mutate({ username, password });
     } else {
       login.mutate({ username, password });
     }
