@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TRPCError } from "@trpc/server";
 import bcrypt from "bcryptjs";
+import { signToken } from "../../lib/jwt";
 
 const SALT_ROUNDS = 12;
 
@@ -34,6 +35,7 @@ export const authRouter = createTRPCRouter({
           id: user.id,
           username: user.username,
         },
+        token: signToken({ userId: user.id, username: user.username }),
       };
     }),
 
@@ -71,6 +73,7 @@ export const authRouter = createTRPCRouter({
           id: user.id,
           username: user.username,
         },
+        token: signToken({ userId: user.id, username: user.username }),
       };
     }),
 });
