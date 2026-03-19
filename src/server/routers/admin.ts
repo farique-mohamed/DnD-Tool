@@ -1,35 +1,60 @@
 import { z } from "zod";
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const adminRouter = createTRPCRouter({
-  /**
-   * Returns all PLAYER-role users as a stub for pending DM requests.
-   * TODO: Replace with a dedicated DmRequest model once designed.
-   */
-  getDmRequests: publicProcedure.query(async ({ ctx }) => {
-    const users = await ctx.db.user.findMany({
-      where: { role: "PLAYER" },
+  getDmRequests: protectedProcedure.query(async ({ ctx }) => {
+    if (ctx.user.role !== "ADMIN") {
+      throw new TRPCError({ code: "FORBIDDEN" });
+    }
+
+    const requests = await ctx.db.dmRequest.findMany({
+      where: { status: "PENDING" },
       select: {
         id: true,
-        username: true,
-        createdAt: true,
+        requestedAt: true,
+        user: {
+          select: { id: true, username: true },
+        },
       },
-      orderBy: { createdAt: "desc" },
+      orderBy: { requestedAt: "desc" },
     });
-    return users;
+
+    return requests;
   }),
 
-  /**
-   * Promotes a user from PLAYER to DUNGEON_MASTER.
-   */
-  approveDmRequest: publicProcedure
-    .input(z.object({ userId: z.string() }))
+  approveDmRequest: protectedProcedure
+    .input(z.object({ requestId: z.string() }))
     .mutation(async ({ ctx, input }) => {
-      const updated = await ctx.db.user.update({
-        where: { id: input.userId },
-        data: { role: "DUNGEON_MASTER" },
-        select: { id: true, username: true, role: true },
+      if (ctx.user.role !== "ADMIN") {
+        throw new TRPCError({ code: "FORBIDDEN" });
+      }
+
+      const dmRequest = await ctx.db.dmRequest.findUnique({
+        where: { id: input.requestId },
       });
-      return updated;
+
+      if (!dmRequest || dmRequest.status !== "PENDING") {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "DM request not found or is no longer pending.",
+        });
+      }
+
+      await ctx.db.dmRequest.update({
+        where: { id: input.requestId },
+        data: {
+          status: "APPROVED",
+          resolvedAt: new Date(),
+          resolvedBy: ctx.user.userId,
+        },
+      });
+
+      await ctx.db.user.update({
+        where: { id: dmRequest.userId },
+        data: { role: "DUNGEON_MASTER" },
+      });
+
+      return { success: true };
     }),
 });

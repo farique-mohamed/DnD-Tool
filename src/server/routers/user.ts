@@ -1,16 +1,35 @@
-import { createTRPCRouter, publicProcedure } from "../trpc";
+import { TRPCError } from "@trpc/server";
+import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 export const userRouter = createTRPCRouter({
-  /**
-   * Scaffold for a future Dungeon Master role request flow.
-   * TODO: Implement the actual approval process once the admin
-   * review workflow is designed. For now this is a stub that
-   * signals intent and can be wired to the UI immediately.
-   */
-  requestDungeonMaster: publicProcedure.mutation(async () => {
+  requestDungeonMaster: protectedProcedure.mutation(async ({ ctx }) => {
+    const { userId, role } = ctx.user;
+
+    if (role !== "PLAYER") {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only players may petition for the Dungeon Master role.",
+      });
+    }
+
+    const existingRequest = await ctx.db.dmRequest.findFirst({
+      where: { userId, status: "PENDING" },
+    });
+
+    if (existingRequest) {
+      throw new TRPCError({
+        code: "CONFLICT",
+        message: "You already have a pending petition for the Dungeon Master role.",
+      });
+    }
+
+    await ctx.db.dmRequest.create({
+      data: { userId, status: "PENDING" },
+    });
+
     return {
       success: true,
-      message: "Request submitted",
+      message: "Your request has been submitted. Await the Admin's judgement.",
     };
   }),
 });

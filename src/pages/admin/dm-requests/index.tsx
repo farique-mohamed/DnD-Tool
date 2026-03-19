@@ -6,8 +6,11 @@ import { api } from "@/utils/api";
 
 interface PendingRequest {
   id: string;
-  username: string;
-  createdAt: Date;
+  requestedAt: Date;
+  user: {
+    id: string;
+    username: string;
+  };
 }
 
 interface ApproveDialogProps {
@@ -89,7 +92,7 @@ function ApproveDialog({
             borderRadius: "6px",
           }}
         >
-          {request.username}
+          {request.user.username}
         </p>
         <p style={{ color: "#a89060", fontSize: "13px", marginBottom: "28px" }}>
           This adventurer will gain authority over realms and monsters. Choose wisely.
@@ -156,7 +159,7 @@ function DmRequestsContent() {
 
   const handleConfirmApprove = () => {
     if (pendingApproval) {
-      approveMutation.mutate({ userId: pendingApproval.id });
+      approveMutation.mutate({ requestId: pendingApproval.id });
     }
   };
 
@@ -279,11 +282,11 @@ function DmRequestsContent() {
                       marginBottom: "4px",
                     }}
                   >
-                    {request.username}
+                    {request.user.username}
                   </div>
                   <div style={{ color: "#a89060", fontSize: "12px" }}>
-                    Joined:{" "}
-                    {new Date(request.createdAt).toLocaleDateString("en-US", {
+                    Requested:{" "}
+                    {new Date(request.requestedAt).toLocaleDateString("en-US", {
                       year: "numeric",
                       month: "long",
                       day: "numeric",
