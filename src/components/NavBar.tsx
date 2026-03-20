@@ -17,6 +17,7 @@ function getNavItems(role: string): NavItem[] {
       return [
         { label: "Adventures", href: "/adventures" },
         { label: "Monster Manual", href: "/dm/monster-manual" },
+        { label: "Item Vault", href: "/items" },
         { label: "Rules For DM", href: "/dm/rules" },
         { label: "Rules For Players", href: "/rules" },
         { label: "My Characters", href: "/characters" },

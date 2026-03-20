@@ -61,3 +61,15 @@ model DmRequest {
 
   @@map("dm_requests")
 }
+
+model Item {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  isMagical   Boolean  @default(false)
+  rarity      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("items")
+}
