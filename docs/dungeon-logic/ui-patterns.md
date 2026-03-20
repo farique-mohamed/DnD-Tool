@@ -175,7 +175,7 @@ Role → nav items mapping:
 
 ### `Layout` (`src/components/Layout.tsx`)
 
-Flex wrapper: `NavBar` on the left, `children` in a scrollable `<main>` on the right. Applies the standard dark navy gradient background. Wrap all authenticated pages with both `<ProtectedRoute>` and `<Layout>`:
+Flex wrapper: `NavBar` on the left, `children` in a scrollable `<main>` on the right, and `<DiceRoller>` as a sibling to `<main>` (renders the floating popup on every authenticated page). Applies the standard dark navy gradient background. Wrap all authenticated pages with both `<ProtectedRoute>` and `<Layout>`:
 
 ```tsx
 export default function MyPage() {
@@ -188,6 +188,19 @@ export default function MyPage() {
   );
 }
 ```
+
+### `DiceRoller` (`src/components/DiceRoller.tsx`)
+
+Floating chat-like popup fixed to the **bottom-right** of every authenticated page. A circular `🎲` trigger button toggles the panel open/closed.
+
+Features:
+- Dice type selector: `d4`, `d6`, `d8`, `d10`, `d12`, `d20`, `d100`
+- Optional roll label (free-text)
+- Roll button triggers `dice.roll` mutation (server-side RNG, result persisted)
+- Global history feed showing username, result, label, and timestamp for the last 50 rolls across all users
+- **NAT 20** result highlighted in gold; **NAT 1** highlighted in danger red
+
+The component is added once in `Layout.tsx` and is not imported by individual pages.
 
 ---
 
@@ -205,7 +218,7 @@ export default function MyPage() {
 
 Emojis are used sparingly as decorative icons, not inline with text:
 - `⚔️` — app logo / headings
-- `🎲` — dice / dashboard placeholder
+- `🎲` — dice / dashboard placeholder; also used as the `DiceRoller` floating trigger button
 - `🛡️` — unauthorized page
 - `🏃` — flee/exit button
 

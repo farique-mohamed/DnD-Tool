@@ -1,4 +1,5 @@
 import { NavBar } from "@/components/NavBar";
+import { DiceRoller } from "@/components/DiceRoller";
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -26,6 +27,7 @@ export function Layout({ children }: LayoutProps) {
       >
         {children}
       </main>
+      <DiceRoller />
     </div>
   );
 }

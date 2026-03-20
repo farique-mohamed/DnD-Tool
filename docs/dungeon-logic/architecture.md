@@ -9,6 +9,8 @@ tRPC provides end-to-end type safety from database to UI with no code generation
 ```
 src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── auth              — authRouter (auth.login, auth.register)
+       └── user              — userRouter (user.requestDungeonMaster)
+       └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
        └── (future routers)  — add here and re-export AppRouter type
 
 src/pages/api/trpc/[trpc].ts — Next.js API route that handles all tRPC calls
@@ -23,6 +25,8 @@ src/pages/_app.tsx           — Providers: api.Provider + QueryClientProvider
    ```typescript
    export const appRouter = createTRPCRouter({
      auth: authRouter,
+     user: userRouter,
+     dice: diceRouter,
      myFeature: myFeatureRouter,   // ← add here
    });
    ```
@@ -32,7 +36,7 @@ src/pages/_app.tsx           — Providers: api.Provider + QueryClientProvider
 
 The tRPC context (`src/server/trpc.ts`) passes `db` (Prisma client) to every procedure. Access it via `ctx.db` in any mutation or query.
 
-Currently there is only `publicProcedure`. A `protectedProcedure` that verifies the JWT from headers is the next architectural step when user-specific data is needed.
+Both `publicProcedure` and `protectedProcedure` exist. `protectedProcedure` verifies the JWT from the `Authorization: Bearer <token>` header and exposes `ctx.user` (id, username, role). Use it for any procedure that requires an authenticated user — the dice router uses it exclusively.
 
 ---
 
@@ -54,6 +58,15 @@ pnpm db:generate
 ```
 
 After adding a new model, Prisma will automatically provide `ctx.db.newModel` in all tRPC procedures.
+
+### Current models
+
+| Model | Table | Purpose |
+|-------|-------|---------|
+| `User` | `"users"` | Auth identity, stores hashed password and role |
+| `DiceRoll` | `"dice_rolls"` | Persisted roll results — linked to `User`, stores diceType, result, optional label, optional adventureId |
+
+See `dice-roller.md` for the full `DiceRoll` schema.
 
 ---
 

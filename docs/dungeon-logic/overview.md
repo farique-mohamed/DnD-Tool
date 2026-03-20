@@ -2,7 +2,7 @@
 
 ## What is DnD Tool?
 
-A full-stack web companion tool for Dungeons & Dragons. Currently in early development — authentication is complete, and the dashboard is a placeholder for future features (character sheets, campaigns, dice rollers, etc.).
+A full-stack web companion tool for Dungeons & Dragons. Currently in early development — authentication, character creation, and dice rolling are complete. The dashboard is a placeholder for future features (campaigns, etc.).
 
 ## Tech Stack
 
@@ -29,19 +29,24 @@ src/
 │   │   └── index.tsx         # Main dashboard (protected, role-aware greeting)
 │   └── unauthorized.tsx      # Auth guard fallback with D&D countdown
 ├── components/
-│   └── ProtectedRoute.tsx    # Reusable auth wrapper for any page
+│   ├── ProtectedRoute.tsx    # Reusable auth wrapper for any page
+│   ├── NavBar.tsx            # Vertical sidebar navigation (role-aware)
+│   ├── Layout.tsx            # Flex wrapper: NavBar + main content + DiceRoller
+│   └── DiceRoller.tsx        # Floating dice roller popup (fixed bottom-right, all auth pages)
 ├── hooks/
 │   └── useAuth.ts            # Reads JWT from localStorage, exposes user/logout/role
 ├── lib/
 │   ├── jwt.ts                # Server-only: signToken / verifyToken (includes role)
-│   └── constants.ts          # USER_ROLES tuple + UserRoleType for type-safe role checks
+│   ├── constants.ts          # USER_ROLES tuple + UserRoleType for type-safe role checks
+│   └── diceConstants.ts      # DICE_TYPES, DICE_SIDES, ROLL_LABELS, ROLL_MODES + type aliases (shared by router and component)
 ├── server/
 │   ├── db.ts                 # Prisma singleton
 │   ├── trpc.ts               # tRPC init, context, publicProcedure
 │   └── routers/
 │       ├── _app.ts           # Root router (aggregates all sub-routers)
 │       ├── auth.ts           # auth.login, auth.register mutations
-│       └── user.ts           # user.requestDungeonMaster mutation (stub)
+│       ├── user.ts           # user.requestDungeonMaster mutation (stub)
+│       └── dice.ts           # dice.roll mutation, dice.history / dice.globalHistory queries
 ├── styles/
 │   └── globals.css           # Box-sizing reset, Georgia font, full-height body
 └── utils/
@@ -53,7 +58,8 @@ docs/
     ├── authentication.md     # JWT flow, login/register, token storage, role in payload
     ├── architecture.md       # tRPC setup, conventions, how to add features
     ├── ui-patterns.md        # D&D theme, colors, component conventions
-    └── roles.md              # Role system: PLAYER, DUNGEON_MASTER, ADMIN
+    ├── roles.md              # Role system: PLAYER, DUNGEON_MASTER, ADMIN
+    └── dice-roller.md        # Dice roller feature: DB schema, tRPC procedures, UI component
 ```
 
 ## Environment Variables

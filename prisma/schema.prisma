@@ -30,8 +30,24 @@ model User {
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
   dmRequests DmRequest[]
+  diceRolls  DiceRoll[]
 
   @@map("users")
+}
+
+model DiceRoll {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id])
+  username    String
+  diceType    String
+  result      Int
+  label       String  @default("General")
+  rollMode    String  @default("NORMAL")
+  adventureId String?
+  rolledAt    DateTime @default(now())
+
+  @@map("dice_rolls")
 }
 
 model DmRequest {
