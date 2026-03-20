@@ -10,10 +10,11 @@ Players and Dungeon Masters can create and view D&D 5e characters. Each characte
 
 | Route | File | Description |
 |-------|------|-------------|
-| `/characters` | `src/pages/characters/index.tsx` | Lists all characters belonging to the logged-in user. Shows an empty state with a prompt to create when none exist. |
+| `/characters` | `src/pages/characters/index.tsx` | Lists all characters belonging to the logged-in user. Shows an empty state with a prompt to create when none exist. Each card is clickable and navigates to `/characters/[id]`. |
 | `/characters/new` | `src/pages/characters/new/index.tsx` | Full character creation form covering identity, ability scores, combat stats, and backstory. On success, redirects to `/characters`. |
+| `/characters/[id]` | `src/pages/characters/[id].tsx` | Full character sheet for a single character. Shows header stats (AC, Speed, Initiative, Proficiency Bonus, Passive Perception), HP bar, ability scores, saving throws, skills, and backstory. |
 
-Both pages require authentication and are wrapped in `<ProtectedRoute><Layout>`.
+All pages require authentication and are wrapped in `<ProtectedRoute><Layout>`.
 
 ---
 
@@ -53,6 +54,20 @@ Creates a new character owned by the authenticated user. `currentHp` is automati
 Returns all characters belonging to `ctx.user.userId`, ordered by `createdAt` descending (newest first).
 
 **Returns:** `Character[]`
+
+### `character.getById` — `protectedProcedure` query
+
+Fetches a single character by ID, scoped to the authenticated user. Throws `NOT_FOUND` if the character doesn't exist or belongs to another user.
+
+**Input:**
+
+| Field | Type | Constraints |
+|-------|------|-------------|
+| `id` | `string` | required |
+
+**Returns:** `Character`
+
+**Throws:** `TRPCError` with code `NOT_FOUND` if no matching character is found for the given `id` and `userId`.
 
 ---
 
@@ -101,9 +116,43 @@ model Character {
 
 ---
 
+## Derived Stats (Character Detail Page)
+
+The `/characters/[id]` page computes the following stats client-side from stored ability scores and level:
+
+| Stat | Formula |
+|------|---------|
+| Proficiency Bonus | `Math.ceil(level / 4) + 1` |
+| Ability Modifier | `Math.floor((score - 10) / 2)` |
+| Initiative | DEX modifier |
+| Passive Perception | `10 + WIS modifier` |
+| Saving Throw (proficient) | ability modifier + proficiency bonus |
+| Saving Throw (not proficient) | ability modifier only |
+| Skill modifier | base ability modifier (no per-skill proficiency tracking yet) |
+
+**Saving throw proficiencies per class** (static lookup in `SAVING_THROW_PROFICIENCIES`):
+
+| Class | Proficient Saves |
+|-------|-----------------|
+| Barbarian | STR, CON |
+| Bard | DEX, CHA |
+| Cleric | WIS, CHA |
+| Druid | INT, WIS |
+| Fighter | STR, CON |
+| Monk | STR, DEX |
+| Paladin | WIS, CHA |
+| Ranger | STR, DEX |
+| Rogue | DEX, INT |
+| Sorcerer | CON, CHA |
+| Warlock | WIS, CHA |
+| Wizard | INT, WIS |
+
+---
+
 ## UI Notes
 
 - Ability score inputs show the D&D modifier (`(score - 10) / 2`, floored) below each field in real time.
 - The `ThisIsYourLifeGenerator` component is rendered below the creation form to provide AI-generated backstory suggestions. Clicking "Use This Backstory" appends the generated text to the backstory textarea and scrolls it into view.
 - All form fields are disabled during submission. The submit button shows "Forging your legend..." while pending.
-- The character list card uses `onMouseEnter`/`onMouseLeave` for a gold border hover effect.
+- The character list card uses `onMouseEnter`/`onMouseLeave` for a gold border hover effect, and is clickable — navigates to `/characters/[id]`.
+- The character detail page shows saving throws with ● (proficient) or ○ (not proficient) indicators, and an HP bar that changes color: green above 50%, gold 25–50%, red below 25%.

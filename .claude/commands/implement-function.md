@@ -33,5 +33,14 @@ Launch the agent with:
 1. The full requirement from `$ARGUMENTS`
 2. The relevant excerpts from the dungeon-logic docs (include verbatim — don't summarize)
 3. Clear instructions to implement the function, write it into the correct file(s), and follow project conventions
+4. An explicit instruction to **create or update relevant docs** in `docs/dungeon-logic/` at the end of the implementation — add or update a doc file for the feature, and update `architecture.md` models table and `ui-patterns.md` pages table if new routes or models were added.
 
 Do not implement the function yourself — delegate entirely to the agent and report back what was done.
+
+## Step 4 — Agent team check
+
+If the user's requirement did **not** explicitly mention an agent team (e.g. "use agent team", "use a team", "run in parallel with agents"), ask:
+
+> "Would you like me to spin up an agent team to tackle this in parallel? This can speed things up for tasks spanning multiple domains (e.g. DB + backend + frontend at the same time)."
+
+Wait for their answer before proceeding if this step applies.

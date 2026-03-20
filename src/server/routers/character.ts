@@ -47,4 +47,16 @@ export const characterRouter = createTRPCRouter({
         orderBy: { createdAt: "desc" },
       });
     }),
+
+  getById: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return character;
+    }),
 });

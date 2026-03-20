@@ -9,7 +9,7 @@ function abilityModifier(score: number): string {
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
-function CharacterCard({ character }: { character: {
+function CharacterCard({ character, onClick }: { character: {
   id: string;
   name: string;
   race: string;
@@ -27,7 +27,7 @@ function CharacterCard({ character }: { character: {
   wisdom: number;
   charisma: number;
   backstory?: string | null;
-}}) {
+}; onClick?: () => void }) {
   const abilities = [
     { label: "STR", value: character.strength },
     { label: "DEX", value: character.dexterity },
@@ -38,15 +38,18 @@ function CharacterCard({ character }: { character: {
   ];
 
   return (
-    <div style={{
-      background: "rgba(0,0,0,0.5)",
-      border: "1px solid rgba(201,168,76,0.3)",
-      borderRadius: "12px",
-      padding: "24px",
-      transition: "border-color 0.2s",
-    }}
-    onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(201,168,76,0.7)")}
-    onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)")}
+    <div
+      onClick={onClick}
+      style={{
+        background: "rgba(0,0,0,0.5)",
+        border: "1px solid rgba(201,168,76,0.3)",
+        borderRadius: "12px",
+        padding: "24px",
+        transition: "border-color 0.2s",
+        cursor: "pointer",
+      }}
+      onMouseEnter={(e) => (e.currentTarget.style.borderColor = "rgba(201,168,76,0.7)")}
+      onMouseLeave={(e) => (e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)")}
     >
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
@@ -144,7 +147,7 @@ function CharactersContent() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {characters.map((c) => <CharacterCard key={c.id} character={c} />)}
+            {characters.map((c) => <CharacterCard key={c.id} character={c} onClick={() => void router.push(`/characters/${c.id}`)} />)}
           </div>
         )}
       </div>
