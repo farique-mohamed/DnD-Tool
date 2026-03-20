@@ -99,6 +99,7 @@ model Character {
   // Derived combat stats
   maxHp        Int      @default(10)
   currentHp    Int      @default(10)
+  tempHp       Int      @default(0)
   armorClass   Int      @default(10)
   speed        Int      @default(30)
 

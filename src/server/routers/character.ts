@@ -59,4 +59,39 @@ export const characterRouter = createTRPCRouter({
       }
       return character;
     }),
+
+  updateHp: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      type: z.enum(["heal", "damage", "setTempHp"]),
+      amount: z.number().int().min(0),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+
+      let { currentHp, tempHp } = character;
+
+      if (input.type === "heal") {
+        // Healing adds to currentHp, capped at maxHp. Does not affect tempHp.
+        currentHp = Math.min(character.maxHp, currentHp + input.amount);
+      } else if (input.type === "damage") {
+        // Damage absorbs tempHp first, then reduces currentHp. Both floor at 0.
+        const remainingDamage = Math.max(0, input.amount - tempHp);
+        tempHp = Math.max(0, tempHp - input.amount);
+        currentHp = Math.max(0, currentHp - remainingDamage);
+      } else if (input.type === "setTempHp") {
+        // Temp HP replaces (D&D 5e rule: take higher, but we allow direct set here)
+        tempHp = input.amount;
+      }
+
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { currentHp, tempHp },
+      });
+    }),
 });

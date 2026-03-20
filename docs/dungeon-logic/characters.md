@@ -69,6 +69,25 @@ Fetches a single character by ID, scoped to the authenticated user. Throws `NOT_
 
 **Throws:** `TRPCError` with code `NOT_FOUND` if no matching character is found for the given `id` and `userId`.
 
+### `character.updateHp` — `protectedProcedure` mutation
+
+Updates a character's HP. Ownership is verified (returns `NOT_FOUND` if the character doesn't belong to the caller).
+
+**Input:**
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `id` | `string` | Character ID |
+| `type` | `"heal" \| "damage" \| "setTempHp"` | Operation type |
+| `amount` | `int` (≥ 0) | Amount to apply |
+
+**Behaviour:**
+- `heal` — adds `amount` to `currentHp`, capped at `maxHp`. Does not affect `tempHp`.
+- `damage` — temp HP absorbs damage first, then `currentHp` takes the remainder. Both floor at 0.
+- `setTempHp` — directly sets `tempHp` to `amount` (replaces existing value).
+
+**Returns:** Updated `Character` record.
+
 ---
 
 ## Valid Alignments
@@ -105,6 +124,7 @@ model Character {
   charisma       Int      @default(10)
   maxHp          Int      @default(10)
   currentHp      Int      @default(10)
+  tempHp         Int      @default(0)
   armorClass     Int      @default(10)
   speed          Int      @default(30)
   createdAt      DateTime @default(now())

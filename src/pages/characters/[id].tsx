@@ -1,3 +1,4 @@
+import { useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -80,9 +81,213 @@ type CharacterData = {
   charisma: number;
   maxHp: number;
   currentHp: number;
+  tempHp: number;
   armorClass: number;
   speed: number;
 };
+
+function HpManager({ character }: { character: CharacterData }) {
+  const utils = api.useUtils();
+  const [damageAmount, setDamageAmount] = useState<string>("");
+  const [healAmount, setHealAmount] = useState<string>("");
+  const [tempHpAmount, setTempHpAmount] = useState<string>("");
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const updateHp = api.character.updateHp.useMutation({
+    onSuccess: async () => {
+      await utils.character.getById.invalidate({ id: character.id });
+      setDamageAmount("");
+      setHealAmount("");
+      setTempHpAmount("");
+    },
+    onError: (err) => {
+      setFeedback(err.message);
+      setTimeout(() => setFeedback(null), 3000);
+    },
+  });
+
+  const handleDamage = () => {
+    const n = parseInt(damageAmount);
+    if (!n || n <= 0) return;
+    updateHp.mutate({ id: character.id, type: "damage", amount: n });
+  };
+
+  const handleHeal = () => {
+    const n = parseInt(healAmount);
+    if (!n || n <= 0) return;
+    updateHp.mutate({ id: character.id, type: "heal", amount: n });
+  };
+
+  const handleSetTempHp = () => {
+    const n = parseInt(tempHpAmount);
+    if (isNaN(n) || n < 0) return;
+    updateHp.mutate({ id: character.id, type: "setTempHp", amount: n });
+  };
+
+  const isLoading = updateHp.isPending;
+  const hpPercent = Math.max(0, Math.min(100, (character.currentHp / character.maxHp) * 100));
+
+  const inputStyle: React.CSSProperties = {
+    width: "70px",
+    padding: "8px 10px",
+    background: "rgba(30,15,5,0.9)",
+    border: "1px solid rgba(201,168,76,0.4)",
+    borderRadius: "6px",
+    color: "#e8d5a3",
+    fontSize: "14px",
+    fontFamily: "'Georgia', 'Times New Roman', serif",
+    outline: "none",
+    textAlign: "center",
+  };
+
+  return (
+    <div style={{ marginTop: "20px" }}>
+      {/* HP Display */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+        <span style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif" }}>
+          Hit Points
+        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+          <span style={{ color: "#e8d5a3", fontSize: "14px", fontFamily: "'Georgia', serif" }}>
+            {character.currentHp} / {character.maxHp}
+          </span>
+          {character.tempHp > 0 && (
+            <span style={{ color: "#5b9bd5", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+              +{character.tempHp} temp
+            </span>
+          )}
+        </div>
+      </div>
+
+      {/* HP bar — stacked: currentHp green, tempHp blue overlay */}
+      <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: "4px", height: "10px", overflow: "hidden", position: "relative", marginBottom: "16px" }}>
+        <div style={{ width: `${hpPercent}%`, height: "100%", background: hpPercent > 50 ? "#4a7c2a" : hpPercent > 25 ? "#c9a84c" : "#e74c3c", borderRadius: "4px", transition: "width 0.3s", position: "absolute" }} />
+        {character.tempHp > 0 && (
+          <div style={{
+            width: `${Math.min(100, (character.tempHp / character.maxHp) * 100)}%`,
+            height: "100%",
+            background: "rgba(91,155,213,0.5)",
+            borderRadius: "4px",
+            position: "absolute",
+            right: 0,
+          }} />
+        )}
+      </div>
+
+      {/* Controls */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "12px", alignItems: "flex-end" }}>
+        {/* Damage */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <span style={{ color: "#b8934a", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif" }}>Damage</span>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <input
+              type="number"
+              min={1}
+              value={damageAmount}
+              onChange={(e) => setDamageAmount(e.target.value)}
+              placeholder="0"
+              style={inputStyle}
+              disabled={isLoading}
+              onKeyDown={(e) => e.key === "Enter" && handleDamage()}
+            />
+            <button
+              onClick={handleDamage}
+              disabled={isLoading || !damageAmount}
+              style={{
+                background: "linear-gradient(135deg, #8b1a1a, #c0392b)",
+                color: "#f8d7d7",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 14px",
+                fontSize: "13px",
+                fontFamily: "'Georgia', serif",
+                fontWeight: "bold",
+                cursor: isLoading || !damageAmount ? "not-allowed" : "pointer",
+                opacity: isLoading || !damageAmount ? 0.6 : 1,
+              }}
+            >
+              Hit
+            </button>
+          </div>
+        </div>
+
+        {/* Heal */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <span style={{ color: "#b8934a", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif" }}>Heal</span>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <input
+              type="number"
+              min={1}
+              value={healAmount}
+              onChange={(e) => setHealAmount(e.target.value)}
+              placeholder="0"
+              style={inputStyle}
+              disabled={isLoading}
+              onKeyDown={(e) => e.key === "Enter" && handleHeal()}
+            />
+            <button
+              onClick={handleHeal}
+              disabled={isLoading || !healAmount}
+              style={{
+                background: "linear-gradient(135deg, #2a5c1a, #4a7c2a)",
+                color: "#d7f8d7",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 14px",
+                fontSize: "13px",
+                fontFamily: "'Georgia', serif",
+                fontWeight: "bold",
+                cursor: isLoading || !healAmount ? "not-allowed" : "pointer",
+                opacity: isLoading || !healAmount ? 0.6 : 1,
+              }}
+            >
+              Heal
+            </button>
+          </div>
+        </div>
+
+        {/* Temp HP */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <span style={{ color: "#5b9bd5", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif" }}>Temp HP</span>
+          <div style={{ display: "flex", gap: "6px" }}>
+            <input
+              type="number"
+              min={0}
+              value={tempHpAmount}
+              onChange={(e) => setTempHpAmount(e.target.value)}
+              placeholder="0"
+              style={{ ...inputStyle, borderColor: "rgba(91,155,213,0.5)" }}
+              disabled={isLoading}
+              onKeyDown={(e) => e.key === "Enter" && handleSetTempHp()}
+            />
+            <button
+              onClick={handleSetTempHp}
+              disabled={isLoading || tempHpAmount === ""}
+              style={{
+                background: "linear-gradient(135deg, #1a3a5c, #2d6a9f)",
+                color: "#d0e8f8",
+                border: "none",
+                borderRadius: "6px",
+                padding: "8px 14px",
+                fontSize: "13px",
+                fontFamily: "'Georgia', serif",
+                fontWeight: "bold",
+                cursor: isLoading || tempHpAmount === "" ? "not-allowed" : "pointer",
+                opacity: isLoading || tempHpAmount === "" ? 0.6 : 1,
+              }}
+            >
+              Set
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {feedback && (
+        <div style={{ marginTop: "10px", color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif" }}>{feedback}</div>
+      )}
+    </div>
+  );
+}
 
 function CharacterSheet({ character }: { character: CharacterData }) {
   const router = useRouter();
@@ -100,7 +305,6 @@ function CharacterSheet({ character }: { character: CharacterData }) {
 
   const initiative = mod(character.dexterity);
   const passivePerception = 10 + mod(character.wisdom);
-  const hpPercent = Math.max(0, Math.min(100, (character.currentHp / character.maxHp) * 100));
 
   const sectionTitle: React.CSSProperties = {
     color: "#c9a84c",
@@ -153,16 +357,7 @@ function CharacterSheet({ character }: { character: CharacterData }) {
           </div>
         </div>
 
-        {/* HP Bar */}
-        <div style={{ marginTop: "20px" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-            <span style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif" }}>Hit Points</span>
-            <span style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif" }}>{character.currentHp} / {character.maxHp}</span>
-          </div>
-          <div style={{ background: "rgba(255,255,255,0.1)", borderRadius: "4px", height: "8px", overflow: "hidden" }}>
-            <div style={{ width: `${hpPercent}%`, height: "100%", background: hpPercent > 50 ? "#4a7c2a" : hpPercent > 25 ? "#c9a84c" : "#e74c3c", borderRadius: "4px", transition: "width 0.3s" }} />
-          </div>
-        </div>
+        <HpManager character={character} />
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
