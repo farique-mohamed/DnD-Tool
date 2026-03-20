@@ -157,8 +157,8 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 | `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Monster list with fuzzy search bar (mock data) |
 | `/dm/rules` | `src/pages/dm/rules/index.tsx` | Yes | DUNGEON_MASTER | Rules for DM list skeleton |
 | `/rules` | `src/pages/rules/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Rules for players list skeleton |
-| `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list with link to creation |
-| `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character creation form (name, race, class, backstory) |
+| `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list — fetches from `character.list`, shows `CharacterCard` per character with ability scores and combat stats; empty state with CTA |
+| `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Full character creation form (name, race, class, level, alignment, STR/DEX/CON/INT/WIS/CHA, HP, AC, speed, backstory); wired to `character.create` mutation; includes `ThisIsYourLifeGenerator` |
 
 ---
 
