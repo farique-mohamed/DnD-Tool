@@ -4,6 +4,7 @@ import { userRouter } from "./user";
 import { adminRouter } from "./admin";
 import { diceRouter } from "./dice";
 import { itemsRouter } from "./items";
+import { characterRouter } from "./character";
 
 export const appRouter = createTRPCRouter({
   auth: authRouter,
@@ -11,6 +12,7 @@ export const appRouter = createTRPCRouter({
   admin: adminRouter,
   dice: diceRouter,
   items: itemsRouter,
+  character: characterRouter,
 });
 
 export type AppRouter = typeof appRouter;

@@ -157,8 +157,10 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 | `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Monster list with fuzzy search bar (mock data) |
 | `/dm/rules` | `src/pages/dm/rules/index.tsx` | Yes | DUNGEON_MASTER | Rules for DM list skeleton |
 | `/rules` | `src/pages/rules/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Rules for players list skeleton |
-| `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list with link to creation |
-| `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character creation form (name, race, class, backstory) |
+| `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list — fetches from `character.list`, shows `CharacterCard` per character with ability scores and combat stats; empty state with CTA; each card navigates to `/characters/[id]` |
+| `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Full character creation form (name, race, class, level, alignment, STR/DEX/CON/INT/WIS/CHA, HP, AC, speed, backstory); wired to `character.create` mutation; includes `ThisIsYourLifeGenerator` |
+| `/characters/[id]` | `src/pages/characters/[id].tsx` | Yes | DUNGEON_MASTER, PLAYER | Character sheet — fetches from `character.getById`; shows header card with combat stats and HP bar, ability scores grid, saving throws with proficiency markers, skills list, and backstory |
+| `/spells` | `src/pages/spells/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Spell compendium — static SRD spell data from `src/lib/spellsData.ts`; filterable by class, level, and name search; spell cards show school, casting time, range, duration, description, and class tags |
 
 ---
 
@@ -170,8 +172,8 @@ Vertical sidebar (left side, 220px wide). Reads role from `useAuth()` and render
 
 Role → nav items mapping:
 - **ADMIN**: DM Requests, Global Settings
-- **DUNGEON_MASTER**: Adventures, Monster Manual, Rules For DM, Rules For Players, My Characters, Create New Character
-- **PLAYER**: Adventures, Rules For Players, My Characters, Create New Character
+- **DUNGEON_MASTER**: Adventures, Spells, Monster Manual, Item Vault, Rules For DM, Rules For Players, My Characters, Create New Character
+- **PLAYER**: Adventures, Spells, Rules For Players, My Characters, Create New Character
 
 ### `Layout` (`src/components/Layout.tsx`)
 

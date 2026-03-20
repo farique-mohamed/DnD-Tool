@@ -65,8 +65,9 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 |-------|-------|---------|
 | `User` | `"users"` | Auth identity, stores hashed password and role |
 | `DiceRoll` | `"dice_rolls"` | Persisted roll results — linked to `User`, stores diceType, result, optional label, optional adventureId |
+| `Character` | `"characters"` | Full D&D 5e character sheet — linked to `User`, stores identity, all six ability scores, and combat stats (HP, AC, speed) |
 
-See `dice-roller.md` for the full `DiceRoll` schema.
+See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
 
 ---
 

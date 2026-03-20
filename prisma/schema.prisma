@@ -31,6 +31,7 @@ model User {
   updatedAt  DateTime    @updatedAt
   dmRequests DmRequest[]
   diceRolls  DiceRoll[]
+  characters Character[]
 
   @@map("users")
 }
@@ -72,4 +73,38 @@ model Item {
   updatedAt   DateTime @updatedAt
 
   @@map("items")
+}
+
+model Character {
+  id           String   @id @default(cuid())
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+
+  // Basic info
+  name         String
+  race         String
+  characterClass String
+  level        Int      @default(1)
+  alignment    String   @default("True Neutral")
+  backstory    String?
+
+  // Ability scores (standard D&D 5e: 1–20)
+  strength     Int      @default(10)
+  dexterity    Int      @default(10)
+  constitution Int      @default(10)
+  intelligence Int      @default(10)
+  wisdom       Int      @default(10)
+  charisma     Int      @default(10)
+
+  // Derived combat stats
+  maxHp        Int      @default(10)
+  currentHp    Int      @default(10)
+  tempHp       Int      @default(0)
+  armorClass   Int      @default(10)
+  speed        Int      @default(30)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("characters")
 }
