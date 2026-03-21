@@ -35,6 +35,35 @@ export interface SkillChoices {
   from: string[];
 }
 
+export interface LevelFeature {
+  level: number;
+  featureName: string;
+  isSubclassFeature: boolean;
+}
+
+export interface SubclassInfo {
+  name: string;
+  shortName: string;
+  source: string;
+  features: LevelFeature[];
+}
+
+export interface FeatureEntry {
+  type: "text" | "list" | "section" | "inset";
+  text?: string;           // for "text" type
+  items?: string[];        // for "list" type
+  name?: string;           // for "section" / "inset"
+  children?: FeatureEntry[]; // for "section" / "inset"
+}
+
+export interface FeatureDescription {
+  name: string;
+  level: number;
+  entries: FeatureEntry[];
+  isSubclassFeature: boolean;
+  subclassName?: string;  // only set for subclass features
+}
+
 export interface ClassInfo {
   name: string;
   hitDie: string;
@@ -43,6 +72,10 @@ export interface ClassInfo {
   weaponProficiencies: string[];
   skillChoices: SkillChoices;
   description: string;
+  levelFeatures: LevelFeature[];
+  subclassTitle: string;
+  subclasses: SubclassInfo[];
+  featureDescriptions: FeatureDescription[];
 }
 
 const ABILITY_NAMES: Record<string, string> = {
@@ -58,6 +91,10 @@ function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
+type RawClassFeatureEntry =
+  | string
+  | { classFeature: string; gainSubclassFeature?: boolean };
+
 type RawClassEntry = {
   name: string;
   hd?: { number: number; faces: number };
@@ -67,6 +104,8 @@ type RawClassEntry = {
     weapons?: unknown[];
     skills?: unknown[];
   };
+  classFeatures?: RawClassFeatureEntry[];
+  subclassTitle?: string;
 };
 
 type RawFluffEntry = {
@@ -78,15 +117,183 @@ type RawFluffEntry = {
   }>;
 };
 
-type RawClassFile = { class: RawClassEntry[] };
+type RawSubclassEntry = {
+  name: string;
+  shortName?: string;
+  source: string;
+  className: string;
+  subclassFeatures?: string[];
+};
+
+type RawClassFile = {
+  class: RawClassEntry[];
+  subclass?: RawSubclassEntry[];
+  classFeature?: Array<{
+    name: string;
+    level: number;
+    entries?: unknown[];
+    source?: string;
+  }>;
+  subclassFeature?: Array<{
+    name: string;
+    level: number;
+    subclassShortName?: string;
+    entries?: unknown[];
+    source?: string;
+  }>;
+};
 type RawFluffFile = { classFluff: RawFluffEntry[] };
+
+// ---------------------------------------------------------------------------
+// Tag stripping
+// ---------------------------------------------------------------------------
+
+/**
+ * Strips all {@tag ...} template tags from a string.
+ * Rules:
+ *   {@item name|source|display}  -> display (or name)
+ *   {@i text}                    -> text
+ *   {@b text}                    -> text
+ *   {@dice expr|...|label}       -> label (or expr)
+ *   {@filter display|...}        -> display
+ *   {@spell name|...}            -> name
+ *   {@condition name|...}        -> name
+ *   {@classFeature name|...}     -> name
+ *   {@variantrule name|...}      -> name
+ *   anything else                -> first argument before |
+ */
+export function stripTags(text: string): string {
+  // Run in a loop to handle nested tags like {@i text {@variantrule ...}}
+  let result = text;
+  let prev: string;
+  do {
+    prev = result;
+    result = result.replace(/\{@(\w+)\s([^}]*)\}/g, (_match, tag: string, body: string) => {
+      const parts = body.split("|");
+      switch (tag) {
+        case "i":
+        case "italic":
+          return body;
+        case "b":
+        case "bold":
+          return body;
+        case "item":
+          // {@item name|source|display} — use display (index 2) or name (index 0)
+          return (parts[2] ?? parts[0] ?? body).trim();
+        case "dice":
+        case "damage":
+        case "hit":
+        case "d20":
+          // Use label (last part) if available, else first (the expression)
+          return (parts[parts.length - 1] !== parts[0] ? parts[parts.length - 1] : parts[0] ?? body).trim();
+        case "filter":
+          // {@filter display|...} — first part is display label
+          return (parts[0] ?? body).trim();
+        default:
+          // Many tags follow name|source|display convention — prefer display (index 2), else name (index 0)
+          return (parts[2] ?? parts[0] ?? body).trim();
+      }
+    });
+  } while (result !== prev);
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Entry parsing
+// ---------------------------------------------------------------------------
+
+/**
+ * Converts a raw mixed-content entries array to a typed FeatureEntry[].
+ */
+export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
+  const result: FeatureEntry[] = [];
+
+  for (const raw of rawEntries) {
+    if (typeof raw === "string") {
+      const cleaned = stripTags(raw);
+      if (cleaned.trim()) {
+        result.push({ type: "text", text: cleaned });
+      }
+    } else if (typeof raw === "object" && raw !== null) {
+      const obj = raw as Record<string, unknown>;
+      const type = typeof obj.type === "string" ? obj.type : null;
+
+      if (type === "list") {
+        const rawItems = Array.isArray(obj.items) ? obj.items : [];
+        const items: string[] = [];
+        for (const item of rawItems) {
+          if (typeof item === "string") {
+            items.push(stripTags(item));
+          } else if (typeof item === "object" && item !== null) {
+            const itemObj = item as Record<string, unknown>;
+            // Some items have an "entry" or "name" field
+            if (typeof itemObj.entry === "string") {
+              items.push(stripTags(itemObj.entry));
+            } else if (typeof itemObj.name === "string") {
+              const namePart = stripTags(itemObj.name);
+              const entryPart = typeof itemObj.entries === "object" && Array.isArray(itemObj.entries)
+                ? parseEntries(itemObj.entries as unknown[]).map(e => e.text ?? "").join(" ")
+                : "";
+              items.push(entryPart ? `${namePart}: ${entryPart}` : namePart);
+            }
+          }
+        }
+        if (items.length > 0) {
+          result.push({ type: "list", items });
+        }
+      } else if (type === "entries") {
+        const name = typeof obj.name === "string" ? stripTags(obj.name) : undefined;
+        const children = Array.isArray(obj.entries)
+          ? parseEntries(obj.entries as unknown[])
+          : [];
+        if (children.length > 0) {
+          result.push({ type: "section", name, children });
+        }
+      } else if (type === "inset" || type === "insetReadaloud") {
+        const name = typeof obj.name === "string" ? stripTags(obj.name) : undefined;
+        const children = Array.isArray(obj.entries)
+          ? parseEntries(obj.entries as unknown[])
+          : [];
+        if (children.length > 0) {
+          result.push({ type: "inset", name, children });
+        }
+      } else if (
+        type === "refClassFeature" ||
+        type === "refSubclassFeature" ||
+        type === "options" ||
+        type === "table" ||
+        type === "abilityDc" ||
+        type === "abilityAttackMod" ||
+        type === "bonus" ||
+        type === "bonusSpeed"
+      ) {
+        // Skip reference/structural types — they're resolved elsewhere
+      } else if (type === "section") {
+        // Top-level section — recurse
+        const children = Array.isArray(obj.entries)
+          ? parseEntries(obj.entries as unknown[])
+          : [];
+        const name = typeof obj.name === "string" ? stripTags(obj.name) : undefined;
+        if (children.length > 0) {
+          result.push({ type: "section", name, children });
+        }
+      }
+      // Any other unknown types: skip
+    }
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Proficiency/armor/weapon/skill extraction (unchanged)
+// ---------------------------------------------------------------------------
 
 function extractArmorProficiencies(armor: unknown[] | undefined): string[] {
   if (!armor) return [];
   return armor
     .map((a) => {
       if (typeof a === "string") {
-        // Handle special strings like "{@item shield}"
         if (a.toLowerCase().includes("shield")) return "shields";
         return capitalize(a);
       }
@@ -96,7 +303,6 @@ function extractArmorProficiencies(armor: unknown[] | undefined): string[] {
           return capitalize(obj.proficiency);
         }
         if (typeof obj.full === "string") {
-          // e.g. druid's shield entry with note
           return "Shields";
         }
       }
@@ -110,9 +316,7 @@ function extractWeaponProficiencies(weapons: unknown[] | undefined): string[] {
   return weapons
     .map((w) => {
       if (typeof w === "string") {
-        // Plain strings: "simple", "martial", or {@item ...} reference
         if (w === "simple" || w === "martial") return capitalize(w) + " weapons";
-        // Strip {@item name|source|display} tags — take the display name or item name
         const tagMatch = /\{@item [^|]+\|[^|]*\|([^}]+)\}/.exec(w);
         if (tagMatch) return capitalize(tagMatch[1]);
         const nameMatch = /\{@item ([^|]+)/.exec(w);
@@ -148,7 +352,6 @@ function extractSkillChoices(skills: unknown[] | undefined): SkillChoices {
         : [];
       return { count, from };
     }
-    // bard uses { "any": N } — pick any N skills
     if (typeof obj.any === "number") {
       return { count: obj.any, from: ["Any skill"] };
     }
@@ -165,6 +368,146 @@ function extractDescription(fluffFile: RawFluffFile): string {
   return typeof firstString === "string" ? firstString : "";
 }
 
+// ---------------------------------------------------------------------------
+// Class feature string parsing (unchanged)
+// ---------------------------------------------------------------------------
+
+function parseClassFeatureString(raw: string): { featureName: string; level: number } | null {
+  const parts = raw.split("|");
+  const featureName = parts[0] ?? "";
+  const levelStr = parts[3] ?? "";
+  const level = parseInt(levelStr, 10);
+  if (!featureName || isNaN(level)) return null;
+  return { featureName, level };
+}
+
+function parseSubclassFeatureString(raw: string): { featureName: string; level: number } | null {
+  const parts = raw.split("|");
+  const featureName = parts[0] ?? "";
+  const levelStr = parts[5] ?? "";
+  const level = parseInt(levelStr, 10);
+  if (!featureName || isNaN(level)) return null;
+  return { featureName, level };
+}
+
+function extractLevelFeatures(classFeatures: RawClassFeatureEntry[] | undefined): LevelFeature[] {
+  if (!classFeatures) return [];
+
+  const features: LevelFeature[] = [];
+
+  for (const entry of classFeatures) {
+    if (typeof entry === "string") {
+      const parsed = parseClassFeatureString(entry);
+      if (parsed) {
+        features.push({
+          level: parsed.level,
+          featureName: parsed.featureName,
+          isSubclassFeature: false,
+        });
+      }
+    } else if (typeof entry === "object" && entry !== null) {
+      const raw = entry.classFeature;
+      const parsed = parseClassFeatureString(raw);
+      if (parsed) {
+        features.push({
+          level: parsed.level,
+          featureName: parsed.featureName,
+          isSubclassFeature: entry.gainSubclassFeature === true,
+        });
+      }
+    }
+  }
+
+  return features;
+}
+
+function extractSubclasses(subclassEntries: RawSubclassEntry[] | undefined): SubclassInfo[] {
+  if (!subclassEntries) return [];
+
+  const seen = new Set<string>();
+  const result: SubclassInfo[] = [];
+
+  for (const entry of subclassEntries) {
+    if (!entry.subclassFeatures) continue;
+    if (seen.has(entry.name)) continue;
+    seen.add(entry.name);
+
+    const features: LevelFeature[] = [];
+    for (const featureStr of entry.subclassFeatures) {
+      const parsed = parseSubclassFeatureString(featureStr);
+      if (parsed) {
+        features.push({
+          level: parsed.level,
+          featureName: parsed.featureName,
+          isSubclassFeature: true,
+        });
+      }
+    }
+
+    result.push({
+      name: entry.name,
+      shortName: entry.shortName ?? entry.name,
+      source: entry.source,
+      features,
+    });
+  }
+
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// Feature description extraction
+// ---------------------------------------------------------------------------
+
+function extractFeatureDescriptions(classFile: RawClassFile): FeatureDescription[] {
+  const descriptions: FeatureDescription[] = [];
+  const seen = new Set<string>();
+
+  // Base class features
+  for (const feat of classFile.classFeature ?? []) {
+    if (feat.level == null) continue;
+    const key = `${feat.name}|${feat.level}|base`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const entries = parseEntries(feat.entries ?? []);
+    if (entries.length > 0) {
+      descriptions.push({
+        name: feat.name,
+        level: feat.level,
+        entries,
+        isSubclassFeature: false,
+      });
+    }
+  }
+
+  // Subclass features
+  for (const feat of classFile.subclassFeature ?? []) {
+    if (feat.level == null) continue;
+    const subclassName = feat.subclassShortName ?? "";
+    const key = `${feat.name}|${feat.level}|${subclassName}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+
+    const entries = parseEntries(feat.entries ?? []);
+    if (entries.length > 0) {
+      descriptions.push({
+        name: feat.name,
+        level: feat.level,
+        entries,
+        isSubclassFeature: true,
+        subclassName,
+      });
+    }
+  }
+
+  return descriptions;
+}
+
+// ---------------------------------------------------------------------------
+// Build ClassInfo
+// ---------------------------------------------------------------------------
+
 function buildClassInfo(
   classFile: RawClassFile,
   fluffFile: RawFluffFile,
@@ -179,6 +522,10 @@ function buildClassInfo(
   const weaponProficiencies = extractWeaponProficiencies(sp?.weapons);
   const skillChoices = extractSkillChoices(sp?.skills);
   const description = extractDescription(fluffFile as RawFluffFile);
+  const levelFeatures = extractLevelFeatures(cls.classFeatures);
+  const subclassTitle = cls.subclassTitle ?? "Subclass";
+  const subclasses = extractSubclasses(classFile.subclass);
+  const featureDescriptions = extractFeatureDescriptions(classFile);
 
   return {
     name: cls.name,
@@ -188,6 +535,10 @@ function buildClassInfo(
     weaponProficiencies,
     skillChoices,
     description,
+    levelFeatures,
+    subclassTitle,
+    subclasses,
+    featureDescriptions,
   };
 }
 

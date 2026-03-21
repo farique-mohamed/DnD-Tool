@@ -21,14 +21,14 @@ function decodeToken(token: string): AuthUser | null {
 }
 
 export function useAuth() {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    if (typeof window === "undefined") return null;
+    const token = localStorage.getItem("dnd_token");
+    return token ? decodeToken(token) : null;
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const token = localStorage.getItem("dnd_token");
-    if (token) {
-      setUser(decodeToken(token));
-    }
     setIsLoading(false);
   }, []);
 
