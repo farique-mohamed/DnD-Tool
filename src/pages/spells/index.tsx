@@ -693,185 +693,217 @@ function SpellsContent() {
               }}
             />
 
-            {/* Source filter */}
+            {/* 2-column grid: filters (left) | spell list (right) */}
             <div
               style={{
-                background: "rgba(0,0,0,0.4)",
-                border: `1px solid ${GOLD_BORDER}`,
-                borderRadius: "8px",
-                padding: "10px 12px",
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  color: "#b8934a",
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  fontFamily: SERIF,
-                  marginBottom: "7px",
-                }}
-              >
-                Source
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                <button
-                  onClick={() => handleSourceFilter(null)}
-                  style={makeChipStyle(selectedSource === null)}
-                >
-                  All
-                </button>
-                {SPELL_SOURCES.map((src) => (
-                  <button
-                    key={src}
-                    onClick={() =>
-                      handleSourceFilter(selectedSource === src ? null : src)
-                    }
-                    style={makeChipStyle(selectedSource === src)}
-                  >
-                    {src}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Class filter */}
-            <div
-              style={{
-                background: "rgba(0,0,0,0.4)",
-                border: `1px solid ${GOLD_BORDER}`,
-                borderRadius: "8px",
-                padding: "10px 12px",
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  color: "#b8934a",
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  fontFamily: SERIF,
-                  marginBottom: "7px",
-                }}
-              >
-                Class
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                <button
-                  onClick={() => handleClassFilter(null)}
-                  style={makeChipStyle(selectedClass === null)}
-                >
-                  All
-                </button>
-                {SPELL_CLASSES.map((cls) => (
-                  <button
-                    key={cls}
-                    onClick={() =>
-                      handleClassFilter(selectedClass === cls ? null : cls)
-                    }
-                    style={makeChipStyle(selectedClass === cls)}
-                  >
-                    {cls}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Level filter */}
-            <div
-              style={{
-                background: "rgba(0,0,0,0.4)",
-                border: `1px solid ${GOLD_BORDER}`,
-                borderRadius: "8px",
-                padding: "10px 12px",
-                flexShrink: 0,
-              }}
-            >
-              <div
-                style={{
-                  color: "#b8934a",
-                  fontSize: "9px",
-                  textTransform: "uppercase",
-                  letterSpacing: "0.08em",
-                  fontFamily: SERIF,
-                  marginBottom: "7px",
-                }}
-              >
-                Level
-              </div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
-                <button
-                  onClick={() => handleLevelFilter(null)}
-                  style={makeChipStyle(selectedLevel === null)}
-                >
-                  All
-                </button>
-                {availableLevels.map((level) => (
-                  <button
-                    key={level}
-                    onClick={() =>
-                      handleLevelFilter(selectedLevel === level ? null : level)
-                    }
-                    style={makeChipStyle(selectedLevel === level)}
-                  >
-                    {levelLabelFull(level)}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {/* Results count */}
-            <div
-              style={{
-                color: GOLD_MUTED,
-                fontSize: "11px",
-                fontFamily: SERIF,
-                textAlign: "right",
-                flexShrink: 0,
-              }}
-            >
-              {filteredSpells.length} spell{filteredSpells.length !== 1 ? "s" : ""}
-            </div>
-
-            {/* Spell list — takes remaining flex space */}
-            <div
-              style={{
-                background: "rgba(0,0,0,0.5)",
-                border: `1px solid ${GOLD_BORDER}`,
-                borderRadius: "8px",
-                overflow: "hidden",
+                display: "grid",
+                gridTemplateColumns: "300px 1fr",
+                gridTemplateRows: "auto auto 1fr",
+                gap: "8px",
                 flex: 1,
-                overflowY: "auto",
                 minHeight: 0,
+                overflow: "hidden",
               }}
             >
-              {filteredSpells.length === 0 ? (
-                <div style={{ padding: "24px 16px", textAlign: "center" }}>
-                  <p
-                    style={{
-                      color: GOLD_MUTED,
-                      fontSize: "13px",
-                      fontFamily: SERIF,
-                    }}
-                  >
-                    No spells match your filters.
-                  </p>
+              {/* C1:R1 — Source filter */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: `1px solid ${GOLD_BORDER}`,
+                  borderRadius: "8px",
+                  padding: "10px 12px",
+                  gridColumn: 1,
+                  gridRow: 1,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#b8934a",
+                    fontSize: "9px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontFamily: SERIF,
+                    marginBottom: "7px",
+                  }}
+                >
+                  Source
                 </div>
-              ) : (
-                filteredSpells.map((spell) => (
-                  <SpellRow
-                    key={`${spell.name}|${spell.source}`}
-                    spell={spell}
-                    isActive={
-                      selectedSpell?.name === spell.name &&
-                      selectedSpell?.source === spell.source
-                    }
-                    onClick={() => handleSelect(spell)}
-                  />
-                ))
-              )}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                  <button
+                    onClick={() => handleSourceFilter(null)}
+                    style={makeChipStyle(selectedSource === null)}
+                  >
+                    All
+                  </button>
+                  {SPELL_SOURCES.map((src) => (
+                    <button
+                      key={src}
+                      onClick={() =>
+                        handleSourceFilter(selectedSource === src ? null : src)
+                      }
+                      style={makeChipStyle(selectedSource === src)}
+                    >
+                      {src}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* C1:R2 — Class filter */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: `1px solid ${GOLD_BORDER}`,
+                  borderRadius: "8px",
+                  padding: "10px 12px",
+                  gridColumn: 1,
+                  gridRow: 2,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#b8934a",
+                    fontSize: "9px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontFamily: SERIF,
+                    marginBottom: "7px",
+                  }}
+                >
+                  Class
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                  <button
+                    onClick={() => handleClassFilter(null)}
+                    style={makeChipStyle(selectedClass === null)}
+                  >
+                    All
+                  </button>
+                  {SPELL_CLASSES.map((cls) => (
+                    <button
+                      key={cls}
+                      onClick={() =>
+                        handleClassFilter(selectedClass === cls ? null : cls)
+                      }
+                      style={makeChipStyle(selectedClass === cls)}
+                    >
+                      {cls}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* C1:R3 — Level filter */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: `1px solid ${GOLD_BORDER}`,
+                  borderRadius: "8px",
+                  padding: "10px 12px",
+                  gridColumn: 1,
+                  gridRow: 3,
+                  overflow: "hidden",
+                }}
+              >
+                <div
+                  style={{
+                    color: "#b8934a",
+                    fontSize: "9px",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    fontFamily: SERIF,
+                    marginBottom: "7px",
+                  }}
+                >
+                  Level
+                </div>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px" }}>
+                  <button
+                    onClick={() => handleLevelFilter(null)}
+                    style={makeChipStyle(selectedLevel === null)}
+                  >
+                    All
+                  </button>
+                  {availableLevels.map((level) => (
+                    <button
+                      key={level}
+                      onClick={() =>
+                        handleLevelFilter(selectedLevel === level ? null : level)
+                      }
+                      style={makeChipStyle(selectedLevel === level)}
+                    >
+                      {levelLabelFull(level)}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* C2:R1-R3 — Spell list (spans all 3 rows) */}
+              <div
+                style={{
+                  gridColumn: 2,
+                  gridRow: "1 / 4",
+                  display: "flex",
+                  flexDirection: "column",
+                  minHeight: 0,
+                  overflow: "hidden",
+                }}
+              >
+                {/* Results count */}
+                <div
+                  style={{
+                    color: GOLD_MUTED,
+                    fontSize: "11px",
+                    fontFamily: SERIF,
+                    textAlign: "right",
+                    flexShrink: 0,
+                    paddingBottom: "4px",
+                  }}
+                >
+                  {filteredSpells.length} spell{filteredSpells.length !== 1 ? "s" : ""}
+                </div>
+
+                {/* Scrollable list */}
+                <div
+                  style={{
+                    background: "rgba(0,0,0,0.5)",
+                    border: `1px solid ${GOLD_BORDER}`,
+                    borderRadius: "8px",
+                    overflow: "hidden",
+                    flex: 1,
+                    overflowY: "auto",
+                    minHeight: 0,
+                  }}
+                >
+                  {filteredSpells.length === 0 ? (
+                    <div style={{ padding: "24px 16px", textAlign: "center" }}>
+                      <p
+                        style={{
+                          color: GOLD_MUTED,
+                          fontSize: "13px",
+                          fontFamily: SERIF,
+                        }}
+                      >
+                        No spells match your filters.
+                      </p>
+                    </div>
+                  ) : (
+                    filteredSpells.map((spell) => (
+                      <SpellRow
+                        key={`${spell.name}|${spell.source}`}
+                        spell={spell}
+                        isActive={
+                          selectedSpell?.name === spell.name &&
+                          selectedSpell?.source === spell.source
+                        }
+                        onClick={() => handleSelect(spell)}
+                      />
+                    ))
+                  )}
+                </div>
+              </div>
             </div>
           </div>
 
