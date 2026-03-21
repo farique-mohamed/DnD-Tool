@@ -80,6 +80,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 - React hooks: `src/hooks/useHookName.ts`
 - Server utilities: `src/lib/utilityName.ts` (never imported client-side if using Node APIs)
 - Static data modules: `src/lib/featureData.ts` — import JSON directly (no `fs`), export typed arrays and helpers. Example: `src/lib/classData.ts` imports all 15 class JSON files from `data/class/` and exports `CLASS_LIST: ClassInfo[]` + `getClassByName(name)`.
+- `src/lib/dndTagParser.ts` — exports `parseTaggedText(text: string): string`. Converts 5etools `{@tag ...}` markup to readable plain text (e.g. `{@atkr m}` → `"Melee Attack:"`, `{@hit 7}` → `"+7"`, `{@h}14` → `"(avg. 14)"`, `{@recharge 5}` → `"(Recharge 5-6)"`, `{@actSave int}` → `"Intelligence saving throw"`, `{@actSaveFail}` → `"On a failed save,"`, `{@actSaveSuccess}` → `"On a successful save,"`, `{@actSaveSuccessOrFail}` → `"Regardless of the result,"`). Used in `bestiaryData.ts` when decoding action/trait text and spellcasting entries.
 
 ### Import alias
 `@/` maps to `src/`. Use it for all non-relative imports:

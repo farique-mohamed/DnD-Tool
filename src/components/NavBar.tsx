@@ -57,13 +57,15 @@ export function NavBar() {
     <nav
       style={{
         width: "220px",
-        minHeight: "100vh",
+        height: "100vh",
         background: "rgba(0,0,0,0.7)",
         borderRight: "1px solid rgba(201,168,76,0.3)",
         display: "flex",
         flexDirection: "column",
         fontFamily: "'Georgia', 'Times New Roman', serif",
         flexShrink: 0,
+        position: "sticky",
+        top: 0,
       }}
     >
       {/* Logo */}
@@ -100,7 +102,7 @@ export function NavBar() {
       </div>
 
       {/* Nav Items */}
-      <div style={{ flex: 1, padding: "16px 0" }}>
+      <div style={{ flex: 1, padding: "16px 0", overflowY: "auto" }}>
         {navItems.map((item) => {
           const isActive = router.pathname === item.href;
           return (
