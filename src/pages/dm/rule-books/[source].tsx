@@ -1,19 +1,21 @@
 import { useState } from "react";
+import { useRouter } from "next/router";
 import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import {
+  BOOK_LIST,
   DMG_2014_DATA,
   DMG_2024_DATA,
+  PHB_2014_DATA,
+  PHB_2024_DATA,
   type BookSection,
   type BookEntry,
 } from "@/lib/bookData";
 import { parseTaggedText } from "@/lib/dndTagParser";
 
-type Edition = "2014" | "2024";
-
 // ---------------------------------------------------------------------------
-// Recursive entry renderer (shared pattern)
+// Recursive entry renderer
 // ---------------------------------------------------------------------------
 
 function renderEntries(
@@ -39,7 +41,9 @@ function renderEntries(
 
     const e = entry as BookEntry;
 
-    if (e.type === "image") return null;
+    if (e.type === "image") {
+      return null;
+    }
 
     if (e.type === "entries" || e.type === "section") {
       const HeadingTag = (e.type === "section" || depth === 0) ? "h3" : "h4";
@@ -141,7 +145,8 @@ function renderEntries(
               {parseTaggedText(e.name)}
             </p>
           )}
-          {e.entries && renderEntries(e.entries as (BookEntry | string)[], depth + 1)}
+          {e.entries &&
+            renderEntries(e.entries as (BookEntry | string)[], depth + 1)}
         </aside>
       );
     }
@@ -150,7 +155,10 @@ function renderEntries(
       const colLabels = (e.colLabels ?? []) as string[];
       const rows = (e.rows ?? []) as unknown[][];
       return (
-        <div key={i} style={{ overflowX: "auto", marginBottom: "16px" }}>
+        <div
+          key={i}
+          style={{ overflowX: "auto", marginBottom: "16px" }}
+        >
           {e.caption && (
             <p
               style={{
@@ -204,7 +212,8 @@ function renderEntries(
                   <tr
                     key={j}
                     style={{
-                      background: j % 2 === 0 ? "rgba(0,0,0,0.2)" : "transparent",
+                      background:
+                        j % 2 === 0 ? "rgba(0,0,0,0.2)" : "transparent",
                     }}
                   >
                     {cells.map((cell, k) => (
@@ -245,7 +254,8 @@ function renderEntries(
             fontFamily: "'Georgia', 'Times New Roman', serif",
           }}
         >
-          {e.entries && renderEntries(e.entries as (BookEntry | string)[], depth + 1)}
+          {e.entries &&
+            renderEntries(e.entries as (BookEntry | string)[], depth + 1)}
           {e.by && (
             <footer
               style={{
@@ -255,134 +265,83 @@ function renderEntries(
                 fontStyle: "normal",
               }}
             >
-              — {parseTaggedText(e.by as string)}
+              — {parseTaggedText(e.by)}
             </footer>
           )}
         </blockquote>
       );
     }
 
+    // Unknown type — skip
     return null;
   });
 }
 
 // ---------------------------------------------------------------------------
-// Two-column book viewer
+// Book data lookup
 // ---------------------------------------------------------------------------
 
-function BookViewer({ data }: { data: BookSection[] }) {
-  const [selectedIndex, setSelectedIndex] = useState(0);
-  const selectedSection = data[selectedIndex] ?? null;
-
-  return (
-    <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
-      {/* Table of Contents */}
-      <div
-        style={{
-          flex: "0 0 240px",
-          minWidth: "200px",
-          maxWidth: "280px",
-          position: "sticky",
-          top: "24px",
-          maxHeight: "calc(100vh - 200px)",
-          overflowY: "auto",
-          background: "rgba(0,0,0,0.4)",
-          border: "1px solid rgba(201,168,76,0.2)",
-          borderRadius: "8px",
-          padding: "12px 0",
-        }}
-      >
-        <p
-          style={{
-            color: "#c9a84c",
-            fontSize: "11px",
-            letterSpacing: "1.2px",
-            textTransform: "uppercase",
-            padding: "0 14px 10px",
-            borderBottom: "1px solid rgba(201,168,76,0.15)",
-            marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
-          }}
-        >
-          Contents
-        </p>
-        {data.map((section, i) => {
-          const isActive = i === selectedIndex;
-          return (
-            <button
-              key={i}
-              onClick={() => setSelectedIndex(i)}
-              style={{
-                display: "block",
-                width: "100%",
-                textAlign: "left",
-                padding: "8px 14px",
-                background: isActive ? "rgba(201,168,76,0.15)" : "transparent",
-                border: "none",
-                borderLeft: isActive
-                  ? "2px solid #c9a84c"
-                  : "2px solid transparent",
-                color: isActive ? "#c9a84c" : "#e8d5a3",
-                fontSize: "13px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-                cursor: "pointer",
-                lineHeight: "1.4",
-                transition: "background 0.1s, color 0.1s",
-              }}
-            >
-              {section.name}
-            </button>
-          );
-        })}
-      </div>
-
-      {/* Content */}
-      <div style={{ flex: 3, minWidth: 0 }}>
-        {selectedSection && (
-          <div
-            style={{
-              background: "rgba(0,0,0,0.4)",
-              border: "1px solid rgba(201,168,76,0.2)",
-              borderRadius: "8px",
-              padding: "28px 32px",
-            }}
-          >
-            <h2
-              style={{
-                color: "#c9a84c",
-                fontSize: "20px",
-                fontWeight: "bold",
-                letterSpacing: "1.5px",
-                textTransform: "uppercase",
-                marginBottom: "20px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-              }}
-            >
-              {selectedSection.name}
-            </h2>
-            {selectedSection.entries &&
-              renderEntries(selectedSection.entries as (BookEntry | string)[], 0)}
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+const KEY_BOOKS: Record<string, BookSection[]> = {
+  dmg: DMG_2014_DATA,
+  xdmg: DMG_2024_DATA,
+  phb: PHB_2014_DATA,
+  xphb: PHB_2024_DATA,
+};
 
 // ---------------------------------------------------------------------------
-// Page content
+// Page component
 // ---------------------------------------------------------------------------
 
-function DmgContent() {
-  const [edition, setEdition] = useState<Edition>("2014");
+function BookDetailContent() {
+  const router = useRouter();
+  const source =
+    typeof router.query.source === "string" ? router.query.source : "";
 
-  const currentData: BookSection[] = edition === "2014" ? DMG_2014_DATA : DMG_2024_DATA;
+  const bookInfo = BOOK_LIST.find((b) => b.source === source);
+  const bookData = source in KEY_BOOKS ? KEY_BOOKS[source] : null;
+
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
+
+  const selectedSection = bookData?.[selectedSectionIndex] ?? null;
 
   return (
     <>
       <Head>
-        <title>Dungeon Master&apos;s Guide — DnD Tool</title>
+        <title>
+          {bookInfo ? bookInfo.name : "Rule Book"} — DnD Tool
+        </title>
       </Head>
+
+      {/* Breadcrumb */}
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "8px",
+          marginBottom: "20px",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontSize: "13px",
+          color: "#a89060",
+        }}
+      >
+        <button
+          onClick={() => void router.push("/dm/rule-books")}
+          style={{
+            background: "none",
+            border: "none",
+            color: "#c9a84c",
+            cursor: "pointer",
+            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontSize: "13px",
+            padding: "0",
+            textDecoration: "underline",
+          }}
+        >
+          Rule Books
+        </button>
+        <span>/</span>
+        <span>{bookInfo?.name ?? source}</span>
+      </div>
 
       <h1
         style={{
@@ -395,74 +354,146 @@ function DmgContent() {
           fontFamily: "'Georgia', 'Times New Roman', serif",
         }}
       >
-        Dungeon Master&apos;s Guide
+        {bookInfo?.name ?? source}
       </h1>
-      <p
-        style={{
-          color: "#a89060",
-          fontSize: "14px",
-          marginBottom: "20px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
-        }}
-      >
-        The sacred laws that govern those who weave the world.
-      </p>
-
-      {/* Edition tabs */}
-      <div
-        style={{
-          display: "flex",
-          gap: "8px",
-          marginBottom: "28px",
-        }}
-      >
-        {(["2014", "2024"] as Edition[]).map((ed) => {
-          const isActive = edition === ed;
-          return (
-            <button
-              key={ed}
-              onClick={() => setEdition(ed)}
-              style={{
-                padding: "6px 20px",
-                borderRadius: "20px",
-                border: isActive
-                  ? "1px solid #c9a84c"
-                  : "1px solid rgba(201,168,76,0.3)",
-                background: isActive ? "rgba(201,168,76,0.2)" : "transparent",
-                color: isActive ? "#c9a84c" : "#a89060",
-                fontSize: "13px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
-                cursor: "pointer",
-                letterSpacing: "0.5px",
-                transition: "all 0.15s",
-              }}
-            >
-              {ed}
-            </button>
-          );
-        })}
-      </div>
 
       <div
         style={{
           width: "80px",
           height: "2px",
           background: "#c9a84c",
-          marginBottom: "28px",
+          marginBottom: "32px",
           opacity: 0.6,
         }}
       />
 
-      <BookViewer data={currentData} />
+      {!bookData ? (
+        <div
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            border: "1px solid rgba(201,168,76,0.2)",
+            borderRadius: "12px",
+            padding: "60px 40px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              color: "#a89060",
+              fontSize: "14px",
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+            }}
+          >
+            Content coming soon for this tome.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
+          {/* Table of Contents — Left Panel */}
+          <div
+            style={{
+              flex: "0 0 240px",
+              minWidth: "200px",
+              maxWidth: "280px",
+              position: "sticky",
+              top: "24px",
+              maxHeight: "calc(100vh - 120px)",
+              overflowY: "auto",
+              background: "rgba(0,0,0,0.4)",
+              border: "1px solid rgba(201,168,76,0.2)",
+              borderRadius: "8px",
+              padding: "12px 0",
+            }}
+          >
+            <p
+              style={{
+                color: "#c9a84c",
+                fontSize: "11px",
+                letterSpacing: "1.2px",
+                textTransform: "uppercase",
+                padding: "0 14px 10px",
+                borderBottom: "1px solid rgba(201,168,76,0.15)",
+                marginBottom: "8px",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+              }}
+            >
+              Contents
+            </p>
+            {bookData.map((section, i) => {
+              const isActive = i === selectedSectionIndex;
+              return (
+                <button
+                  key={i}
+                  onClick={() => setSelectedSectionIndex(i)}
+                  style={{
+                    display: "block",
+                    width: "100%",
+                    textAlign: "left",
+                    padding: "8px 14px",
+                    background: isActive
+                      ? "rgba(201,168,76,0.15)"
+                      : "transparent",
+                    border: "none",
+                    borderLeft: isActive
+                      ? "2px solid #c9a84c"
+                      : "2px solid transparent",
+                    color: isActive ? "#c9a84c" : "#e8d5a3",
+                    fontSize: "13px",
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    cursor: "pointer",
+                    lineHeight: "1.4",
+                    transition: "background 0.1s, color 0.1s",
+                  }}
+                >
+                  {section.name}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Content — Right Panel */}
+          <div style={{ flex: 3, minWidth: 0 }}>
+            {selectedSection && (
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  borderRadius: "8px",
+                  padding: "28px 32px",
+                }}
+              >
+                <h2
+                  style={{
+                    color: "#c9a84c",
+                    fontSize: "20px",
+                    fontWeight: "bold",
+                    letterSpacing: "1.5px",
+                    textTransform: "uppercase",
+                    marginBottom: "20px",
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                  }}
+                >
+                  {selectedSection.name}
+                </h2>
+                {selectedSection.entries &&
+                  renderEntries(
+                    selectedSection.entries as (BookEntry | string)[],
+                    0,
+                  )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </>
   );
 }
 
-export default function RulesForDmPage() {
+export default function BookDetailPage() {
   return (
     <ProtectedRoute>
       <Layout>
-        <DmgContent />
+        <BookDetailContent />
       </Layout>
     </ProtectedRoute>
   );

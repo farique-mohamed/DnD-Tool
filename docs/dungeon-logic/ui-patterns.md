@@ -155,8 +155,10 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 | `/admin/settings` | `src/pages/admin/settings/index.tsx` | Yes | ADMIN | Blank global settings placeholder |
 | `/adventures` | `src/pages/adventures/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Adventure list placeholder |
 | `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Two-column layout: left panel has text search, CR dropdown filter, and a paginated monster list (80 per page) with CR badge + type subtitle per row; right panel shows full stat block — name, size/type/alignment, CR badge, source badge, AC/HP/speed, 6-ability grid with modifiers, saving throws, skills, damage/condition immunities, senses, languages, and collapsible action/legendary/reaction/bonus-action sections. Data sourced from `src/lib/bestiaryData.ts` (core MM + XMM + supplementals, ~3000 monsters). |
-| `/dm/rules` | `src/pages/dm/rules/index.tsx` | Yes | DUNGEON_MASTER | Rules for DM list skeleton |
-| `/rules` | `src/pages/rules/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Rules for players list skeleton |
+| `/dm/rule-books` | `src/pages/dm/rule-books/index.tsx` | Yes | DUNGEON_MASTER | DM-only Rule Books listing page — grid of all books from `src/lib/bookData.ts` `BOOK_LIST`, each card navigates to `/dm/rule-books/[source]`; role-guards redirect non-DM/non-admin users to `/unauthorized` |
+| `/dm/rule-books/[source]` | `src/pages/dm/rule-books/[source].tsx` | Yes | DUNGEON_MASTER | Individual book detail page — breadcrumb nav, two-column layout (sticky TOC left, recursive entry renderer right); statically imports dmg/xdmg/phb/xphb; shows "Content coming soon" for all other sources |
+| `/dm/rules` | `src/pages/dm/rules/index.tsx` | Yes | DUNGEON_MASTER | Dungeon Master's Guide — two edition tabs ("2014" / "2024") with two-column layout: sticky TOC (section names) on left, recursive content renderer on right; data from `DMG_2014_DATA` and `DMG_2024_DATA` in `src/lib/bookData.ts` |
+| `/rules` | `src/pages/rules/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Player's Handbook — two edition tabs ("2014" / "2024") with two-column layout: sticky TOC on left, recursive content renderer on right; data from `PHB_2014_DATA` and `PHB_2024_DATA` in `src/lib/bookData.ts` |
 | `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list — fetches from `character.list`, shows `CharacterCard` per character with ability scores and combat stats; empty state with CTA; each card navigates to `/characters/[id]` |
 | `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Full character creation form (name, race, class, level, alignment, STR/DEX/CON/INT/WIS/CHA, HP, AC, speed, backstory); wired to `character.create` mutation; includes `ThisIsYourLifeGenerator` |
 | `/characters/[id]` | `src/pages/characters/[id].tsx` | Yes | DUNGEON_MASTER, PLAYER | Character sheet — fetches from `character.getById`; shows header card with combat stats and HP bar, ability scores grid, saving throws with proficiency markers, skills list, and backstory |
@@ -173,7 +175,7 @@ Vertical sidebar (left side, 220px wide). Reads role from `useAuth()` and render
 
 Role → nav items mapping:
 - **ADMIN**: DM Requests, Global Settings
-- **DUNGEON_MASTER**: Adventures, Spells, Classes, Monster Manual, Item Vault, Rules For DM, Rules For Players, My Characters, Create New Character
+- **DUNGEON_MASTER**: Adventures, Spells, Classes, Monster Manual, Item Vault, Rule Books, Rules For DM, Rules For Players, My Characters, Create New Character
 - **PLAYER**: Adventures, Spells, Classes, Rules For Players, My Characters, Create New Character
 
 ### `Layout` (`src/components/Layout.tsx`)
