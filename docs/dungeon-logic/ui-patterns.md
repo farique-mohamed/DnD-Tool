@@ -154,7 +154,7 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 | `/admin/dm-requests` | `src/pages/admin/dm-requests/index.tsx` | Yes | ADMIN | DM request list with approve button + confirmation dialog; uses `admin.getDmRequests` + `admin.approveDmRequest` |
 | `/admin/settings` | `src/pages/admin/settings/index.tsx` | Yes | ADMIN | Blank global settings placeholder |
 | `/adventures` | `src/pages/adventures/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Adventure list placeholder |
-| `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Monster list with fuzzy search bar (mock data) |
+| `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Two-column layout: left panel has text search, CR dropdown filter, and a paginated monster list (80 per page) with CR badge + type subtitle per row; right panel shows full stat block — name, size/type/alignment, CR badge, source badge, AC/HP/speed, 6-ability grid with modifiers, saving throws, skills, damage/condition immunities, senses, languages, and collapsible action/legendary/reaction/bonus-action sections. Data sourced from `src/lib/bestiaryData.ts` (core MM + XMM + supplementals, ~3000 monsters). |
 | `/dm/rules` | `src/pages/dm/rules/index.tsx` | Yes | DUNGEON_MASTER | Rules for DM list skeleton |
 | `/rules` | `src/pages/rules/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Rules for players list skeleton |
 | `/characters` | `src/pages/characters/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Character list — fetches from `character.list`, shows `CharacterCard` per character with ability scores and combat stats; empty state with CTA; each card navigates to `/characters/[id]` |
