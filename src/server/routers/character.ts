@@ -175,6 +175,7 @@ export const characterRouter = createTRPCRouter({
         "Rage", "Second Wind", "Action Surge", "Indomitable", "Channel Divinity",
         "Wild Shape", "Lay on Hands", "Divine Sense", "Bardic Inspiration",
         "Arcane Recovery", "Countercharm", "Flurry of Blows", "Patient Defense", "Step of the Wind",
+        "Psionic Power",
       ];
       for (const f of LONG_REST_FEATURES) {
         if (f in featureUses) featureUses[f] = 0;

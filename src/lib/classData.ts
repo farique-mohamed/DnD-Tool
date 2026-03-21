@@ -421,7 +421,10 @@ function extractLevelFeatures(classFeatures: RawClassFeatureEntry[] | undefined)
   return features;
 }
 
-function extractSubclasses(subclassEntries: RawSubclassEntry[] | undefined): SubclassInfo[] {
+function extractSubclasses(
+  subclassEntries: RawSubclassEntry[] | undefined,
+  subclassFeatureEntries?: RawClassFile["subclassFeature"],
+): SubclassInfo[] {
   if (!subclassEntries) return [];
 
   const seen = new Set<string>();
@@ -433,6 +436,9 @@ function extractSubclasses(subclassEntries: RawSubclassEntry[] | undefined): Sub
     seen.add(entry.name);
 
     const features: LevelFeature[] = [];
+    const featureNameLevelKeys = new Set<string>();
+
+    // Add features listed in the subclass's subclassFeatures strings
     for (const featureStr of entry.subclassFeatures) {
       const parsed = parseSubclassFeatureString(featureStr);
       if (parsed) {
@@ -441,12 +447,31 @@ function extractSubclasses(subclassEntries: RawSubclassEntry[] | undefined): Sub
           featureName: parsed.featureName,
           isSubclassFeature: true,
         });
+        featureNameLevelKeys.add(`${parsed.featureName}|${parsed.level}`);
+      }
+    }
+
+    // Also include child sub-features from the raw subclassFeature array
+    // that belong to this subclass but aren't in the top-level list
+    // (e.g. "Psychic Teleportation" is a child of "Soul Blades" for Soulknife)
+    const shortName = entry.shortName ?? entry.name;
+    if (subclassFeatureEntries) {
+      for (const feat of subclassFeatureEntries) {
+        if (feat.subclassShortName !== shortName) continue;
+        const key = `${feat.name}|${feat.level}`;
+        if (featureNameLevelKeys.has(key)) continue;
+        featureNameLevelKeys.add(key);
+        features.push({
+          level: feat.level,
+          featureName: feat.name,
+          isSubclassFeature: true,
+        });
       }
     }
 
     result.push({
       name: entry.name,
-      shortName: entry.shortName ?? entry.name,
+      shortName,
       source: entry.source,
       features,
     });
@@ -524,7 +549,7 @@ function buildClassInfo(
   const description = extractDescription(fluffFile as RawFluffFile);
   const levelFeatures = extractLevelFeatures(cls.classFeatures);
   const subclassTitle = cls.subclassTitle ?? "Subclass";
-  const subclasses = extractSubclasses(classFile.subclass);
+  const subclasses = extractSubclasses(classFile.subclass, classFile.subclassFeature);
   const featureDescriptions = extractFeatureDescriptions(classFile);
 
   return {
