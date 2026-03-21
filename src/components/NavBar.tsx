@@ -20,6 +20,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Classes", href: "/classes" },
         { label: "Monster Manual", href: "/dm/monster-manual" },
         { label: "Item Vault", href: "/items" },
+        { label: "Rule Books", href: "/dm/rule-books" },
         { label: "Rules For DM", href: "/dm/rules" },
         { label: "Rules For Players", href: "/rules" },
         { label: "My Characters", href: "/characters" },
