@@ -5,11 +5,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import {
   BOOK_LIST,
-  DMG_2014_DATA,
-  DMG_2024_DATA,
-  PHB_2014_DATA,
-  PHB_2024_DATA,
-  type BookSection,
+  BOOK_DATA_MAP,
   type BookEntry,
 } from "@/lib/bookData";
 import { parseTaggedText } from "@/lib/dndTagParser";
@@ -281,12 +277,6 @@ function renderEntries(
 // Book data lookup
 // ---------------------------------------------------------------------------
 
-const KEY_BOOKS: Record<string, BookSection[]> = {
-  dmg: DMG_2014_DATA,
-  xdmg: DMG_2024_DATA,
-  phb: PHB_2014_DATA,
-  xphb: PHB_2024_DATA,
-};
 
 // ---------------------------------------------------------------------------
 // Page component
@@ -298,7 +288,7 @@ function BookDetailContent() {
     typeof router.query.source === "string" ? router.query.source : "";
 
   const bookInfo = BOOK_LIST.find((b) => b.source === source);
-  const bookData = source in KEY_BOOKS ? KEY_BOOKS[source] : null;
+  const bookData = source in BOOK_DATA_MAP ? BOOK_DATA_MAP[source] ?? null : null;
 
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 
@@ -445,7 +435,7 @@ function BookDetailContent() {
                     transition: "background 0.1s, color 0.1s",
                   }}
                 >
-                  {section.name}
+                  {section.name ?? `Section ${i + 1}`}
                 </button>
               );
             })}
@@ -473,7 +463,7 @@ function BookDetailContent() {
                     fontFamily: "'Georgia', 'Times New Roman', serif",
                   }}
                 >
-                  {selectedSection.name}
+                  {selectedSection.name ?? ""}
                 </h2>
                 {selectedSection.entries &&
                   renderEntries(
