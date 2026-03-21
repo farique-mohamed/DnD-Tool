@@ -79,6 +79,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 - Reusable components: `src/components/ComponentName.tsx`
 - React hooks: `src/hooks/useHookName.ts`
 - Server utilities: `src/lib/utilityName.ts` (never imported client-side if using Node APIs)
+- Static data modules: `src/lib/featureData.ts` — import JSON directly (no `fs`), export typed arrays and helpers. Example: `src/lib/classData.ts` imports all 15 class JSON files from `data/class/` and exports `CLASS_LIST: ClassInfo[]` + `getClassByName(name)`.
 
 ### Import alias
 `@/` maps to `src/`. Use it for all non-relative imports:

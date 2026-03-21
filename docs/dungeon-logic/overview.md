@@ -27,7 +27,9 @@ src/
 │   ├── index.tsx             # Login / Register page (public)
 │   ├── dashboard/
 │   │   └── index.tsx         # Main dashboard (protected, role-aware greeting)
-│   └── unauthorized.tsx      # Auth guard fallback with D&D countdown
+│   ├── unauthorized.tsx       # Auth guard fallback with D&D countdown
+│   └── classes/
+│       └── index.tsx         # Class compendium (protected, DM + PLAYER)
 ├── components/
 │   ├── ProtectedRoute.tsx    # Reusable auth wrapper for any page
 │   ├── NavBar.tsx            # Vertical sidebar navigation (role-aware)
@@ -38,7 +40,8 @@ src/
 ├── lib/
 │   ├── jwt.ts                # Server-only: signToken / verifyToken (includes role)
 │   ├── constants.ts          # USER_ROLES tuple + UserRoleType for type-safe role checks
-│   └── diceConstants.ts      # DICE_TYPES, DICE_SIDES, ROLL_LABELS, ROLL_MODES + type aliases (shared by router and component)
+│   ├── diceConstants.ts      # DICE_TYPES, DICE_SIDES, ROLL_LABELS, ROLL_MODES + type aliases (shared by router and component)
+│   └── classData.ts          # Static D&D 5e class data — imports data/class/ JSONs directly, exports CLASS_LIST + getClassByName
 ├── server/
 │   ├── db.ts                 # Prisma singleton
 │   ├── trpc.ts               # tRPC init, context, publicProcedure

@@ -17,6 +17,7 @@ function getNavItems(role: string): NavItem[] {
       return [
         { label: "Adventures", href: "/adventures" },
         { label: "Spells", href: "/spells" },
+        { label: "Classes", href: "/classes" },
         { label: "Monster Manual", href: "/dm/monster-manual" },
         { label: "Item Vault", href: "/items" },
         { label: "Rules For DM", href: "/dm/rules" },
@@ -29,6 +30,7 @@ function getNavItems(role: string): NavItem[] {
       return [
         { label: "Adventures", href: "/adventures" },
         { label: "Spells", href: "/spells" },
+        { label: "Classes", href: "/classes" },
         { label: "Rules For Players", href: "/rules" },
         { label: "My Characters", href: "/characters" },
         { label: "Create New Character", href: "/characters/new" },
