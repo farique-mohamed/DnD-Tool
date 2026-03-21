@@ -28,6 +28,10 @@ src/
 │   ├── dashboard/
 │   │   └── index.tsx         # Main dashboard (protected, role-aware greeting)
 │   ├── unauthorized.tsx       # Auth guard fallback with D&D countdown
+│   ├── dm/
+│   │   ├── adventure-books/
+│   │   │   ├── index.tsx     # Adventure books listing (DM-only)
+│   │   │   └── [source].tsx  # Adventure book detail — TOC + content (DM-only)
 │   └── classes/
 │       └── index.tsx         # Class compendium (protected, DM + PLAYER)
 ├── components/
