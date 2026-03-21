@@ -153,7 +153,9 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 | `/unauthorized` | `src/pages/unauthorized.tsx` | No | All | 10s countdown, D&D humour |
 | `/admin/dm-requests` | `src/pages/admin/dm-requests/index.tsx` | Yes | ADMIN | DM request list with approve button + confirmation dialog; uses `admin.getDmRequests` + `admin.approveDmRequest` |
 | `/admin/settings` | `src/pages/admin/settings/index.tsx` | Yes | ADMIN | Blank global settings placeholder |
-| `/adventures` | `src/pages/adventures/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Adventure list placeholder |
+| `/dm/adventure-books` | `src/pages/dm/adventure-books/index.tsx` | Yes | DUNGEON_MASTER | DM-only Adventure Books listing page — grid of all adventure source books from `src/lib/adventureData.ts` `ADVENTURE_LIST`, each card shows the adventure name and source badge and navigates to `/dm/adventure-books/[source]`; role-guards redirect non-DM/non-admin users to `/unauthorized` |
+| `/dm/adventure-books/[source]` | `src/pages/dm/adventure-books/[source].tsx` | Yes | DUNGEON_MASTER | Individual adventure book detail page — breadcrumb nav, two-column layout (sticky TOC left, recursive entry renderer right); loads data via `ADVENTURE_DATA_MAP` from `src/lib/adventureData.ts`; same recursive renderer as rule-books (handles strings, entries, sections, lists, insets, tables, quotes, skips images); role-guards redirect non-DM/non-admin users to `/unauthorized` |
+| `/adventures` | `src/pages/adventures/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | My Adventures — placeholder for DM-created campaigns; empty state with thematic message |
 | `/dm/monster-manual` | `src/pages/dm/monster-manual/index.tsx` | Yes | DUNGEON_MASTER | Two-column layout: left panel has text search, CR dropdown filter, and a paginated monster list (80 per page) with CR badge + type subtitle per row; right panel shows full stat block — name, size/type/alignment, CR badge, source badge, AC/HP/speed, 6-ability grid with modifiers, saving throws, skills, damage/condition immunities, senses, languages, and collapsible action/legendary/reaction/bonus-action sections. Data sourced from `src/lib/bestiaryData.ts` (core MM + XMM + supplementals, ~3000 monsters). |
 | `/dm/rule-books` | `src/pages/dm/rule-books/index.tsx` | Yes | DUNGEON_MASTER | DM-only Rule Books listing page — grid of all books from `src/lib/bookData.ts` `BOOK_LIST`, each card navigates to `/dm/rule-books/[source]`; role-guards redirect non-DM/non-admin users to `/unauthorized` |
 | `/dm/rule-books/[source]` | `src/pages/dm/rule-books/[source].tsx` | Yes | DUNGEON_MASTER | Individual book detail page — breadcrumb nav, two-column layout (sticky TOC left, recursive entry renderer right); loads data for all 53 books via `BOOK_DATA_MAP` from `src/lib/bookData.ts`; recursive renderer handles strings, entries, sections, lists, insets, tables, and quotes via `parseTaggedText` |
@@ -175,8 +177,8 @@ Vertical sidebar (left side, 220px wide). Reads role from `useAuth()` and render
 
 Role → nav items mapping:
 - **ADMIN**: DM Requests, Global Settings
-- **DUNGEON_MASTER**: Adventures, Spells, Classes, Monster Manual, Item Vault, Rule Books, Rules For DM, Rules For Players, My Characters, Create New Character
-- **PLAYER**: Adventures, Spells, Classes, Rules For Players, My Characters, Create New Character
+- **DUNGEON_MASTER**: Adventure Books, My Adventures, Spells, Classes, Monster Manual, Item Vault, Rule Books, Rules For DM, Rules For Players, My Characters, Create New Character
+- **PLAYER**: My Adventures, Spells, Classes, Rules For Players, My Characters, Create New Character
 
 ### `Layout` (`src/components/Layout.tsx`)
 

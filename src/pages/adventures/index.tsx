@@ -8,7 +8,7 @@ function AdventuresContent() {
   return (
     <>
       <Head>
-        <title>Adventures — DnD Tool</title>
+        <title>My Adventures — DnD Tool</title>
       </Head>
       <div style={{ maxWidth: "900px" }}>
         <h1
@@ -21,10 +21,10 @@ function AdventuresContent() {
             marginBottom: "8px",
           }}
         >
-          Adventures
+          My Adventures
         </h1>
         <p style={{ color: "#a89060", fontSize: "14px", marginBottom: "32px" }}>
-          Your ongoing quests and epic campaigns.
+          Your DM-created campaigns and ongoing quests.
         </p>
         <div
           style={{
