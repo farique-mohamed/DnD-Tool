@@ -5,11 +5,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { ThisIsYourLifeGenerator } from "@/components/ThisIsYourLifeGenerator";
 import { api } from "@/utils/api";
-
-const CHARACTER_CLASSES = [
-  "Barbarian", "Bard", "Cleric", "Druid", "Fighter",
-  "Monk", "Paladin", "Ranger", "Rogue", "Sorcerer", "Warlock", "Wizard",
-];
+import { CLASS_LIST, getClassByName } from "@/lib/classData";
 
 const CHARACTER_RACES = [
   "Human", "Elf", "Dwarf", "Halfling", "Gnome",
@@ -226,10 +222,22 @@ function CreateCharacterContent() {
                     </select>
                   </div>
                   <div>
-                    <label htmlFor="characterClass" style={labelStyle}>Class</label>
+                    <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "8px" }}>
+                      <label htmlFor="characterClass" style={{ ...labelStyle, marginBottom: 0 }}>Class</label>
+                      <a
+                        href="/classes"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", textDecoration: "none", letterSpacing: "0.3px" }}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#c9a84c"; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#a89060"; }}
+                      >
+                        Browse all classes →
+                      </a>
+                    </div>
                     <select id="characterClass" name="characterClass" value={form.characterClass} onChange={handleChange} style={{ ...inputStyle, cursor: "pointer" }} required disabled={isLoading}>
                       <option value="" disabled>Choose your calling...</option>
-                      {CHARACTER_CLASSES.map((c) => <option key={c} value={c} style={{ background: "#1a1a2e" }}>{c}</option>)}
+                      {CLASS_LIST.map((c) => <option key={c.name} value={c.name} style={{ background: "#1a1a2e" }}>{c.name}</option>)}
                     </select>
                   </div>
                 </div>
@@ -246,6 +254,58 @@ function CreateCharacterContent() {
                   </div>
                 </div>
               </div>
+
+              {/* Class info panel */}
+              {form.characterClass && (() => {
+                const classInfo = getClassByName(form.characterClass);
+                if (!classInfo) return null;
+                return (
+                  <div style={{
+                    background: "rgba(201,168,76,0.06)",
+                    border: "1px solid rgba(201,168,76,0.25)",
+                    borderRadius: "8px",
+                    padding: "16px 18px",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}>
+                    <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif", margin: 0 }}>
+                      {classInfo.name} — Class Overview
+                    </p>
+                    <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                      <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "3px 10px", color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+                        Hit Die: {classInfo.hitDie}
+                      </span>
+                      {classInfo.savingThrows.length > 0 && (
+                        <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "3px 10px", color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+                          Saves: {classInfo.savingThrows.join(", ")}
+                        </span>
+                      )}
+                    </div>
+                    {classInfo.armorProficiencies.length > 0 && (
+                      <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+                        <span style={{ color: "#c9a84c" }}>Armor:</span>{" "}
+                        {classInfo.armorProficiencies.join(", ")}
+                      </p>
+                    )}
+                    {classInfo.weaponProficiencies.length > 0 && (
+                      <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+                        <span style={{ color: "#c9a84c" }}>Weapons:</span>{" "}
+                        {classInfo.weaponProficiencies.join(", ")}
+                      </p>
+                    )}
+                    {classInfo.skillChoices.count > 0 && (
+                      <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+                        <span style={{ color: "#c9a84c" }}>Skills:</span>{" "}
+                        Choose {classInfo.skillChoices.count} from{" "}
+                        {classInfo.skillChoices.from.length > 0 && classInfo.skillChoices.from[0] !== "Any skill"
+                          ? classInfo.skillChoices.from.join(", ")
+                          : "any skill"}
+                      </p>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Ability Scores */}

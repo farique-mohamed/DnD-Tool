@@ -161,6 +161,7 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)"
 | `/characters/new` | `src/pages/characters/new/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Full character creation form (name, race, class, level, alignment, STR/DEX/CON/INT/WIS/CHA, HP, AC, speed, backstory); wired to `character.create` mutation; includes `ThisIsYourLifeGenerator` |
 | `/characters/[id]` | `src/pages/characters/[id].tsx` | Yes | DUNGEON_MASTER, PLAYER | Character sheet — fetches from `character.getById`; shows header card with combat stats and HP bar, ability scores grid, saving throws with proficiency markers, skills list, and backstory |
 | `/spells` | `src/pages/spells/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Spell compendium — static SRD spell data from `src/lib/spellsData.ts`; filterable by class, level, and name search; spell cards show school, casting time, range, duration, description, and class tags |
+| `/classes` | `src/pages/classes/index.tsx` | Yes | DUNGEON_MASTER, PLAYER | Class compendium — static 5e class data from `src/lib/classData.ts`; sidebar list of all 15 classes with detail panel showing hit die, saving throws, armor/weapon proficiencies, skill choices, and lore description |
 
 ---
 
@@ -172,8 +173,8 @@ Vertical sidebar (left side, 220px wide). Reads role from `useAuth()` and render
 
 Role → nav items mapping:
 - **ADMIN**: DM Requests, Global Settings
-- **DUNGEON_MASTER**: Adventures, Spells, Monster Manual, Item Vault, Rules For DM, Rules For Players, My Characters, Create New Character
-- **PLAYER**: Adventures, Spells, Rules For Players, My Characters, Create New Character
+- **DUNGEON_MASTER**: Adventures, Spells, Classes, Monster Manual, Item Vault, Rules For DM, Rules For Players, My Characters, Create New Character
+- **PLAYER**: Adventures, Spells, Classes, Rules For Players, My Characters, Create New Character
 
 ### `Layout` (`src/components/Layout.tsx`)
 
