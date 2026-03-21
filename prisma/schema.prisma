@@ -103,6 +103,13 @@ model Character {
   armorClass   Int      @default(10)
   speed        Int      @default(30)
 
+  // Character progression
+  subclass           String?
+  spellSlotsUsed     String  @default("[]")          // JSON: number[] (used per slot level 1-9)
+  skillProficiencies String  @default("[]")           // JSON: string[] of proficient skill names
+  preparedSpells     String  @default("[]")           // JSON: string[] of prepared/known spell names
+  featureUses        String  @default("{}")           // JSON: Record<string, number> feature name → used count
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

@@ -94,4 +94,183 @@ export const characterRouter = createTRPCRouter({
         data: { currentHp, tempHp },
       });
     }),
+
+  levelUp: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      newMaxHp: z.number().int().min(1),  // player confirms new max HP
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      if (character.level >= 20) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "Already at max level" });
+      }
+      // Reset spell slots and feature uses on level up
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: {
+          level: character.level + 1,
+          maxHp: input.newMaxHp,
+          currentHp: input.newMaxHp,  // full HP on level up
+          spellSlotsUsed: "[]",
+          featureUses: "{}",
+        },
+      });
+    }),
+
+  updateSpellSlots: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      spellSlotsUsed: z.array(z.number().int().min(0)).length(9),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { spellSlotsUsed: JSON.stringify(input.spellSlotsUsed) },
+      });
+    }),
+
+  updateSubclass: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      subclass: z.string().min(1),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { subclass: input.subclass },
+      });
+    }),
+
+  longRest: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+
+      // Parse existing featureUses, reset long-rest ones to 0
+      let featureUses: Record<string, number> = {};
+      try { featureUses = JSON.parse(character.featureUses || "{}") as Record<string, number>; } catch { /* empty */ }
+
+      const LONG_REST_FEATURES = [
+        "Rage", "Second Wind", "Action Surge", "Indomitable", "Channel Divinity",
+        "Wild Shape", "Lay on Hands", "Divine Sense", "Bardic Inspiration",
+        "Arcane Recovery", "Countercharm", "Flurry of Blows", "Patient Defense", "Step of the Wind",
+        "Psionic Power",
+      ];
+      for (const f of LONG_REST_FEATURES) {
+        if (f in featureUses) featureUses[f] = 0;
+      }
+
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: {
+          currentHp: character.maxHp,
+          tempHp: 0,
+          spellSlotsUsed: "[]",
+          featureUses: JSON.stringify(featureUses),
+        },
+      });
+    }),
+
+  shortRest: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      hpRecovered: z.number().int().min(0),  // result of hit dice rolled by player
+      isWarlock: z.boolean(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+
+      let featureUses: Record<string, number> = {};
+      try { featureUses = JSON.parse(character.featureUses || "{}") as Record<string, number>; } catch { /* empty */ }
+
+      const SHORT_REST_FEATURES = [
+        "Second Wind", "Action Surge", "Flurry of Blows", "Patient Defense", "Step of the Wind",
+      ];
+      for (const f of SHORT_REST_FEATURES) {
+        if (f in featureUses) featureUses[f] = 0;
+      }
+
+      const newHp = Math.min(character.maxHp, character.currentHp + input.hpRecovered);
+
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: {
+          currentHp: newHp,
+          ...(input.isWarlock ? { spellSlotsUsed: "[]" } : {}),
+          featureUses: JSON.stringify(featureUses),
+        },
+      });
+    }),
+
+  updateSkillProficiencies: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      skillProficiencies: z.array(z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { skillProficiencies: JSON.stringify(input.skillProficiencies) },
+      });
+    }),
+
+  updatePreparedSpells: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      preparedSpells: z.array(z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { preparedSpells: JSON.stringify(input.preparedSpells) },
+      });
+    }),
+
+  updateFeatureUses: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      featureUses: z.record(z.string(), z.number().int().min(0)),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { featureUses: JSON.stringify(input.featureUses) },
+      });
+    }),
 });

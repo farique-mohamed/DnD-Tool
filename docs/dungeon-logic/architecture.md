@@ -65,9 +65,26 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 |-------|-------|---------|
 | `User` | `"users"` | Auth identity, stores hashed password and role |
 | `DiceRoll` | `"dice_rolls"` | Persisted roll results — linked to `User`, stores diceType, result, optional label, optional adventureId |
-| `Character` | `"characters"` | Full D&D 5e character sheet — linked to `User`, stores identity, all six ability scores, and combat stats (HP, AC, speed) |
+| `Character` | `"characters"` | Full D&D 5e character sheet — linked to `User`, stores identity, all six ability scores, combat stats (HP, AC, speed), optional `subclass` (String), `spellSlotsUsed` (JSON string storing a number[9] of used slots per spell level 1–9), `skillProficiencies` (JSON string storing a string[] of proficient skill names), `preparedSpells` (JSON string storing a string[] of prepared/known spell names), and `featureUses` (JSON string storing a Record<string, number> of feature name → used count) |
 
 See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
+
+### Character tRPC procedures
+
+| Procedure | Type | Description |
+|-----------|------|-------------|
+| `character.create` | mutation | Create a new character for the authenticated user |
+| `character.list` | query | List all characters belonging to the authenticated user |
+| `character.getById` | query | Fetch a single character by id (must belong to the user) |
+| `character.updateHp` | mutation | Apply heal / damage / setTempHp to a character |
+| `character.levelUp` | mutation | Increment `level` by 1, set `maxHp` and `currentHp` to the player-supplied value, reset `spellSlotsUsed` to `[]`; rejects if already level 20 |
+| `character.updateSpellSlots` | mutation | Persist the current used-slot counts (array of 9 integers, one per spell level) |
+| `character.updateSubclass` | mutation | Set the character's chosen subclass name |
+| `character.longRest` | mutation | Reset HP to max, clear tempHp, reset all spell slots, and reset long-rest feature uses (Rage, Second Wind, Action Surge, Indomitable, Channel Divinity, Wild Shape, Lay on Hands, Divine Sense, Bardic Inspiration, Arcane Recovery, Countercharm, Flurry of Blows, Patient Defense, Step of the Wind) to 0 |
+| `character.shortRest` | mutation | Restore HP by a player-supplied hit-dice result, reset short-rest feature uses (Second Wind, Action Surge, Flurry of Blows, Patient Defense, Step of the Wind) to 0; if `isWarlock: true` also resets `spellSlotsUsed` for pact magic recovery |
+| `character.updateSkillProficiencies` | mutation | Persist the full list of proficient skill names as a JSON string[] |
+| `character.updatePreparedSpells` | mutation | Persist the full list of prepared/known spell names as a JSON string[] |
+| `character.updateFeatureUses` | mutation | Persist the complete feature-use map (Record<string, number>) for tracking per-rest feature consumption |
 
 ---
 
@@ -80,6 +97,8 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 - React hooks: `src/hooks/useHookName.ts`
 - Server utilities: `src/lib/utilityName.ts` (never imported client-side if using Node APIs)
 - Static data modules: `src/lib/featureData.ts` — import JSON directly (no `fs`), export typed arrays and helpers. Example: `src/lib/classData.ts` imports all 15 class JSON files from `data/class/` and exports `CLASS_LIST: ClassInfo[]` + `getClassByName(name)`. `src/lib/bookData.ts` imports all 53 book JSONs from `data/book/` and exports `BOOK_DATA_MAP: Record<string, BookSection[]>` (source code → data array), `BOOK_LIST: BookInfo[]`, and named exports `DMG_2014_DATA`, `DMG_2024_DATA`, `PHB_2014_DATA`, `PHB_2024_DATA` used by the rules pages. `src/lib/adventureData.ts` imports all 95 adventure JSONs from `data/adventure/` and exports `ADVENTURE_DATA_MAP: Record<string, AdventureSection[]>` (source code → sections array), `ADVENTURE_LIST: AdventureInfo[]` (source, name) — used by the adventure books listing and detail pages.
+- `src/lib/spellSlotData.ts` — spell slot tables for full/half/artificer/warlock casters; exports `getSpellSlots(className, level)` returning a 9-element array of total slots per spell level, `isSpellcaster(className)` returning true for classes with any spell slots, `isWarlock(className)` for Pact Magic handling, and `SPELLCASTING_TYPE: Record<string, SpellcastingType>` mapping class names to their casting type.
+- `src/lib/actionEconomy.ts` — action economy per class/level; exports `UNIVERSAL_ACTIONS: ActionEntry[]` (actions available to all characters), `CLASS_ACTIONS: Record<string, ClassActionEntry[]>` (class-specific actions keyed by class name, each with a `levelRequired` field), and `getCharacterActions(className, level)` which merges universal and class-specific actions available at the given level.
 - `src/lib/dndTagParser.ts` — exports `parseTaggedText(text: string): string`. Converts 5etools `{@tag ...}` markup to readable plain text (e.g. `{@atkr m}` → `"Melee Attack:"`, `{@hit 7}` → `"+7"`, `{@h}14` → `"(avg. 14)"`, `{@recharge 5}` → `"(Recharge 5-6)"`, `{@actSave int}` → `"Intelligence saving throw"`, `{@actSaveFail}` → `"On a failed save,"`, `{@actSaveSuccess}` → `"On a successful save,"`, `{@actSaveSuccessOrFail}` → `"Regardless of the result,"`). Used in `bestiaryData.ts` when decoding action/trait text and spellcasting entries.
 
 ### Import alias
