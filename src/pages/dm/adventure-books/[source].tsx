@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import Link from "next/link";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { api } from "@/utils/api";
 import {
   ADVENTURE_LIST,
   ADVENTURE_DATA_MAP,
@@ -293,6 +295,16 @@ function AdventureDetailContent() {
   const adventureInfo = ADVENTURE_LIST.find((a) => a.source === source);
   const adventureData = source in ADVENTURE_DATA_MAP ? ADVENTURE_DATA_MAP[source] ?? null : null;
 
+  const [showModal, setShowModal] = useState(false);
+  const [adventureName, setAdventureName] = useState("");
+  const [adventureCreated, setAdventureCreated] = useState(false);
+  const createAdventure = api.adventure.create.useMutation({
+    onSuccess: () => {
+      setAdventureCreated(true);
+      setShowModal(false);
+    },
+  });
+
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 
   const selectedSection = adventureData?.[selectedSectionIndex] ?? null;
@@ -355,10 +367,207 @@ function AdventureDetailContent() {
           width: "80px",
           height: "2px",
           background: "#c9a84c",
-          marginBottom: "32px",
+          marginBottom: "24px",
           opacity: 0.6,
         }}
       />
+
+      <div style={{ marginBottom: "24px" }}>
+        <button
+          disabled={createAdventure.isPending}
+          onClick={() => {
+            setAdventureName(adventureInfo?.name ?? source);
+            setAdventureCreated(false);
+            setShowModal(true);
+          }}
+          style={{
+            background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+            color: "#1a1a2e",
+            border: "none",
+            borderRadius: "6px",
+            padding: "12px 28px",
+            fontSize: "14px",
+            fontFamily: "'Georgia', serif",
+            fontWeight: "bold",
+            cursor: createAdventure.isPending ? "default" : "pointer",
+            letterSpacing: "0.5px",
+            opacity: createAdventure.isPending ? 0.8 : 1,
+          }}
+        >
+          Begin This Adventure
+        </button>
+
+        {adventureCreated && (
+          <p
+            style={{
+              color: "#4a8c3f",
+              fontSize: "13px",
+              fontFamily: "'Georgia', 'Times New Roman', serif",
+              marginTop: "10px",
+            }}
+          >
+            Your adventure has been created!{" "}
+            <Link
+              href="/adventures"
+              style={{
+                color: "#c9a84c",
+                textDecoration: "underline",
+              }}
+            >
+              View My Adventures
+            </Link>
+          </p>
+        )}
+      </div>
+
+      {/* Name Your Adventure Modal */}
+      {showModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1000,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => {
+            setShowModal(false);
+          }}
+        >
+          <div
+            style={{
+              background: "rgba(15,8,3,0.95)",
+              border: "2px solid #c9a84c",
+              borderRadius: "12px",
+              padding: "32px",
+              maxWidth: "460px",
+              width: "90%",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2
+              style={{
+                color: "#c9a84c",
+                fontSize: "18px",
+                fontWeight: "bold",
+                letterSpacing: "1.5px",
+                textTransform: "uppercase",
+                marginBottom: "20px",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+              }}
+            >
+              Name Your Adventure
+            </h2>
+
+            <label
+              htmlFor="adventure-name-input"
+              style={{
+                display: "block",
+                color: "#a89060",
+                fontSize: "12px",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                marginBottom: "8px",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Adventure Name
+            </label>
+            <input
+              id="adventure-name-input"
+              type="text"
+              value={adventureName}
+              onChange={(e) => setAdventureName(e.target.value)}
+              autoFocus
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && adventureName.trim()) {
+                  createAdventure.mutate({ name: adventureName.trim(), source });
+                }
+              }}
+              style={{
+                background: "rgba(30,15,5,0.9)",
+                border: "1px solid rgba(201,168,76,0.4)",
+                color: "#e8d5a3",
+                fontFamily: "'Georgia', serif",
+                borderRadius: "6px",
+                padding: "10px 14px",
+                width: "100%",
+                fontSize: "14px",
+                boxSizing: "border-box",
+                outline: "none",
+                marginBottom: "8px",
+              }}
+            />
+
+            {createAdventure.isError && (
+              <p
+                style={{
+                  color: "#c94c4c",
+                  fontSize: "13px",
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  marginBottom: "8px",
+                }}
+              >
+                Failed to create adventure. Please try again.
+              </p>
+            )}
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                gap: "12px",
+                marginTop: "20px",
+              }}
+            >
+              <button
+                onClick={() => {
+                  setShowModal(false);
+                }}
+                style={{
+                  background: "transparent",
+                  border: "1px solid rgba(201,168,76,0.5)",
+                  color: "#c9a84c",
+                  borderRadius: "4px",
+                  padding: "6px 16px",
+                  fontFamily: "'Georgia', serif",
+                  cursor: "pointer",
+                }}
+              >
+                Cancel
+              </button>
+              <button
+                disabled={createAdventure.isPending || !adventureName.trim()}
+                onClick={() => {
+                  createAdventure.mutate({ name: adventureName.trim(), source });
+                }}
+                style={{
+                  background:
+                    createAdventure.isPending || !adventureName.trim()
+                      ? "linear-gradient(135deg, #6b5210, #9a7a38)"
+                      : "linear-gradient(135deg, #8b6914, #c9a84c)",
+                  color: "#1a1a2e",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "12px 28px",
+                  fontSize: "14px",
+                  fontFamily: "'Georgia', serif",
+                  fontWeight: "bold",
+                  cursor:
+                    createAdventure.isPending || !adventureName.trim()
+                      ? "default"
+                      : "pointer",
+                  letterSpacing: "0.5px",
+                  opacity: createAdventure.isPending ? 0.8 : 1,
+                }}
+              >
+                {createAdventure.isPending ? "Summoning..." : "Create Adventure"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {!adventureData ? (
         <div

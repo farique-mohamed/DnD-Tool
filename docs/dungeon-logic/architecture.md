@@ -11,6 +11,7 @@ src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── auth              — authRouter (auth.login, auth.register)
        └── user              — userRouter (user.requestDungeonMaster)
        └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
+       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem)
        └── (future routers)  — add here and re-export AppRouter type
 
 src/pages/api/trpc/[trpc].ts — Next.js API route that handles all tRPC calls
@@ -66,6 +67,9 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 | `User`      | `"users"`      | Auth identity, stores hashed password and role                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
 | `DiceRoll`  | `"dice_rolls"` | Persisted roll results — linked to `User`, stores diceType, result, optional label, optional adventureId                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `Character` | `"characters"` | Full D&D 5e character sheet — linked to `User`, stores identity (including optional `background` String), `rulesSource` (String, default `"PHB"` — tracks which rulebook version the character uses: `"PHB"` for 2014, `"XPHB"` for 2024), all six ability scores, combat stats (HP, AC, speed), optional `subclass` (String), `spellSlotsUsed` (JSON string storing a number[9] of used slots per spell level 1–9), `skillProficiencies` (JSON string storing a string[] of proficient skill names), `skillExpertise` (JSON string storing a string[] of skill names with expertise — double proficiency bonus), `preparedSpells` (JSON string storing a string[] of prepared/known spell names), `featureUses` (JSON string storing a Record<string, number> of feature name → used count), `activeConditions` (JSON string storing a string[] of active condition/status names, default `"[]"`), `feats` (JSON string storing a string[] of feat names the character has taken, default `"[]"`), and `notes` (String, default `""` — free-text notes field for the player's personal journal) |
+| `Adventure` | `"adventures"` | DM-created adventure instance — linked to `User`, stores adventure `name` and book `source` code |
+| `AdventureMonster` | `"adventure_monsters"` | Monster assigned to an adventure — linked to `Adventure`, stores monster `name` and `source`; unique constraint on `[adventureId, name, source]` |
+| `AdventureItem` | `"adventure_items"` | Item assigned to an adventure — linked to `Adventure`, stores item `name` and `source`; unique constraint on `[adventureId, name, source]` |
 
 See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
 
@@ -91,6 +95,18 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `character.updateFeats`              | mutation | Persist the full list of feat names the character has taken as a JSON string[]                                                                                                                                                                                                                                          |
 | `character.updateNotes`              | mutation | Persist the character's free-text notes string                                                                                                                                                                                                                                                                          |
 
+### Adventure tRPC procedures
+
+| Procedure          | Type     | Description                                                                                          |
+| ------------------ | -------- | ---------------------------------------------------------------------------------------------------- |
+| `adventure.create`        | mutation | Create a new adventure for the authenticated user; restricted to DUNGEON_MASTER and ADMIN roles. Automatically extracts all `{@creature}` and `{@item}` references from the adventure book content via `extractAdventureReferences` and bulk-inserts them as `AdventureMonster` and `AdventureItem` records |
+| `adventure.list`          | query    | List all adventures belonging to the authenticated user                                              |
+| `adventure.getById`       | query    | Fetch a single adventure by id (must belong to the user), includes associated monsters and items     |
+| `adventure.addMonster`    | mutation | Add a monster to an adventure by name and source (from MONSTER_LIST); unique per adventure           |
+| `adventure.removeMonster` | mutation | Remove a monster from an adventure by name and source                                                |
+| `adventure.addItem`       | mutation | Add an item to an adventure by name and source (from ITEMS); unique per adventure                    |
+| `adventure.removeItem`    | mutation | Remove an item from an adventure by name and source                                                  |
+
 ---
 
 ## Conventions
@@ -112,6 +128,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 - `src/lib/featData.ts` — imports `data/feats.json` (226 raw feats, 214 after filtering out fighting styles), parses entries via `parseTaggedText`, and exports `Feat` interface (name, source, category, prerequisiteText, levelRequired, abilityBonus, entries), `FeatAbilityBonus` interface, `FEATS: Feat[]`, `getFeatsBySource(source)` (PHB returns 149 feats including supplements, XPHB returns 162 feats including supplements), and `getFeatByNameAndSource(name, source)`.
 - `src/lib/conditionData.ts` — imports `data/conditionsdiseases.json`, filters out diseases, and exports `CONDITIONS: Condition[]` (each with name, source, and parsed text entries), `getConditionsBySource(source)`, and `getConditionByName(name, source)`.
 - `src/lib/dndTagParser.ts` — exports `parseTaggedText(text: string): string`. Converts 5etools `{@tag ...}` markup to readable plain text (e.g. `{@atkr m}` → `"Melee Attack:"`, `{@hit 7}` → `"+7"`, `{@h}14` → `"(avg. 14)"`, `{@recharge 5}` → `"(Recharge 5-6)"`, `{@actSave int}` → `"Intelligence saving throw"`, `{@actSaveFail}` → `"On a failed save,"`, `{@actSaveSuccess}` → `"On a successful save,"`, `{@actSaveSuccessOrFail}` → `"Regardless of the result,"`). Used in `bestiaryData.ts` when decoding action/trait text and spellcasting entries.
+- `src/lib/adventureExtractor.ts` — parses adventure book JSON data for `{@creature}` and `{@item}` tags; exports `extractAdventureReferences(adventureSource)` which returns an `AdventureReferences` object containing deduplicated, alphabetically sorted arrays of `{ name, source }` for monsters and items. Used by `adventure.create` to auto-extract references at adventure creation time.
 
 ### Import alias
 
