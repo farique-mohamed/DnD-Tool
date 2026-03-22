@@ -3,36 +3,44 @@ import { TRPCError } from "@trpc/server";
 import { createTRPCRouter, protectedProcedure } from "../trpc";
 
 const ALIGNMENTS = [
-  "Lawful Good", "Neutral Good", "Chaotic Good",
-  "Lawful Neutral", "True Neutral", "Chaotic Neutral",
-  "Lawful Evil", "Neutral Evil", "Chaotic Evil",
+  "Lawful Good",
+  "Neutral Good",
+  "Chaotic Good",
+  "Lawful Neutral",
+  "True Neutral",
+  "Chaotic Neutral",
+  "Lawful Evil",
+  "Neutral Evil",
+  "Chaotic Evil",
 ] as const;
 
 const abilityScore = z.number().int().min(1).max(20);
 
 export const characterRouter = createTRPCRouter({
   create: protectedProcedure
-    .input(z.object({
-      name: z.string().min(1).max(100),
-      race: z.string().min(1),
-      characterClass: z.string().min(1),
-      rulesSource: z.enum(["PHB", "XPHB"]).default("PHB"),
-      level: z.literal(1).default(1),
-      alignment: z.enum(ALIGNMENTS).default("True Neutral"),
-      background: z.string().optional(),
-      backstory: z.string().optional(),
-      skillProficiencies: z.string().optional(),
-      skillExpertise: z.string().optional(),
-      strength: abilityScore.default(10),
-      dexterity: abilityScore.default(10),
-      constitution: abilityScore.default(10),
-      intelligence: abilityScore.default(10),
-      wisdom: abilityScore.default(10),
-      charisma: abilityScore.default(10),
-      maxHp: z.number().int().min(1).default(10),
-      armorClass: z.number().int().min(1).default(10),
-      speed: z.number().int().min(0).default(30),
-    }))
+    .input(
+      z.object({
+        name: z.string().min(1).max(100),
+        race: z.string().min(1),
+        characterClass: z.string().min(1),
+        rulesSource: z.enum(["PHB", "XPHB"]).default("PHB"),
+        level: z.literal(1).default(1),
+        alignment: z.enum(ALIGNMENTS).default("True Neutral"),
+        background: z.string().optional(),
+        backstory: z.string().optional(),
+        skillProficiencies: z.string().optional(),
+        skillExpertise: z.string().optional(),
+        strength: abilityScore.default(10),
+        dexterity: abilityScore.default(10),
+        constitution: abilityScore.default(10),
+        intelligence: abilityScore.default(10),
+        wisdom: abilityScore.default(10),
+        charisma: abilityScore.default(10),
+        maxHp: z.number().int().min(1).default(10),
+        armorClass: z.number().int().min(1).default(10),
+        speed: z.number().int().min(0).default(30),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.create({
         data: {
@@ -44,13 +52,12 @@ export const characterRouter = createTRPCRouter({
       return character;
     }),
 
-  list: protectedProcedure
-    .query(async ({ ctx }) => {
-      return ctx.db.character.findMany({
-        where: { userId: ctx.user.userId },
-        orderBy: { createdAt: "desc" },
-      });
-    }),
+  list: protectedProcedure.query(async ({ ctx }) => {
+    return ctx.db.character.findMany({
+      where: { userId: ctx.user.userId },
+      orderBy: { createdAt: "desc" },
+    });
+  }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))
@@ -59,23 +66,31 @@ export const characterRouter = createTRPCRouter({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return character;
     }),
 
   updateHp: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      type: z.enum(["heal", "damage", "setTempHp"]),
-      amount: z.number().int().min(0),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        type: z.enum(["heal", "damage", "setTempHp"]),
+        amount: z.number().int().min(0),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
 
       let { currentHp, tempHp } = character;
@@ -100,19 +115,27 @@ export const characterRouter = createTRPCRouter({
     }),
 
   levelUp: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      newMaxHp: z.number().int().min(1),  // player confirms new max HP
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        newMaxHp: z.number().int().min(1), // player confirms new max HP
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       if (character.level >= 20) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "Already at max level" });
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Already at max level",
+        });
       }
       // Reset spell slots and feature uses on level up
       return ctx.db.character.update({
@@ -120,7 +143,7 @@ export const characterRouter = createTRPCRouter({
         data: {
           level: character.level + 1,
           maxHp: input.newMaxHp,
-          currentHp: input.newMaxHp,  // full HP on level up
+          currentHp: input.newMaxHp, // full HP on level up
           spellSlotsUsed: "[]",
           featureUses: "{}",
         },
@@ -128,16 +151,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateSpellSlots: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      spellSlotsUsed: z.array(z.number().int().min(0)).length(9),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        spellSlotsUsed: z.array(z.number().int().min(0)).length(9),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },
@@ -146,16 +174,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateSubclass: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      subclass: z.string().min(1),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        subclass: z.string().min(1),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },
@@ -169,16 +202,38 @@ export const characterRouter = createTRPCRouter({
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
-      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
 
       // Parse existing featureUses, reset long-rest ones to 0
       let featureUses: Record<string, number> = {};
-      try { featureUses = JSON.parse(character.featureUses || "{}") as Record<string, number>; } catch { /* empty */ }
+      try {
+        featureUses = JSON.parse(character.featureUses || "{}") as Record<
+          string,
+          number
+        >;
+      } catch {
+        /* empty */
+      }
 
       const LONG_REST_FEATURES = [
-        "Rage", "Second Wind", "Action Surge", "Indomitable", "Channel Divinity",
-        "Wild Shape", "Lay on Hands", "Divine Sense", "Bardic Inspiration",
-        "Arcane Recovery", "Countercharm", "Flurry of Blows", "Patient Defense", "Step of the Wind",
+        "Rage",
+        "Second Wind",
+        "Action Surge",
+        "Indomitable",
+        "Channel Divinity",
+        "Wild Shape",
+        "Lay on Hands",
+        "Divine Sense",
+        "Bardic Inspiration",
+        "Arcane Recovery",
+        "Countercharm",
+        "Flurry of Blows",
+        "Patient Defense",
+        "Step of the Wind",
         "Psionic Power",
       ];
       for (const f of LONG_REST_FEATURES) {
@@ -197,28 +252,48 @@ export const characterRouter = createTRPCRouter({
     }),
 
   shortRest: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      hpRecovered: z.number().int().min(0),  // result of hit dice rolled by player
-      isWarlock: z.boolean(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        hpRecovered: z.number().int().min(0), // result of hit dice rolled by player
+        isWarlock: z.boolean(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
-      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
 
       let featureUses: Record<string, number> = {};
-      try { featureUses = JSON.parse(character.featureUses || "{}") as Record<string, number>; } catch { /* empty */ }
+      try {
+        featureUses = JSON.parse(character.featureUses || "{}") as Record<
+          string,
+          number
+        >;
+      } catch {
+        /* empty */
+      }
 
       const SHORT_REST_FEATURES = [
-        "Second Wind", "Action Surge", "Flurry of Blows", "Patient Defense", "Step of the Wind",
+        "Second Wind",
+        "Action Surge",
+        "Flurry of Blows",
+        "Patient Defense",
+        "Step of the Wind",
       ];
       for (const f of SHORT_REST_FEATURES) {
         if (f in featureUses) featureUses[f] = 0;
       }
 
-      const newHp = Math.min(character.maxHp, character.currentHp + input.hpRecovered);
+      const newHp = Math.min(
+        character.maxHp,
+        character.currentHp + input.hpRecovered,
+      );
 
       return ctx.db.character.update({
         where: { id: input.id },
@@ -231,15 +306,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateSkillProficiencies: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      skillProficiencies: z.array(z.string()),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        skillProficiencies: z.array(z.string()),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
-      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       return ctx.db.character.update({
         where: { id: input.id },
         data: { skillProficiencies: JSON.stringify(input.skillProficiencies) },
@@ -247,16 +328,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateSkillExpertise: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      skillExpertise: z.array(z.string()),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        skillExpertise: z.array(z.string()),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },
@@ -265,15 +351,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updatePreparedSpells: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      preparedSpells: z.array(z.string()),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        preparedSpells: z.array(z.string()),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
-      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       return ctx.db.character.update({
         where: { id: input.id },
         data: { preparedSpells: JSON.stringify(input.preparedSpells) },
@@ -281,15 +373,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateFeatureUses: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      featureUses: z.record(z.string(), z.number().int().min(0)),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        featureUses: z.record(z.string(), z.number().int().min(0)),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
-      if (!character) throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       return ctx.db.character.update({
         where: { id: input.id },
         data: { featureUses: JSON.stringify(input.featureUses) },
@@ -297,21 +395,26 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateAbilityScores: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      strength: z.number().int().min(1).max(30),
-      dexterity: z.number().int().min(1).max(30),
-      constitution: z.number().int().min(1).max(30),
-      intelligence: z.number().int().min(1).max(30),
-      wisdom: z.number().int().min(1).max(30),
-      charisma: z.number().int().min(1).max(30),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        strength: z.number().int().min(1).max(30),
+        dexterity: z.number().int().min(1).max(30),
+        constitution: z.number().int().min(1).max(30),
+        intelligence: z.number().int().min(1).max(30),
+        wisdom: z.number().int().min(1).max(30),
+        charisma: z.number().int().min(1).max(30),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },
@@ -327,16 +430,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateActiveConditions: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      activeConditions: z.array(z.string()),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        activeConditions: z.array(z.string()),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },
@@ -345,16 +453,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateFeats: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      feats: z.array(z.string()),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        feats: z.array(z.string()),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },
@@ -363,16 +476,21 @@ export const characterRouter = createTRPCRouter({
     }),
 
   updateNotes: protectedProcedure
-    .input(z.object({
-      id: z.string(),
-      notes: z.string(),
-    }))
+    .input(
+      z.object({
+        id: z.string(),
+        notes: z.string(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
       });
       if (!character) {
-        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
       }
       return ctx.db.character.update({
         where: { id: input.id },

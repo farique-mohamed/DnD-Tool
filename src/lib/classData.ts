@@ -50,13 +50,13 @@ export interface SubclassInfo {
 
 export interface FeatureEntry {
   type: "text" | "list" | "section" | "inset" | "table";
-  text?: string;           // for "text" type
-  items?: string[];        // for "list" type
-  name?: string;           // for "section" / "inset"
+  text?: string; // for "text" type
+  items?: string[]; // for "list" type
+  name?: string; // for "section" / "inset"
   children?: FeatureEntry[]; // for "section" / "inset"
-  caption?: string;        // for "table"
-  colLabels?: string[];    // for "table"
-  rows?: string[][];       // for "table"
+  caption?: string; // for "table"
+  colLabels?: string[]; // for "table"
+  rows?: string[][]; // for "table"
 }
 
 export interface FeatureDescription {
@@ -64,7 +64,7 @@ export interface FeatureDescription {
   level: number;
   entries: FeatureEntry[];
   isSubclassFeature: boolean;
-  subclassName?: string;  // only set for subclass features
+  subclassName?: string; // only set for subclass features
 }
 
 export interface ClassInfo {
@@ -175,32 +175,39 @@ export function stripTags(text: string): string {
   let prev: string;
   do {
     prev = result;
-    result = result.replace(/\{@(\w+)\s([^}]*)\}/g, (_match, tag: string, body: string) => {
-      const parts = body.split("|");
-      switch (tag) {
-        case "i":
-        case "italic":
-          return body;
-        case "b":
-        case "bold":
-          return body;
-        case "item":
-          // {@item name|source|display} — use display (index 2) or name (index 0)
-          return (parts[2] ?? parts[0] ?? body).trim();
-        case "dice":
-        case "damage":
-        case "hit":
-        case "d20":
-          // Use label (last part) if available, else first (the expression)
-          return (parts[parts.length - 1] !== parts[0] ? parts[parts.length - 1] : parts[0] ?? body).trim();
-        case "filter":
-          // {@filter display|...} — first part is display label
-          return (parts[0] ?? body).trim();
-        default:
-          // Many tags follow name|source|display convention — prefer display (index 2), else name (index 0)
-          return (parts[2] ?? parts[0] ?? body).trim();
-      }
-    });
+    result = result.replace(
+      /\{@(\w+)\s([^}]*)\}/g,
+      (_match, tag: string, body: string) => {
+        const parts = body.split("|");
+        switch (tag) {
+          case "i":
+          case "italic":
+            return body;
+          case "b":
+          case "bold":
+            return body;
+          case "item":
+            // {@item name|source|display} — use display (index 2) or name (index 0)
+            return (parts[2] ?? parts[0] ?? body).trim();
+          case "dice":
+          case "damage":
+          case "hit":
+          case "d20":
+            // Use label (last part) if available, else first (the expression)
+            return (
+              parts[parts.length - 1] !== parts[0]
+                ? parts[parts.length - 1]
+                : (parts[0] ?? body)
+            ).trim();
+          case "filter":
+            // {@filter display|...} — first part is display label
+            return (parts[0] ?? body).trim();
+          default:
+            // Many tags follow name|source|display convention — prefer display (index 2), else name (index 0)
+            return (parts[2] ?? parts[0] ?? body).trim();
+        }
+      },
+    );
   } while (result !== prev);
   return result;
 }
@@ -238,9 +245,13 @@ export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
               items.push(stripTags(itemObj.entry));
             } else if (typeof itemObj.name === "string") {
               const namePart = stripTags(itemObj.name);
-              const entryPart = typeof itemObj.entries === "object" && Array.isArray(itemObj.entries)
-                ? parseEntries(itemObj.entries as unknown[]).map(e => e.text ?? "").join(" ")
-                : "";
+              const entryPart =
+                typeof itemObj.entries === "object" &&
+                Array.isArray(itemObj.entries)
+                  ? parseEntries(itemObj.entries as unknown[])
+                      .map((e) => e.text ?? "")
+                      .join(" ")
+                  : "";
               items.push(entryPart ? `${namePart}: ${entryPart}` : namePart);
             }
           }
@@ -249,7 +260,8 @@ export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
           result.push({ type: "list", items });
         }
       } else if (type === "entries") {
-        const name = typeof obj.name === "string" ? stripTags(obj.name) : undefined;
+        const name =
+          typeof obj.name === "string" ? stripTags(obj.name) : undefined;
         const children = Array.isArray(obj.entries)
           ? parseEntries(obj.entries as unknown[])
           : [];
@@ -257,7 +269,8 @@ export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
           result.push({ type: "section", name, children });
         }
       } else if (type === "inset" || type === "insetReadaloud") {
-        const name = typeof obj.name === "string" ? stripTags(obj.name) : undefined;
+        const name =
+          typeof obj.name === "string" ? stripTags(obj.name) : undefined;
         const children = Array.isArray(obj.entries)
           ? parseEntries(obj.entries as unknown[])
           : [];
@@ -265,7 +278,8 @@ export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
           result.push({ type: "inset", name, children });
         }
       } else if (type === "table") {
-        const caption = typeof obj.caption === "string" ? stripTags(obj.caption) : undefined;
+        const caption =
+          typeof obj.caption === "string" ? stripTags(obj.caption) : undefined;
         const colLabels = Array.isArray(obj.colLabels)
           ? (obj.colLabels as string[]).map((l) => stripTags(String(l)))
           : [];
@@ -287,7 +301,12 @@ export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
           result.push({
             type: "inset",
             name: sbName,
-            children: [{ type: "text", text: `See the ${sbName} statblock for details.` }],
+            children: [
+              {
+                type: "text",
+                text: `See the ${sbName} statblock for details.`,
+              },
+            ],
           });
         }
       } else if (
@@ -305,7 +324,8 @@ export function parseEntries(rawEntries: unknown[]): FeatureEntry[] {
         const children = Array.isArray(obj.entries)
           ? parseEntries(obj.entries as unknown[])
           : [];
-        const name = typeof obj.name === "string" ? stripTags(obj.name) : undefined;
+        const name =
+          typeof obj.name === "string" ? stripTags(obj.name) : undefined;
         if (children.length > 0) {
           result.push({ type: "section", name, children });
         }
@@ -348,7 +368,8 @@ function extractWeaponProficiencies(weapons: unknown[] | undefined): string[] {
   return weapons
     .map((w) => {
       if (typeof w === "string") {
-        if (w === "simple" || w === "martial") return capitalize(w) + " weapons";
+        if (w === "simple" || w === "martial")
+          return capitalize(w) + " weapons";
         const tagMatch = /\{@item [^|]+\|[^|]*\|([^}]+)\}/.exec(w);
         if (tagMatch) return capitalize(tagMatch[1]);
         const nameMatch = /\{@item ([^|]+)/.exec(w);
@@ -404,7 +425,9 @@ function extractDescription(fluffFile: RawFluffFile): string {
 // Class feature string parsing (unchanged)
 // ---------------------------------------------------------------------------
 
-function parseClassFeatureString(raw: string): { featureName: string; level: number } | null {
+function parseClassFeatureString(
+  raw: string,
+): { featureName: string; level: number } | null {
   const parts = raw.split("|");
   const featureName = parts[0] ?? "";
   const levelStr = parts[3] ?? "";
@@ -413,7 +436,9 @@ function parseClassFeatureString(raw: string): { featureName: string; level: num
   return { featureName, level };
 }
 
-function parseSubclassFeatureString(raw: string): { featureName: string; level: number } | null {
+function parseSubclassFeatureString(
+  raw: string,
+): { featureName: string; level: number } | null {
   const parts = raw.split("|");
   const featureName = parts[0] ?? "";
   const levelStr = parts[5] ?? "";
@@ -422,7 +447,9 @@ function parseSubclassFeatureString(raw: string): { featureName: string; level: 
   return { featureName, level };
 }
 
-function extractLevelFeatures(classFeatures: RawClassFeatureEntry[] | undefined): LevelFeature[] {
+function extractLevelFeatures(
+  classFeatures: RawClassFeatureEntry[] | undefined,
+): LevelFeature[] {
   if (!classFeatures) return [];
 
   const features: LevelFeature[] = [];
@@ -469,7 +496,8 @@ function extractSubclasses(
     // If filtering by source, only include subclasses whose source matches
     // PHB subclasses go with PHB, XPHB subclasses go with XPHB,
     // supplemental sources (XGE, TCE, SCAG, etc.) go with both versions
-    if (classSource && !featureMatchesSource(entry.source, classSource)) continue;
+    if (classSource && !featureMatchesSource(entry.source, classSource))
+      continue;
     seen.add(entry.name);
 
     const features: LevelFeature[] = [];
@@ -533,7 +561,10 @@ const PRIMARY_SOURCES = new Set(["PHB", "XPHB"]);
  * - If the feature source is supplemental (not PHB/XPHB), include it for both.
  * - Otherwise exclude it (e.g. PHB feature for XPHB class version).
  */
-function featureMatchesSource(featureSource: string | undefined, classSource: string): boolean {
+function featureMatchesSource(
+  featureSource: string | undefined,
+  classSource: string,
+): boolean {
   if (!featureSource) return classSource === "PHB"; // No source = PHB-era
   if (featureSource === classSource) return true;
   // Supplemental sources (TCE, XGE, SCAG, etc.) go with both versions
@@ -541,7 +572,10 @@ function featureMatchesSource(featureSource: string | undefined, classSource: st
   return false;
 }
 
-function extractFeatureDescriptions(classFile: RawClassFile, classSource?: string): FeatureDescription[] {
+function extractFeatureDescriptions(
+  classFile: RawClassFile,
+  classSource?: string,
+): FeatureDescription[] {
   const descriptions: FeatureDescription[] = [];
   const seen = new Set<string>();
 
@@ -549,7 +583,8 @@ function extractFeatureDescriptions(classFile: RawClassFile, classSource?: strin
   for (const feat of classFile.classFeature ?? []) {
     if (feat.level == null) continue;
     // If filtering by source, only include features that match
-    if (classSource && !featureMatchesSource(feat.source, classSource)) continue;
+    if (classSource && !featureMatchesSource(feat.source, classSource))
+      continue;
     const key = `${feat.name}|${feat.level}|base`;
     if (seen.has(key)) continue;
     seen.add(key);
@@ -571,7 +606,8 @@ function extractFeatureDescriptions(classFile: RawClassFile, classSource?: strin
   for (const feat of classFile.subclassFeature ?? []) {
     if (feat.level == null) continue;
     // If filtering by source, only include subclass features that match
-    if (classSource && !featureMatchesSource(feat.source, classSource)) continue;
+    if (classSource && !featureMatchesSource(feat.source, classSource))
+      continue;
     const subclassName = feat.subclassShortName ?? "";
     const key = `${feat.name}|${feat.level}|${subclassName}`;
 
@@ -584,9 +620,12 @@ function extractFeatureDescriptions(classFile: RawClassFile, classSource?: strin
       for (const newEntry of entries) {
         const isDuplicate = existing.entries.some((e) => {
           if (e.type !== newEntry.type) return false;
-          if (e.type === "text" && newEntry.type === "text") return e.text === newEntry.text;
-          if (e.type === "table" && newEntry.type === "table") return e.caption === newEntry.caption;
-          if (e.type === "inset" && newEntry.type === "inset") return e.name === newEntry.name;
+          if (e.type === "text" && newEntry.type === "text")
+            return e.text === newEntry.text;
+          if (e.type === "table" && newEntry.type === "table")
+            return e.caption === newEntry.caption;
+          if (e.type === "inset" && newEntry.type === "inset")
+            return e.name === newEntry.name;
           return false;
         });
         if (!isDuplicate) {
@@ -632,8 +671,15 @@ function buildClassInfo(
   const description = extractDescription(fluffFile as RawFluffFile);
   const levelFeatures = extractLevelFeatures(cls.classFeatures);
   const subclassTitle = cls.subclassTitle ?? "Subclass";
-  const subclasses = extractSubclasses(classFile.subclass, classFile.subclassFeature, classSource);
-  const featureDescriptions = extractFeatureDescriptions(classFile, classSource);
+  const subclasses = extractSubclasses(
+    classFile.subclass,
+    classFile.subclassFeature,
+    classSource,
+  );
+  const featureDescriptions = extractFeatureDescriptions(
+    classFile,
+    classSource,
+  );
 
   return {
     name: cls.name,
@@ -659,25 +705,70 @@ function buildClassInfo(
 type DualSourceClassFile = { classFile: RawClassFile; fluffFile: RawFluffFile };
 
 const DUAL_SOURCE_CLASS_FILES: DualSourceClassFile[] = [
-  { classFile: barbarianClass as RawClassFile, fluffFile: barbarianFluff as RawFluffFile },
-  { classFile: bardClass as RawClassFile, fluffFile: bardFluff as RawFluffFile },
-  { classFile: clericClass as RawClassFile, fluffFile: clericFluff as RawFluffFile },
-  { classFile: druidClass as RawClassFile, fluffFile: druidFluff as RawFluffFile },
-  { classFile: fighterClass as RawClassFile, fluffFile: fighterFluff as RawFluffFile },
-  { classFile: monkClass as RawClassFile, fluffFile: monkFluff as RawFluffFile },
-  { classFile: paladinClass as RawClassFile, fluffFile: paladinFluff as RawFluffFile },
-  { classFile: rangerClass as RawClassFile, fluffFile: rangerFluff as RawFluffFile },
-  { classFile: rogueClass as RawClassFile, fluffFile: rogueFluff as RawFluffFile },
-  { classFile: sorcererClass as RawClassFile, fluffFile: sorcererFluff as RawFluffFile },
-  { classFile: warlockClass as RawClassFile, fluffFile: warlockFluff as RawFluffFile },
-  { classFile: wizardClass as RawClassFile, fluffFile: wizardFluff as RawFluffFile },
+  {
+    classFile: barbarianClass as RawClassFile,
+    fluffFile: barbarianFluff as RawFluffFile,
+  },
+  {
+    classFile: bardClass as RawClassFile,
+    fluffFile: bardFluff as RawFluffFile,
+  },
+  {
+    classFile: clericClass as RawClassFile,
+    fluffFile: clericFluff as RawFluffFile,
+  },
+  {
+    classFile: druidClass as RawClassFile,
+    fluffFile: druidFluff as RawFluffFile,
+  },
+  {
+    classFile: fighterClass as RawClassFile,
+    fluffFile: fighterFluff as RawFluffFile,
+  },
+  {
+    classFile: monkClass as RawClassFile,
+    fluffFile: monkFluff as RawFluffFile,
+  },
+  {
+    classFile: paladinClass as RawClassFile,
+    fluffFile: paladinFluff as RawFluffFile,
+  },
+  {
+    classFile: rangerClass as RawClassFile,
+    fluffFile: rangerFluff as RawFluffFile,
+  },
+  {
+    classFile: rogueClass as RawClassFile,
+    fluffFile: rogueFluff as RawFluffFile,
+  },
+  {
+    classFile: sorcererClass as RawClassFile,
+    fluffFile: sorcererFluff as RawFluffFile,
+  },
+  {
+    classFile: warlockClass as RawClassFile,
+    fluffFile: warlockFluff as RawFluffFile,
+  },
+  {
+    classFile: wizardClass as RawClassFile,
+    fluffFile: wizardFluff as RawFluffFile,
+  },
 ];
 
 /** Single-source classes (only one class entry in their JSON). */
 const SINGLE_SOURCE_CLASS_FILES: DualSourceClassFile[] = [
-  { classFile: artificerClass as RawClassFile, fluffFile: artificerFluff as RawFluffFile },
-  { classFile: mysticClass as RawClassFile, fluffFile: mysticFluff as RawFluffFile },
-  { classFile: sidekickClass as RawClassFile, fluffFile: sidekickFluff as RawFluffFile },
+  {
+    classFile: artificerClass as RawClassFile,
+    fluffFile: artificerFluff as RawFluffFile,
+  },
+  {
+    classFile: mysticClass as RawClassFile,
+    fluffFile: mysticFluff as RawFluffFile,
+  },
+  {
+    classFile: sidekickClass as RawClassFile,
+    fluffFile: sidekickFluff as RawFluffFile,
+  },
 ];
 
 function buildAllClassInfos(): ClassInfo[] {
@@ -702,9 +793,9 @@ function buildAllClassInfos(): ClassInfo[] {
 export const CLASS_LIST: ClassInfo[] = buildAllClassInfos();
 
 /** Names of classes that have both a PHB and XPHB version. */
-export const DUAL_SOURCE_CLASS_NAMES: string[] = DUAL_SOURCE_CLASS_FILES
-  .map(({ classFile }) => classFile.class[0].name)
-  .sort();
+export const DUAL_SOURCE_CLASS_NAMES: string[] = DUAL_SOURCE_CLASS_FILES.map(
+  ({ classFile }) => classFile.class[0].name,
+).sort();
 
 /** Unique-source class names (Artificer, Mystic, Sidekick) — included in both PHB/XPHB views. */
 const UNIQUE_SOURCE_CLASS_NAMES = new Set(
@@ -725,7 +816,10 @@ export function getClassesBySource(source: "PHB" | "XPHB"): ClassInfo[] {
 /**
  * Returns a specific class by name and source.
  */
-export function getClassByNameAndSource(name: string, source: string): ClassInfo | undefined {
+export function getClassByNameAndSource(
+  name: string,
+  source: string,
+): ClassInfo | undefined {
   return CLASS_LIST.find(
     (c) => c.name.toLowerCase() === name.toLowerCase() && c.source === source,
   );
@@ -735,7 +829,5 @@ export function getClassByNameAndSource(name: string, source: string): ClassInfo
  * Returns the first matching class by name (backward compatible).
  */
 export function getClassByName(name: string): ClassInfo | undefined {
-  return CLASS_LIST.find(
-    (c) => c.name.toLowerCase() === name.toLowerCase(),
-  );
+  return CLASS_LIST.find((c) => c.name.toLowerCase() === name.toLowerCase());
 }
