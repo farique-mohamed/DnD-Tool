@@ -4,12 +4,18 @@ import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { api } from "@/utils/api";
-import { getClassByName } from "@/lib/classData";
+import { getClassByName, getClassByNameAndSource } from "@/lib/classData";
+import { getNewExpertiseAtLevel } from "@/lib/expertiseData";
 import type { FeatureEntry, FeatureDescription } from "@/lib/classData";
+import { getRaceByName, getRaceByNameAndSource } from "@/lib/raceData";
+import type { RaceInfo } from "@/lib/raceData";
 import { getSpellSlots, isSpellcaster, isWarlock } from "@/lib/spellSlotData";
 import { getCharacterActions } from "@/lib/actionEconomy";
 import type { ActionEntry } from "@/lib/actionEconomy";
 import { SPELLS } from "@/lib/spellsData";
+import { getConditionsBySource } from "@/lib/conditionData";
+import { getFeatsBySource, getFeatByNameAndSource } from "@/lib/featData";
+import type { Feat } from "@/lib/featData";
 
 // Proficiency bonus from level
 function proficiencyBonus(level: number): number {
@@ -103,10 +109,15 @@ type CharacterData = {
   armorClass: number;
   speed: number;
   subclass: string | null;
+  rulesSource?: string;
   spellSlotsUsed: string;
   skillProficiencies: string;  // JSON string[]
+  skillExpertise?: string;     // JSON string[]
   preparedSpells: string;      // JSON string[]
   featureUses: string;         // JSON Record<string,number>
+  activeConditions?: string;   // JSON string[]
+  feats?: string;              // JSON string[]
+  notes?: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -121,6 +132,28 @@ function HpManager({ character }: { character: CharacterData }) {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [showShortRest, setShowShortRest] = useState(false);
   const [hitDiceToSpend, setHitDiceToSpend] = useState<string>("1");
+
+  const activeConditions: string[] = (() => {
+    try { return JSON.parse(character.activeConditions || "[]") as string[]; }
+    catch { return []; }
+  })();
+
+  const allConditions = getConditionsBySource("PHB");
+
+  const updateConditions = api.character.updateActiveConditions.useMutation({
+    onSuccess: async () => { await utils.character.getById.invalidate({ id: character.id }); },
+    onError: (err) => {
+      setFeedback(err.message);
+      setTimeout(() => setFeedback(null), 3000);
+    },
+  });
+
+  const toggleCondition = (name: string) => {
+    const newList = activeConditions.includes(name)
+      ? activeConditions.filter(c => c !== name)
+      : [...activeConditions, name];
+    updateConditions.mutate({ id: character.id, activeConditions: newList });
+  };
 
   const updateHp = api.character.updateHp.useMutation({
     onSuccess: async () => {
@@ -466,6 +499,48 @@ function HpManager({ character }: { character: CharacterData }) {
         )}
       </div>
 
+      {/* Conditions */}
+      <div style={{ marginTop: "12px", paddingTop: "12px", borderTop: "1px solid rgba(201,168,76,0.1)" }}>
+        <p style={{ color: "#c9a84c", fontSize: "10px", textTransform: "uppercase", letterSpacing: "1px", fontFamily: "'Georgia', serif", margin: "0 0 8px 0" }}>
+          Conditions
+        </p>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
+          {allConditions.map((cond) => {
+            const isActive = activeConditions.includes(cond.name);
+            return (
+              <button
+                key={cond.name}
+                onClick={() => toggleCondition(cond.name)}
+                disabled={updateConditions.isPending}
+                title={cond.entries.length > 0 ? cond.entries[0] : cond.name}
+                style={isActive ? {
+                  background: "rgba(231,76,60,0.2)",
+                  border: "1px solid rgba(231,76,60,0.5)",
+                  borderRadius: "20px",
+                  padding: "3px 10px",
+                  fontSize: "10px",
+                  fontFamily: "'Georgia', serif",
+                  color: "#e74c3c",
+                  cursor: updateConditions.isPending ? "not-allowed" : "pointer",
+                  fontWeight: "bold",
+                } : {
+                  background: "rgba(30,15,5,0.6)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  borderRadius: "20px",
+                  padding: "3px 10px",
+                  fontSize: "10px",
+                  fontFamily: "'Georgia', serif",
+                  color: "#a89060",
+                  cursor: updateConditions.isPending ? "not-allowed" : "pointer",
+                }}
+              >
+                {cond.name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       {feedback && (
         <div style={{ marginTop: "10px", color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif" }}>{feedback}</div>
       )}
@@ -476,6 +551,16 @@ function HpManager({ character }: { character: CharacterData }) {
 // ---------------------------------------------------------------------------
 // Level Up Modal
 // ---------------------------------------------------------------------------
+
+const ASI_LEVELS: Record<string, number[]> = {
+  Fighter: [4, 6, 8, 12, 14, 16, 19],
+  Rogue: [4, 8, 10, 12, 16, 19],
+};
+const DEFAULT_ASI_LEVELS = [4, 8, 12, 16, 19];
+
+function isAsiLevel(className: string, level: number): boolean {
+  return (ASI_LEVELS[className] ?? DEFAULT_ASI_LEVELS).includes(level);
+}
 
 const SUBCLASS_UNLOCK_LEVELS: Record<string, number> = {
   Artificer: 3, Barbarian: 3, Bard: 3, Cleric: 1, Druid: 2,
@@ -497,15 +582,61 @@ function LevelUpPanel({
   const [newMaxHp, setNewMaxHp] = useState<string>(String(suggestedHp));
   const [selectedSubclass, setSelectedSubclass] = useState<string>("");
   const [subclassError, setSubclassError] = useState<string>("");
+  const [selectedExpertise, setSelectedExpertise] = useState<string[]>([]);
+  const [expertiseError, setExpertiseError] = useState<string>("");
+  const [asiMode, setAsiMode] = useState<"2" | "1-1">("2");
+  const [asiAbility1, setAsiAbility1] = useState<string>("");
+  const [asiAbility2, setAsiAbility2] = useState<string>("");
+  const [asiError, setAsiError] = useState<string>("");
+  const [asiOrFeat, setAsiOrFeat] = useState<"asi" | "feat">("asi");
+  const [selectedFeat, setSelectedFeat] = useState<string>("");
+  const [featSearch, setFeatSearch] = useState<string>("");
+  const [featAbilityChoices, setFeatAbilityChoices] = useState<string[]>([]);
 
   const newLevel = character.level + 1;
   const subclassUnlockLevel = SUBCLASS_UNLOCK_LEVELS[character.characterClass] ?? 3;
   const shouldPickSubclass = newLevel >= subclassUnlockLevel && !character.subclass;
 
-  const classInfo = getClassByName(character.characterClass);
+  const rulesSource = character.rulesSource || "PHB";
+  const newExpertiseCount = getNewExpertiseAtLevel(character.characterClass, rulesSource, newLevel);
+  const existingExpertise: string[] = (() => {
+    try { return character.skillExpertise ? JSON.parse(character.skillExpertise) as string[] : []; }
+    catch { return []; }
+  })();
+  const proficientSkills: string[] = (() => {
+    try { return character.skillProficiencies ? JSON.parse(character.skillProficiencies) as string[] : []; }
+    catch { return []; }
+  })();
+  const eligibleForExpertise = proficientSkills.filter((s) => !existingExpertise.includes(s));
+
+  const classInfo = character.rulesSource
+    ? getClassByNameAndSource(character.characterClass, character.rulesSource) ?? getClassByName(character.characterClass)
+    : getClassByName(character.characterClass);
   const subclassOptions = classInfo?.subclasses ?? [];
 
+  const showAsi = isAsiLevel(character.characterClass, newLevel);
+
+  // Feat data for feat browser
+  const existingFeats: string[] = (() => {
+    try { return character.feats ? JSON.parse(character.feats) as string[] : []; }
+    catch { return []; }
+  })();
+  const availableFeats: Feat[] = (() => {
+    const allFeats = getFeatsBySource(rulesSource as "PHB" | "XPHB");
+    return allFeats
+      .filter((f) => !existingFeats.includes(f.name))
+      .filter((f) => !f.levelRequired || f.levelRequired <= newLevel)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  })();
+  const filteredFeats = featSearch
+    ? availableFeats.filter((f) => f.name.toLowerCase().includes(featSearch.toLowerCase()))
+    : availableFeats;
+  const selectedFeatData = availableFeats.find((f) => f.name === selectedFeat);
+
   const updateSubclass = api.character.updateSubclass.useMutation();
+  const updateSkillExpertise = api.character.updateSkillExpertise.useMutation();
+  const updateAbilityScores = api.character.updateAbilityScores.useMutation();
+  const updateFeats = api.character.updateFeats.useMutation();
 
   const levelUp = api.character.levelUp.useMutation({
     onSuccess: async () => {
@@ -514,6 +645,15 @@ function LevelUpPanel({
     },
   });
 
+  const toggleExpertiseSkill = (skill: string) => {
+    setSelectedExpertise((prev) => {
+      if (prev.includes(skill)) return prev.filter((s) => s !== skill);
+      if (prev.length >= newExpertiseCount) return prev;
+      return [...prev, skill];
+    });
+    setExpertiseError("");
+  };
+
   const handleConfirm = async () => {
     const hp = parseInt(newMaxHp);
     if (isNaN(hp) || hp < 1) return;
@@ -521,13 +661,123 @@ function LevelUpPanel({
       setSubclassError("Please choose a subclass before leveling up.");
       return;
     }
+    if (newExpertiseCount > 0 && selectedExpertise.length !== newExpertiseCount) {
+      setExpertiseError(`Please choose exactly ${newExpertiseCount} skill${newExpertiseCount !== 1 ? "s" : ""} for expertise.`);
+      return;
+    }
+    if (showAsi) {
+      if (asiOrFeat === "asi") {
+        if (asiMode === "2" && !asiAbility1) {
+          setAsiError("Please choose an ability score for your +2 improvement.");
+          return;
+        }
+        if (asiMode === "1-1" && (!asiAbility1 || !asiAbility2)) {
+          setAsiError("Please choose two different ability scores for your +1/+1 improvement.");
+          return;
+        }
+        if (asiMode === "1-1" && asiAbility1 === asiAbility2) {
+          setAsiError("Please choose two different ability scores.");
+          return;
+        }
+        // Build updated scores
+        const scores: Record<string, number> = {
+          strength: character.strength,
+          dexterity: character.dexterity,
+          constitution: character.constitution,
+          intelligence: character.intelligence,
+          wisdom: character.wisdom,
+          charisma: character.charisma,
+        };
+        if (asiMode === "2") {
+          scores[asiAbility1] = Math.min(20, (scores[asiAbility1] ?? 10) + 2);
+        } else {
+          scores[asiAbility1] = Math.min(20, (scores[asiAbility1] ?? 10) + 1);
+          scores[asiAbility2] = Math.min(20, (scores[asiAbility2] ?? 10) + 1);
+        }
+        await updateAbilityScores.mutateAsync({
+          id: character.id,
+          strength: scores.strength ?? character.strength,
+          dexterity: scores.dexterity ?? character.dexterity,
+          constitution: scores.constitution ?? character.constitution,
+          intelligence: scores.intelligence ?? character.intelligence,
+          wisdom: scores.wisdom ?? character.wisdom,
+          charisma: scores.charisma ?? character.charisma,
+        });
+      } else {
+        // Feat path
+        if (!selectedFeat) {
+          setAsiError("Please choose a feat.");
+          return;
+        }
+        const feat = selectedFeatData;
+        if (feat?.abilityBonus?.choose) {
+          const needed = feat.abilityBonus.choose.count;
+          const chosen = featAbilityChoices.filter((c) => c !== "").length;
+          if (chosen < needed) {
+            setAsiError(`Please choose ${needed} ability score${needed > 1 ? "s" : ""} for this feat.`);
+            return;
+          }
+        }
+        if (feat) {
+          // Apply ability bonuses from the feat
+          const scores: Record<string, number> = {
+            strength: character.strength,
+            dexterity: character.dexterity,
+            constitution: character.constitution,
+            intelligence: character.intelligence,
+            wisdom: character.wisdom,
+            charisma: character.charisma,
+          };
+          let hasAbilityChanges = false;
+          if (feat.abilityBonus?.fixed) {
+            for (const [abbr, bonus] of Object.entries(feat.abilityBonus.fixed)) {
+              // Map abbreviation to full ability name
+              const fullName = abbr === "str" ? "strength" : abbr === "dex" ? "dexterity" : abbr === "con" ? "constitution" : abbr === "int" ? "intelligence" : abbr === "wis" ? "wisdom" : abbr === "cha" ? "charisma" : abbr;
+              if (scores[fullName] !== undefined) {
+                scores[fullName] = Math.min(20, scores[fullName]! + bonus);
+                hasAbilityChanges = true;
+              }
+            }
+          }
+          if (feat.abilityBonus?.choose && featAbilityChoices.length > 0) {
+            for (const abbr of featAbilityChoices) {
+              const fullName = abbr === "str" ? "strength" : abbr === "dex" ? "dexterity" : abbr === "con" ? "constitution" : abbr === "int" ? "intelligence" : abbr === "wis" ? "wisdom" : abbr === "cha" ? "charisma" : abbr;
+              if (scores[fullName] !== undefined) {
+                scores[fullName] = Math.min(20, scores[fullName]! + (feat.abilityBonus.choose.amount ?? 1));
+                hasAbilityChanges = true;
+              }
+            }
+          }
+          if (hasAbilityChanges) {
+            await updateAbilityScores.mutateAsync({
+              id: character.id,
+              strength: scores.strength ?? character.strength,
+              dexterity: scores.dexterity ?? character.dexterity,
+              constitution: scores.constitution ?? character.constitution,
+              intelligence: scores.intelligence ?? character.intelligence,
+              wisdom: scores.wisdom ?? character.wisdom,
+              charisma: scores.charisma ?? character.charisma,
+            });
+          }
+          // Save the feat
+          await updateFeats.mutateAsync({
+            id: character.id,
+            feats: [...existingFeats, feat.name],
+          });
+        }
+      }
+    }
     if (shouldPickSubclass && selectedSubclass) {
       await updateSubclass.mutateAsync({ id: character.id, subclass: selectedSubclass });
+    }
+    if (newExpertiseCount > 0 && selectedExpertise.length > 0) {
+      const combined = [...existingExpertise, ...selectedExpertise];
+      await updateSkillExpertise.mutateAsync({ id: character.id, skillExpertise: combined });
     }
     levelUp.mutate({ id: character.id, newMaxHp: hp });
   };
 
-  const isPending = levelUp.isPending || updateSubclass.isPending;
+  const isPending = levelUp.isPending || updateSubclass.isPending || updateSkillExpertise.isPending || updateAbilityScores.isPending || updateFeats.isPending;
 
   return (
     <div style={{
@@ -587,6 +837,433 @@ function LevelUpPanel({
             {subclassError && (
               <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "6px" }}>
                 {subclassError}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Expertise selection */}
+        {newExpertiseCount > 0 && (
+          <div style={{ marginBottom: "20px" }}>
+            <p style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif", marginBottom: "8px" }}>
+              Skill Expertise
+            </p>
+            <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", marginBottom: "10px" }}>
+              Choose {newExpertiseCount} proficient skill{newExpertiseCount !== 1 ? "s" : ""} to gain expertise (double proficiency bonus).
+              {selectedExpertise.length > 0 && (
+                <span style={{ color: "#c9a84c", marginLeft: "8px" }}>
+                  ({selectedExpertise.length}/{newExpertiseCount})
+                </span>
+              )}
+            </p>
+            {eligibleForExpertise.length === 0 ? (
+              <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>
+                No eligible skills — all proficient skills already have expertise.
+              </p>
+            ) : (
+              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+                {eligibleForExpertise.map((skill) => {
+                  const isSelected = selectedExpertise.includes(skill);
+                  const isFull = selectedExpertise.length >= newExpertiseCount && !isSelected;
+                  return (
+                    <button
+                      key={`expertise-${skill}`}
+                      onClick={isFull ? undefined : () => toggleExpertiseSkill(skill)}
+                      style={{
+                        background: isSelected ? "rgba(201,168,76,0.25)" : "rgba(30,15,5,0.6)",
+                        border: `1px solid ${isSelected ? "rgba(201,168,76,0.6)" : "rgba(201,168,76,0.2)"}`,
+                        color: isSelected ? "#e8d5a3" : "#a89060",
+                        borderRadius: "20px",
+                        padding: "4px 12px",
+                        fontSize: "11px",
+                        fontFamily: "'Georgia', serif",
+                        cursor: isFull ? "not-allowed" : "pointer",
+                        opacity: isFull ? 0.5 : 1,
+                        fontWeight: isSelected ? "bold" : "normal",
+                      }}
+                    >
+                      {isSelected && "★ "}{skill}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            {expertiseError && (
+              <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "6px" }}>
+                {expertiseError}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* ASI / Feat selection */}
+        {showAsi && (
+          <div style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.25)", borderRadius: "8px", padding: "16px 18px", marginBottom: "20px" }}>
+            <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif", margin: "0 0 12px 0", fontWeight: "bold" }}>
+              Ability Score Improvement
+            </p>
+
+            {/* ASI or Feat toggle */}
+            <div style={{ display: "flex", gap: "0", marginBottom: "14px" }}>
+              <button
+                onClick={() => { setAsiOrFeat("asi"); setAsiError(""); }}
+                style={{
+                  background: asiOrFeat === "asi" ? "linear-gradient(135deg, #8b6914, #c9a84c)" : "rgba(0,0,0,0.4)",
+                  border: asiOrFeat === "asi" ? "1px solid #c9a84c" : "1px solid rgba(201,168,76,0.3)",
+                  color: asiOrFeat === "asi" ? "#1a1a2e" : "#a89060",
+                  fontWeight: asiOrFeat === "asi" ? "bold" : "normal",
+                  padding: "8px 18px",
+                  fontSize: "12px",
+                  fontFamily: "'Georgia', serif",
+                  cursor: "pointer",
+                  borderRadius: "6px 0 0 6px",
+                }}
+              >
+                Improve Scores
+              </button>
+              <button
+                onClick={() => { setAsiOrFeat("feat"); setAsiError(""); }}
+                style={{
+                  background: asiOrFeat === "feat" ? "linear-gradient(135deg, #8b6914, #c9a84c)" : "rgba(0,0,0,0.4)",
+                  border: asiOrFeat === "feat" ? "1px solid #c9a84c" : "1px solid rgba(201,168,76,0.3)",
+                  color: asiOrFeat === "feat" ? "#1a1a2e" : "#a89060",
+                  fontWeight: asiOrFeat === "feat" ? "bold" : "normal",
+                  padding: "8px 18px",
+                  fontSize: "12px",
+                  fontFamily: "'Georgia', serif",
+                  cursor: "pointer",
+                  borderRadius: "0 6px 6px 0",
+                }}
+              >
+                Choose a Feat
+              </button>
+            </div>
+
+            {asiOrFeat === "asi" ? (
+              <>
+                {/* Current scores reference */}
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "14px" }}>
+                  {ABILITY_NAMES.map(({ key, label }) => {
+                    const score = character[key as keyof CharacterData] as number;
+                    return (
+                      <div key={key} style={{ textAlign: "center", minWidth: "42px" }}>
+                        <div style={{ color: "#b8934a", fontSize: "9px", textTransform: "uppercase", letterSpacing: "0.5px", fontFamily: "'Georgia', serif" }}>{label}</div>
+                        <div style={{ color: "#e8d5a3", fontSize: "15px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>{score}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Mode toggle */}
+                <div style={{ display: "flex", gap: "6px", marginBottom: "14px" }}>
+                  <button
+                    onClick={() => { setAsiMode("2"); setAsiAbility2(""); setAsiError(""); }}
+                    style={{
+                      background: asiMode === "2" ? "rgba(201,168,76,0.2)" : "transparent",
+                      border: asiMode === "2" ? "1px solid #c9a84c" : "1px solid rgba(201,168,76,0.25)",
+                      color: asiMode === "2" ? "#c9a84c" : "#a89060",
+                      borderRadius: "20px",
+                      padding: "5px 14px",
+                      fontSize: "11px",
+                      fontFamily: "'Georgia', serif",
+                      cursor: "pointer",
+                      fontWeight: asiMode === "2" ? "bold" : "normal",
+                    }}
+                  >
+                    +2 to one score
+                  </button>
+                  <button
+                    onClick={() => { setAsiMode("1-1"); setAsiError(""); }}
+                    style={{
+                      background: asiMode === "1-1" ? "rgba(201,168,76,0.2)" : "transparent",
+                      border: asiMode === "1-1" ? "1px solid #c9a84c" : "1px solid rgba(201,168,76,0.25)",
+                      color: asiMode === "1-1" ? "#c9a84c" : "#a89060",
+                      borderRadius: "20px",
+                      padding: "5px 14px",
+                      fontSize: "11px",
+                      fontFamily: "'Georgia', serif",
+                      cursor: "pointer",
+                      fontWeight: asiMode === "1-1" ? "bold" : "normal",
+                    }}
+                  >
+                    +1 to two scores
+                  </button>
+                </div>
+
+                {/* Ability selectors */}
+                {asiMode === "2" ? (
+                  <div>
+                    <label style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", display: "block", marginBottom: "6px" }}>
+                      Choose ability (+2)
+                    </label>
+                    <select
+                      value={asiAbility1}
+                      onChange={(e) => { setAsiAbility1(e.target.value); setAsiError(""); }}
+                      style={{
+                        width: "100%",
+                        padding: "8px 10px",
+                        background: "rgba(30,15,5,0.9)",
+                        border: "1px solid rgba(201,168,76,0.4)",
+                        borderRadius: "6px",
+                        color: "#e8d5a3",
+                        fontSize: "13px",
+                        fontFamily: "'Georgia', serif",
+                        outline: "none",
+                      }}
+                    >
+                      <option value="">-- Select --</option>
+                      {ABILITY_NAMES.map(({ key, label }) => {
+                        const current = character[key as keyof CharacterData] as number;
+                        const capped = current >= 20;
+                        return (
+                          <option key={key} value={key} disabled={capped}>
+                            {label} ({current}{capped ? " - MAX" : ` -> ${Math.min(20, current + 2)}`})
+                          </option>
+                        );
+                      })}
+                    </select>
+                    {asiAbility1 && (
+                      <p style={{ color: "#c9a84c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "6px" }}>
+                        {ABILITY_NAMES.find(a => a.key === asiAbility1)?.label}:{" "}
+                        {character[asiAbility1 as keyof CharacterData] as number} {"->"}{" "}
+                        {Math.min(20, (character[asiAbility1 as keyof CharacterData] as number) + 2)}
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                    <div>
+                      <label style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", display: "block", marginBottom: "6px" }}>
+                        First ability (+1)
+                      </label>
+                      <select
+                        value={asiAbility1}
+                        onChange={(e) => { setAsiAbility1(e.target.value); setAsiError(""); }}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          background: "rgba(30,15,5,0.9)",
+                          border: "1px solid rgba(201,168,76,0.4)",
+                          borderRadius: "6px",
+                          color: "#e8d5a3",
+                          fontSize: "13px",
+                          fontFamily: "'Georgia', serif",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="">-- Select --</option>
+                        {ABILITY_NAMES.map(({ key, label }) => {
+                          const current = character[key as keyof CharacterData] as number;
+                          const capped = current >= 20;
+                          return (
+                            <option key={key} value={key} disabled={capped || key === asiAbility2}>
+                              {label} ({current}{capped ? " - MAX" : ` -> ${current + 1}`})
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {asiAbility1 && (
+                        <p style={{ color: "#c9a84c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "4px" }}>
+                          {ABILITY_NAMES.find(a => a.key === asiAbility1)?.label}:{" "}
+                          {character[asiAbility1 as keyof CharacterData] as number} {"->"}{" "}
+                          {Math.min(20, (character[asiAbility1 as keyof CharacterData] as number) + 1)}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", display: "block", marginBottom: "6px" }}>
+                        Second ability (+1)
+                      </label>
+                      <select
+                        value={asiAbility2}
+                        onChange={(e) => { setAsiAbility2(e.target.value); setAsiError(""); }}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          background: "rgba(30,15,5,0.9)",
+                          border: "1px solid rgba(201,168,76,0.4)",
+                          borderRadius: "6px",
+                          color: "#e8d5a3",
+                          fontSize: "13px",
+                          fontFamily: "'Georgia', serif",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="">-- Select --</option>
+                        {ABILITY_NAMES.map(({ key, label }) => {
+                          const current = character[key as keyof CharacterData] as number;
+                          const capped = current >= 20;
+                          return (
+                            <option key={key} value={key} disabled={capped || key === asiAbility1}>
+                              {label} ({current}{capped ? " - MAX" : ` -> ${current + 1}`})
+                            </option>
+                          );
+                        })}
+                      </select>
+                      {asiAbility2 && (
+                        <p style={{ color: "#c9a84c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "4px" }}>
+                          {ABILITY_NAMES.find(a => a.key === asiAbility2)?.label}:{" "}
+                          {character[asiAbility2 as keyof CharacterData] as number} {"->"}{" "}
+                          {Math.min(20, (character[asiAbility2 as keyof CharacterData] as number) + 1)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <>
+                {/* Feat browser */}
+                <input
+                  type="text"
+                  placeholder="Search feats..."
+                  value={featSearch}
+                  onChange={(e) => setFeatSearch(e.target.value)}
+                  style={{
+                    width: "100%",
+                    padding: "8px 10px",
+                    background: "rgba(30,15,5,0.9)",
+                    border: "1px solid rgba(201,168,76,0.4)",
+                    borderRadius: "6px",
+                    color: "#e8d5a3",
+                    fontSize: "13px",
+                    fontFamily: "'Georgia', serif",
+                    outline: "none",
+                    marginBottom: "10px",
+                    boxSizing: "border-box",
+                  }}
+                />
+                <div style={{ maxHeight: "300px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {filteredFeats.length === 0 && (
+                    <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", fontStyle: "italic", padding: "8px 0" }}>
+                      No feats found.
+                    </p>
+                  )}
+                  {filteredFeats.map((feat) => {
+                    const isSelected = selectedFeat === feat.name;
+                    // Build ability bonus summary
+                    const abilityParts: string[] = [];
+                    if (feat.abilityBonus?.fixed) {
+                      for (const [abbr, bonus] of Object.entries(feat.abilityBonus.fixed)) {
+                        const name = abbr === "str" ? "STR" : abbr === "dex" ? "DEX" : abbr === "con" ? "CON" : abbr === "int" ? "INT" : abbr === "wis" ? "WIS" : abbr === "cha" ? "CHA" : abbr.toUpperCase();
+                        abilityParts.push(`+${bonus} ${name}`);
+                      }
+                    }
+                    if (feat.abilityBonus?.choose) {
+                      const fromNames = feat.abilityBonus.choose.from.map((a) =>
+                        a === "str" ? "STR" : a === "dex" ? "DEX" : a === "con" ? "CON" : a === "int" ? "INT" : a === "wis" ? "WIS" : a === "cha" ? "CHA" : a.toUpperCase()
+                      );
+                      abilityParts.push(`Choose +${feat.abilityBonus.choose.amount} from ${fromNames.join("/")}`);
+                    }
+                    const abilitySummary = abilityParts.join(", ");
+                    // Truncated description (first 2 lines)
+                    const descPreview = feat.entries.slice(0, 2).join(" ");
+                    const truncated = descPreview.length > 120 ? descPreview.slice(0, 120) + "..." : descPreview;
+
+                    return (
+                      <div
+                        key={feat.name}
+                        onClick={() => {
+                          setSelectedFeat(feat.name);
+                          setFeatAbilityChoices([]);
+                          setAsiError("");
+                        }}
+                        style={{
+                          background: isSelected ? "rgba(201,168,76,0.15)" : "rgba(0,0,0,0.3)",
+                          border: isSelected ? "1px solid rgba(201,168,76,0.5)" : "1px solid rgba(201,168,76,0.15)",
+                          borderRadius: "6px",
+                          padding: "10px 14px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "4px" }}>
+                          <span style={{ color: isSelected ? "#c9a84c" : "#a89060", fontSize: "13px" }}>
+                            {isSelected ? "\u25C9" : "\u25CB"}
+                          </span>
+                          <span style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", fontWeight: isSelected ? "bold" : "normal" }}>
+                            {feat.name}
+                          </span>
+                          <span style={{
+                            background: "rgba(100,149,237,0.2)",
+                            border: "1px solid rgba(100,149,237,0.4)",
+                            borderRadius: "4px",
+                            padding: "1px 6px",
+                            color: "#6495ed",
+                            fontSize: "10px",
+                          }}>
+                            {feat.source}
+                          </span>
+                        </div>
+                        {abilitySummary && (
+                          <p style={{ color: "#c9a84c", fontSize: "11px", fontFamily: "'Georgia', serif", margin: "0 0 2px 21px" }}>
+                            {abilitySummary}
+                          </p>
+                        )}
+                        {feat.prerequisiteText && (
+                          <p style={{ color: "#8a7050", fontSize: "10px", fontFamily: "'Georgia', serif", margin: "0 0 2px 21px", fontStyle: "italic" }}>
+                            Requires: {feat.prerequisiteText}
+                          </p>
+                        )}
+                        <p style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", margin: "0 0 0 21px", lineHeight: 1.4 }}>
+                          {truncated}
+                        </p>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Feat ability bonus choice dropdowns */}
+                {selectedFeatData?.abilityBonus?.choose && (
+                  <div style={{ marginTop: "12px" }}>
+                    <p style={{ color: "#b8934a", fontSize: "11px", fontFamily: "'Georgia', serif", marginBottom: "6px" }}>
+                      Choose {selectedFeatData.abilityBonus.choose.count} ability score{selectedFeatData.abilityBonus.choose.count > 1 ? "s" : ""} to increase by +{selectedFeatData.abilityBonus.choose.amount}:
+                    </p>
+                    {Array.from({ length: selectedFeatData.abilityBonus.choose.count }).map((_, idx) => (
+                      <select
+                        key={`feat-ability-${idx}`}
+                        value={featAbilityChoices[idx] ?? ""}
+                        onChange={(e) => {
+                          const newChoices = [...featAbilityChoices];
+                          newChoices[idx] = e.target.value;
+                          setFeatAbilityChoices(newChoices);
+                          setAsiError("");
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "8px 10px",
+                          background: "rgba(30,15,5,0.9)",
+                          border: "1px solid rgba(201,168,76,0.4)",
+                          borderRadius: "6px",
+                          color: "#e8d5a3",
+                          fontSize: "13px",
+                          fontFamily: "'Georgia', serif",
+                          outline: "none",
+                          marginBottom: "6px",
+                        }}
+                      >
+                        <option value="">-- Select --</option>
+                        {selectedFeatData!.abilityBonus!.choose!.from.map((abbr) => {
+                          const label = abbr === "str" ? "STR" : abbr === "dex" ? "DEX" : abbr === "con" ? "CON" : abbr === "int" ? "INT" : abbr === "wis" ? "WIS" : abbr === "cha" ? "CHA" : abbr.toUpperCase();
+                          const fullName = abbr === "str" ? "strength" : abbr === "dex" ? "dexterity" : abbr === "con" ? "constitution" : abbr === "int" ? "intelligence" : abbr === "wis" ? "wisdom" : abbr === "cha" ? "charisma" : abbr;
+                          const current = character[fullName as keyof CharacterData] as number;
+                          const capped = current >= 20;
+                          const alreadyChosen = featAbilityChoices.some((c, i) => i !== idx && c === abbr);
+                          return (
+                            <option key={abbr} value={abbr} disabled={capped || alreadyChosen}>
+                              {label} ({current}{capped ? " - MAX" : ` -> ${Math.min(20, current + (selectedFeatData!.abilityBonus!.choose!.amount ?? 1))}`})
+                            </option>
+                          );
+                        })}
+                      </select>
+                    ))}
+                  </div>
+                )}
+              </>
+            )}
+
+            {asiError && (
+              <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "8px" }}>
+                {asiError}
               </p>
             )}
           </div>
@@ -667,6 +1344,21 @@ function LevelUpPanel({
             {updateSubclass.error.message}
           </p>
         )}
+        {updateSkillExpertise.error && (
+          <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "12px" }}>
+            {updateSkillExpertise.error.message}
+          </p>
+        )}
+        {updateAbilityScores.error && (
+          <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "12px" }}>
+            {updateAbilityScores.error.message}
+          </p>
+        )}
+        {updateFeats.error && (
+          <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "12px" }}>
+            {updateFeats.error.message}
+          </p>
+        )}
       </div>
     </div>
   );
@@ -706,6 +1398,42 @@ function RenderFeatureEntry({ entry, depth = 0 }: { entry: FeatureEntry; depth?:
         {(entry.children ?? []).map((child, i) => (
           <RenderFeatureEntry key={i} entry={child} depth={depth + 1} />
         ))}
+      </div>
+    );
+  }
+
+  if (entry.type === "table") {
+    return (
+      <div style={{ marginBottom: "10px" }}>
+        {entry.caption && (
+          <p style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'Georgia', serif", marginBottom: "6px", letterSpacing: "0.5px" }}>
+            {entry.caption}
+          </p>
+        )}
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+          {entry.colLabels && entry.colLabels.length > 0 && (
+            <thead>
+              <tr>
+                {entry.colLabels.map((label, i) => (
+                  <th key={i} style={{ color: "#c9a84c", padding: "6px 10px", borderBottom: "1px solid rgba(201,168,76,0.3)", textAlign: "left", fontWeight: "bold", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+          )}
+          <tbody>
+            {(entry.rows ?? []).map((row, ri) => (
+              <tr key={ri}>
+                {row.map((cell, ci) => (
+                  <td key={ci} style={{ color: "#e8d5a3", padding: "5px 10px", borderBottom: "1px solid rgba(201,168,76,0.1)" }}>
+                    {cell}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     );
   }
@@ -774,7 +1502,9 @@ function ClassFeaturesTab({ character }: { character: CharacterData }) {
     onSuccess: async () => { await utils.character.getById.invalidate({ id: character.id }); },
   });
 
-  const classInfo = getClassByName(character.characterClass);
+  const classInfo = character.rulesSource
+    ? getClassByNameAndSource(character.characterClass, character.rulesSource) ?? getClassByName(character.characterClass)
+    : getClassByName(character.characterClass);
 
   if (!classInfo) {
     return (
@@ -1802,6 +2532,98 @@ function SpellSelectionSection({
 // Overview Tab (existing content)
 // ---------------------------------------------------------------------------
 
+function RaceFeaturesSection({ character, sectionTitle }: { character: CharacterData; sectionTitle: React.CSSProperties }) {
+  const raceInfo: RaceInfo | undefined =
+    getRaceByNameAndSource(character.race, character.rulesSource ?? "PHB") ??
+    getRaceByName(character.race);
+
+  if (!raceInfo) {
+    return (
+      <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px" }}>
+        <p style={sectionTitle}>Race Features</p>
+        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>
+          Race features not available for &ldquo;{character.race}&rdquo;.
+        </p>
+      </div>
+    );
+  }
+
+  const badgeStyle: React.CSSProperties = {
+    display: "inline-block",
+    padding: "2px 10px",
+    borderRadius: "12px",
+    fontSize: "11px",
+    fontFamily: "'Georgia', serif",
+    letterSpacing: "0.04em",
+    background: "rgba(201,168,76,0.1)",
+    border: "1px solid rgba(201,168,76,0.3)",
+    color: "#c9a84c",
+  };
+
+  return (
+    <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px" }}>
+      <p style={sectionTitle}>
+        {raceInfo.name} {raceInfo.source === "XPHB" ? "(2024)" : "(2014)"} — Race Features
+      </p>
+
+      {/* Meta info: speed, size, languages */}
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "16px" }}>
+        <span style={badgeStyle}>Speed: {raceInfo.speed} ft.</span>
+        <span style={badgeStyle}>Size: {raceInfo.size}</span>
+        {raceInfo.languages.map((lang) => (
+          <span key={lang} style={badgeStyle}>{lang}</span>
+        ))}
+      </div>
+
+      {/* Ability Score Increase (PHB 2014 races) */}
+      {raceInfo.abilityScoreIncrease && (
+        <div style={{
+          marginBottom: "14px",
+          padding: "8px 14px",
+          background: "rgba(201,168,76,0.06)",
+          borderLeft: "3px solid #c9a84c",
+          borderRadius: "0 6px 6px 0",
+        }}>
+          <span style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif", fontWeight: "bold" }}>
+            Ability Score Increase
+          </span>
+          <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
+            {raceInfo.abilityScoreIncrease}
+          </p>
+        </div>
+      )}
+
+      {/* Racial traits */}
+      {raceInfo.traits.length > 0 && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+          {raceInfo.traits.map((trait) => (
+            <div key={trait.name} style={{
+              padding: "10px 14px",
+              background: "rgba(201,168,76,0.04)",
+              borderLeft: "3px solid rgba(201,168,76,0.5)",
+              borderRadius: "0 6px 6px 0",
+            }}>
+              <span style={{ color: "#c9a84c", fontSize: "13px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>
+                {trait.name}
+              </span>
+              <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
+                {trait.description}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* No traits fallback (e.g., PHB Human) */}
+      {raceInfo.traits.length === 0 && !raceInfo.abilityScoreIncrease && (
+        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>
+          No additional racial traits.
+        </p>
+      )}
+    </div>
+  );
+}
+
 function OverviewTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
   const prof = proficiencyBonus(character.level);
@@ -1816,23 +2638,17 @@ function OverviewTab({ character }: { character: CharacterData }) {
     charisma: character.charisma,
   };
 
-  // Skill proficiencies (optimistic local state)
-  const [localProficientSkills, setLocalProficientSkills] = useState<string[]>(() => {
+  // Skill proficiencies (read-only from character data)
+  const proficientSkills: string[] = (() => {
     try { return JSON.parse(character.skillProficiencies || "[]") as string[]; }
     catch { return []; }
-  });
+  })();
 
-  const updateSkillProficiencies = api.character.updateSkillProficiencies.useMutation({
-    onSuccess: async () => { await utils.character.getById.invalidate({ id: character.id }); },
-  });
-
-  const toggleSkillProficiency = (skillName: string) => {
-    const newList = localProficientSkills.includes(skillName)
-      ? localProficientSkills.filter(s => s !== skillName)
-      : [...localProficientSkills, skillName];
-    setLocalProficientSkills(newList);
-    updateSkillProficiencies.mutate({ id: character.id, skillProficiencies: newList });
-  };
+  // Skill expertise (read-only from character data)
+  const expertiseSkills: string[] = (() => {
+    try { return JSON.parse(character.skillExpertise || "[]") as string[]; }
+    catch { return []; }
+  })();
 
   const sectionTitle: React.CSSProperties = {
     color: "#c9a84c",
@@ -1865,6 +2681,9 @@ function OverviewTab({ character }: { character: CharacterData }) {
             </div>
           </div>
 
+          {/* Race Features */}
+          <RaceFeaturesSection character={character} sectionTitle={sectionTitle} />
+
           {/* Saving Throws */}
           <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px" }}>
             <p style={sectionTitle}>Saving Throws</p>
@@ -1886,43 +2705,49 @@ function OverviewTab({ character }: { character: CharacterData }) {
         </div>
 
         {/* Right column: Skills */}
-        <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "8px", borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
+        <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px", maxHeight: "550px", overflowY: "auto" }}>
+          <div style={{ marginBottom: "16px", paddingBottom: "8px", borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
             <p style={{ ...sectionTitle, marginBottom: 0, paddingBottom: 0, borderBottom: "none" }}>Skills</p>
-            <span style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>click to toggle prof.</span>
           </div>
           <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
             {SKILLS.map(({ name, ability }) => {
               const score = abilityScores[ability] ?? 10;
               const baseMod = mod(score);
-              const isProficient = localProficientSkills.includes(name);
-              const total = isProficient ? baseMod + prof : baseMod;
+              const hasExpertise = expertiseSkills.includes(name);
+              const isProficient = proficientSkills.includes(name);
+              const total = hasExpertise
+                ? baseMod + prof * 2
+                : isProficient
+                  ? baseMod + prof
+                  : baseMod;
               const skillStr = total >= 0 ? `+${total}` : `${total}`;
               const abilityLabel = ABILITY_NAMES.find(a => a.key === ability)?.label ?? "";
+              const indicator = hasExpertise ? "★" : isProficient ? "●" : "○";
+              const indicatorColor = hasExpertise || isProficient ? "#c9a84c" : "#a89060";
+              const isHighlighted = hasExpertise || isProficient;
               return (
                 <div
                   key={name}
-                  onClick={() => toggleSkillProficiency(name)}
-                  style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", borderRadius: "4px", padding: "2px 4px" }}
+                  style={{ display: "flex", alignItems: "center", gap: "10px", borderRadius: "4px", padding: "2px 4px" }}
                 >
-                  <span style={{ color: isProficient ? "#c9a84c" : "#a89060", fontSize: "12px" }}>
-                    {isProficient ? "●" : "○"}
+                  <span style={{ color: indicatorColor, fontSize: "12px" }}>
+                    {indicator}
                   </span>
                   <span style={{
                     color: "#e8d5a3",
                     fontSize: "13px",
                     fontFamily: "'Georgia', serif",
                     flex: 1,
-                    fontWeight: isProficient ? "bold" : "normal",
+                    fontWeight: isHighlighted ? "bold" : "normal",
                   }}>
                     {name}
                   </span>
                   <span style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif" }}>({abilityLabel})</span>
                   <span style={{
-                    color: isProficient ? "#c9a84c" : "#e8d5a3",
+                    color: isHighlighted ? "#c9a84c" : "#e8d5a3",
                     fontSize: "13px",
                     fontFamily: "'Georgia', serif",
-                    fontWeight: isProficient ? "bold" : "normal",
+                    fontWeight: isHighlighted ? "bold" : "normal",
                   }}>
                     {skillStr}
                   </span>
@@ -1942,6 +2767,200 @@ function OverviewTab({ character }: { character: CharacterData }) {
           </p>
         </div>
       )}
+
+      {/* Feats */}
+      {(() => {
+        const feats: string[] = (() => {
+          try { return character.feats ? JSON.parse(character.feats) as string[] : []; }
+          catch { return []; }
+        })();
+        if (feats.length === 0) return null;
+        return (
+          <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px", marginTop: "20px" }}>
+            <p style={sectionTitle}>Feats</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+              {feats.map((featName) => (
+                <FeatCard key={featName} featName={featName} rulesSource={character.rulesSource || "PHB"} />
+              ))}
+            </div>
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// FeatCard
+// ---------------------------------------------------------------------------
+
+function FeatCard({ featName, rulesSource }: { featName: string; rulesSource: string }) {
+  const [expanded, setExpanded] = useState(false);
+  const feat = getFeatByNameAndSource(featName, rulesSource);
+
+  if (!feat) {
+    return (
+      <span
+        style={{
+          background: "rgba(201,168,76,0.12)",
+          border: "1px solid rgba(201,168,76,0.35)",
+          borderRadius: "20px",
+          padding: "5px 14px",
+          color: "#c9a84c",
+          fontSize: "12px",
+          fontFamily: "'Georgia', serif",
+          fontWeight: "bold",
+          display: "inline-block",
+        }}
+      >
+        {featName}
+      </span>
+    );
+  }
+
+  const description = feat.entries.join(" ");
+  const snippet = description.length > 120 ? description.slice(0, 120).replace(/\s\S*$/, "") + "..." : description;
+
+  const abilityBonusLabel = (() => {
+    if (!feat.abilityBonus) return null;
+    const parts: string[] = [];
+    if (feat.abilityBonus.fixed) {
+      for (const [ab, val] of Object.entries(feat.abilityBonus.fixed)) {
+        const name = ab.charAt(0).toUpperCase() + ab.slice(1);
+        parts.push(`+${val} ${name}`);
+      }
+    }
+    if (feat.abilityBonus.choose) {
+      const c = feat.abilityBonus.choose;
+      parts.push(`+${c.amount} to ${c.count} from ${c.from.map(a => a.charAt(0).toUpperCase() + a.slice(1)).join("/")}`);
+    }
+    return parts.length > 0 ? parts.join(", ") : null;
+  })();
+
+  return (
+    <div
+      onClick={() => setExpanded(v => !v)}
+      style={{
+        background: "rgba(201,168,76,0.06)",
+        border: "1px solid rgba(201,168,76,0.25)",
+        borderRadius: "8px",
+        padding: "12px 16px",
+        cursor: "pointer",
+      }}
+    >
+      <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: expanded ? "8px" : "0" }}>
+        <span style={{ color: "#c9a84c", fontSize: "13px", fontFamily: "'Georgia', serif", fontWeight: "bold" }}>
+          {feat.name}
+        </span>
+        <span style={{ background: "rgba(100,149,237,0.2)", border: "1px solid rgba(100,149,237,0.4)", borderRadius: "4px", padding: "1px 6px", color: "#6495ed", fontSize: "10px" }}>
+          {feat.source}
+        </span>
+        {abilityBonusLabel && (
+          <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "1px 8px", color: "#c9a84c", fontSize: "10px", fontFamily: "'Georgia', serif" }}>
+            {abilityBonusLabel}
+          </span>
+        )}
+        <span style={{ color: "#a89060", fontSize: "10px", marginLeft: "auto" }}>
+          {expanded ? "\u25BC" : "\u25BA"}
+        </span>
+      </div>
+      {!expanded && (
+        <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", margin: "4px 0 0 0", lineHeight: "1.4", fontStyle: "italic" }}>
+          {snippet}
+        </p>
+      )}
+      {expanded && (
+        <div style={{ marginTop: "4px" }}>
+          {feat.entries.map((entry, i) => (
+            <p key={i} style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", lineHeight: "1.6", margin: "0 0 6px 0" }}>
+              {entry}
+            </p>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// NotesTab
+// ---------------------------------------------------------------------------
+
+function NotesTab({ character }: { character: CharacterData }) {
+  const utils = api.useUtils();
+  const [notes, setNotes] = useState<string>(character.notes || "");
+  const [saved, setSaved] = useState(true);
+
+  const updateNotes = api.character.updateNotes.useMutation({
+    onSuccess: async () => {
+      setSaved(true);
+      await utils.character.getById.invalidate({ id: character.id });
+    },
+  });
+
+  const handleSave = () => {
+    updateNotes.mutate({ id: character.id, notes });
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+      <div style={{ background: "rgba(0,0,0,0.5)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "12px", padding: "20px 24px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px" }}>
+          <p style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", fontFamily: "'Georgia', serif", margin: 0 }}>
+            Adventurer&apos;s Journal
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {!saved && (
+              <span style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>
+                Unsaved changes
+              </span>
+            )}
+            <button
+              onClick={handleSave}
+              disabled={saved || updateNotes.isPending}
+              style={{
+                background: saved ? "rgba(201,168,76,0.1)" : "linear-gradient(135deg, #8b6914, #c9a84c)",
+                color: saved ? "#a89060" : "#1a1a2e",
+                border: saved ? "1px solid rgba(201,168,76,0.2)" : "none",
+                borderRadius: "6px",
+                padding: "6px 16px",
+                fontSize: "12px",
+                fontFamily: "'Georgia', serif",
+                fontWeight: "bold",
+                cursor: saved ? "default" : "pointer",
+                opacity: saved ? 0.6 : 1,
+              }}
+            >
+              {updateNotes.isPending ? "Saving..." : saved ? "Saved" : "Save Notes"}
+            </button>
+          </div>
+        </div>
+        <textarea
+          value={notes}
+          onChange={(e) => { setNotes(e.target.value); setSaved(false); }}
+          placeholder="Record your adventures, track quest objectives, note important NPCs, or keep any other information you need..."
+          style={{
+            width: "100%",
+            minHeight: "400px",
+            padding: "16px",
+            background: "rgba(30,15,5,0.9)",
+            border: "1px solid rgba(201,168,76,0.4)",
+            borderRadius: "8px",
+            color: "#e8d5a3",
+            fontSize: "14px",
+            fontFamily: "'Georgia', 'Times New Roman', serif",
+            lineHeight: "1.7",
+            resize: "vertical",
+            outline: "none",
+            boxSizing: "border-box",
+          }}
+        />
+        {updateNotes.error && (
+          <p style={{ color: "#e74c3c", fontSize: "12px", fontFamily: "'Georgia', serif", marginTop: "8px" }}>
+            {updateNotes.error.message}
+          </p>
+        )}
+      </div>
     </div>
   );
 }
@@ -1950,7 +2969,7 @@ function OverviewTab({ character }: { character: CharacterData }) {
 // CharacterSheet (main component)
 // ---------------------------------------------------------------------------
 
-type TabId = "overview" | "features" | "actions" | "spells";
+type TabId = "overview" | "features" | "actions" | "spells" | "notes";
 
 function CharacterSheet({ character }: { character: CharacterData }) {
   const router = useRouter();
@@ -1968,6 +2987,7 @@ function CharacterSheet({ character }: { character: CharacterData }) {
     { id: "features", label: "Class Features" },
     { id: "actions", label: "Actions" },
     ...(spellcaster ? [{ id: "spells" as TabId, label: "Spells" }] : []),
+    { id: "notes" as TabId, label: "Notes" },
   ];
 
   return (
@@ -2010,6 +3030,23 @@ function CharacterSheet({ character }: { character: CharacterData }) {
             <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'Georgia', serif", marginTop: "6px" }}>
               Level {character.level} {character.race} {character.characterClass}
               {character.subclass ? ` — ${character.subclass}` : ""}
+              {character.rulesSource && (
+                <span style={{
+                  display: "inline-block",
+                  marginLeft: "10px",
+                  background: "rgba(201,168,76,0.12)",
+                  border: "1px solid rgba(201,168,76,0.35)",
+                  borderRadius: "4px",
+                  padding: "1px 8px",
+                  fontSize: "10px",
+                  color: "#c9a84c",
+                  fontFamily: "'Georgia', serif",
+                  letterSpacing: "0.5px",
+                  verticalAlign: "middle",
+                }}>
+                  {character.rulesSource === "XPHB" ? "XPHB 2024" : "PHB 2014"}
+                </span>
+              )}
             </p>
             <p style={{ color: "#a89060", fontSize: "12px", marginTop: "2px", fontFamily: "'Georgia', serif" }}>{character.alignment}</p>
           </div>
@@ -2062,6 +3099,7 @@ function CharacterSheet({ character }: { character: CharacterData }) {
       {activeTab === "features" && <ClassFeaturesTab character={character} />}
       {activeTab === "actions" && <ActionsTab character={character} />}
       {activeTab === "spells" && spellcaster && <SpellsTab character={character} />}
+      {activeTab === "notes" && <NotesTab character={character} />}
 
       {/* Level Up Modal */}
       {showLevelUp && (
@@ -2110,6 +3148,8 @@ function CharacterDetailContent() {
     skillProficiencies: (character as CharacterData).skillProficiencies ?? "[]",
     preparedSpells: (character as CharacterData).preparedSpells ?? "[]",
     featureUses: (character as CharacterData).featureUses ?? "{}",
+    activeConditions: (character as CharacterData).activeConditions ?? "[]",
+    notes: (character as CharacterData).notes ?? "",
   };
 
   return (

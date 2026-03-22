@@ -16,9 +16,13 @@ export const characterRouter = createTRPCRouter({
       name: z.string().min(1).max(100),
       race: z.string().min(1),
       characterClass: z.string().min(1),
-      level: z.number().int().min(1).max(20).default(1),
+      rulesSource: z.enum(["PHB", "XPHB"]).default("PHB"),
+      level: z.literal(1).default(1),
       alignment: z.enum(ALIGNMENTS).default("True Neutral"),
+      background: z.string().optional(),
       backstory: z.string().optional(),
+      skillProficiencies: z.string().optional(),
+      skillExpertise: z.string().optional(),
       strength: abilityScore.default(10),
       dexterity: abilityScore.default(10),
       constitution: abilityScore.default(10),
@@ -242,6 +246,24 @@ export const characterRouter = createTRPCRouter({
       });
     }),
 
+  updateSkillExpertise: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      skillExpertise: z.array(z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { skillExpertise: JSON.stringify(input.skillExpertise) },
+      });
+    }),
+
   updatePreparedSpells: protectedProcedure
     .input(z.object({
       id: z.string(),
@@ -271,6 +293,90 @@ export const characterRouter = createTRPCRouter({
       return ctx.db.character.update({
         where: { id: input.id },
         data: { featureUses: JSON.stringify(input.featureUses) },
+      });
+    }),
+
+  updateAbilityScores: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      strength: z.number().int().min(1).max(30),
+      dexterity: z.number().int().min(1).max(30),
+      constitution: z.number().int().min(1).max(30),
+      intelligence: z.number().int().min(1).max(30),
+      wisdom: z.number().int().min(1).max(30),
+      charisma: z.number().int().min(1).max(30),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: {
+          strength: input.strength,
+          dexterity: input.dexterity,
+          constitution: input.constitution,
+          intelligence: input.intelligence,
+          wisdom: input.wisdom,
+          charisma: input.charisma,
+        },
+      });
+    }),
+
+  updateActiveConditions: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      activeConditions: z.array(z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { activeConditions: JSON.stringify(input.activeConditions) },
+      });
+    }),
+
+  updateFeats: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      feats: z.array(z.string()),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { feats: JSON.stringify(input.feats) },
+      });
+    }),
+
+  updateNotes: protectedProcedure
+    .input(z.object({
+      id: z.string(),
+      notes: z.string(),
+    }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({ code: "NOT_FOUND", message: "Character not found" });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { notes: input.notes },
       });
     }),
 });
