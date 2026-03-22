@@ -33,6 +33,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "My Adventures", href: "/adventures" },
         { label: "Spells", href: "/spells" },
         { label: "Classes", href: "/classes" },
+        { label: "Item Vault", href: "/items" },
         { label: "Rules For Players", href: "/rules" },
         { label: "My Characters", href: "/characters" },
         { label: "Create New Character", href: "/characters/new" },

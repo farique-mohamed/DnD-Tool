@@ -27,7 +27,7 @@ src/pages/_app.tsx           — Providers: api.Provider + QueryClientProvider
      auth: authRouter,
      user: userRouter,
      dice: diceRouter,
-     myFeature: myFeatureRouter,   // ← add here
+     myFeature: myFeatureRouter, // ← add here
    });
    ```
 3. Use it in any component via `api.myFeature.someQuery.useQuery(...)`.
@@ -61,59 +61,75 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 
 ### Current models
 
-| Model | Table | Purpose |
-|-------|-------|---------|
-| `User` | `"users"` | Auth identity, stores hashed password and role |
-| `DiceRoll` | `"dice_rolls"` | Persisted roll results — linked to `User`, stores diceType, result, optional label, optional adventureId |
-| `Character` | `"characters"` | Full D&D 5e character sheet — linked to `User`, stores identity, all six ability scores, combat stats (HP, AC, speed), optional `subclass` (String), `spellSlotsUsed` (JSON string storing a number[9] of used slots per spell level 1–9), `skillProficiencies` (JSON string storing a string[] of proficient skill names), `preparedSpells` (JSON string storing a string[] of prepared/known spell names), and `featureUses` (JSON string storing a Record<string, number> of feature name → used count) |
+| Model       | Table          | Purpose                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          |
+| ----------- | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `User`      | `"users"`      | Auth identity, stores hashed password and role                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `DiceRoll`  | `"dice_rolls"` | Persisted roll results — linked to `User`, stores diceType, result, optional label, optional adventureId                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| `Character` | `"characters"` | Full D&D 5e character sheet — linked to `User`, stores identity (including optional `background` String), `rulesSource` (String, default `"PHB"` — tracks which rulebook version the character uses: `"PHB"` for 2014, `"XPHB"` for 2024), all six ability scores, combat stats (HP, AC, speed), optional `subclass` (String), `spellSlotsUsed` (JSON string storing a number[9] of used slots per spell level 1–9), `skillProficiencies` (JSON string storing a string[] of proficient skill names), `skillExpertise` (JSON string storing a string[] of skill names with expertise — double proficiency bonus), `preparedSpells` (JSON string storing a string[] of prepared/known spell names), `featureUses` (JSON string storing a Record<string, number> of feature name → used count), `activeConditions` (JSON string storing a string[] of active condition/status names, default `"[]"`), `feats` (JSON string storing a string[] of feat names the character has taken, default `"[]"`), and `notes` (String, default `""` — free-text notes field for the player's personal journal) |
 
 See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
 
 ### Character tRPC procedures
 
-| Procedure | Type | Description |
-|-----------|------|-------------|
-| `character.create` | mutation | Create a new character for the authenticated user |
-| `character.list` | query | List all characters belonging to the authenticated user |
-| `character.getById` | query | Fetch a single character by id (must belong to the user) |
-| `character.updateHp` | mutation | Apply heal / damage / setTempHp to a character |
-| `character.levelUp` | mutation | Increment `level` by 1, set `maxHp` and `currentHp` to the player-supplied value, reset `spellSlotsUsed` to `[]`; rejects if already level 20 |
-| `character.updateSpellSlots` | mutation | Persist the current used-slot counts (array of 9 integers, one per spell level) |
-| `character.updateSubclass` | mutation | Set the character's chosen subclass name |
-| `character.longRest` | mutation | Reset HP to max, clear tempHp, reset all spell slots, and reset long-rest feature uses (Rage, Second Wind, Action Surge, Indomitable, Channel Divinity, Wild Shape, Lay on Hands, Divine Sense, Bardic Inspiration, Arcane Recovery, Countercharm, Flurry of Blows, Patient Defense, Step of the Wind) to 0 |
-| `character.shortRest` | mutation | Restore HP by a player-supplied hit-dice result, reset short-rest feature uses (Second Wind, Action Surge, Flurry of Blows, Patient Defense, Step of the Wind) to 0; if `isWarlock: true` also resets `spellSlotsUsed` for pact magic recovery |
-| `character.updateSkillProficiencies` | mutation | Persist the full list of proficient skill names as a JSON string[] |
-| `character.updatePreparedSpells` | mutation | Persist the full list of prepared/known spell names as a JSON string[] |
-| `character.updateFeatureUses` | mutation | Persist the complete feature-use map (Record<string, number>) for tracking per-rest feature consumption |
+| Procedure                            | Type     | Description                                                                                                                                                                                                                                                                                                             |
+| ------------------------------------ | -------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `character.create`                   | mutation | Create a new character for the authenticated user; `level` is locked to `1` (z.literal(1) — characters can only be created at level 1); accepts optional `background` (string), `skillProficiencies` (JSON string[]), `skillExpertise` (JSON string[]), and `rulesSource` (`"PHB"` or `"XPHB"`, default `"PHB"`) fields |
+| `character.list`                     | query    | List all characters belonging to the authenticated user                                                                                                                                                                                                                                                                 |
+| `character.getById`                  | query    | Fetch a single character by id (must belong to the user)                                                                                                                                                                                                                                                                |
+| `character.updateHp`                 | mutation | Apply heal / damage / setTempHp to a character                                                                                                                                                                                                                                                                          |
+| `character.levelUp`                  | mutation | Increment `level` by 1, set `maxHp` and `currentHp` to the player-supplied value, reset `spellSlotsUsed` to `[]`; rejects if already level 20                                                                                                                                                                           |
+| `character.updateSpellSlots`         | mutation | Persist the current used-slot counts (array of 9 integers, one per spell level)                                                                                                                                                                                                                                         |
+| `character.updateSubclass`           | mutation | Set the character's chosen subclass name                                                                                                                                                                                                                                                                                |
+| `character.longRest`                 | mutation | Reset HP to max, clear tempHp, reset all spell slots, and reset long-rest feature uses (Rage, Second Wind, Action Surge, Indomitable, Channel Divinity, Wild Shape, Lay on Hands, Divine Sense, Bardic Inspiration, Arcane Recovery, Countercharm, Flurry of Blows, Patient Defense, Step of the Wind) to 0             |
+| `character.shortRest`                | mutation | Restore HP by a player-supplied hit-dice result, reset short-rest feature uses (Second Wind, Action Surge, Flurry of Blows, Patient Defense, Step of the Wind) to 0; if `isWarlock: true` also resets `spellSlotsUsed` for pact magic recovery                                                                          |
+| `character.updateSkillProficiencies` | mutation | Persist the full list of proficient skill names as a JSON string[]                                                                                                                                                                                                                                                      |
+| `character.updateSkillExpertise`     | mutation | Persist the full list of expertise skill names as a JSON string[] (expertise grants double proficiency bonus)                                                                                                                                                                                                           |
+| `character.updatePreparedSpells`     | mutation | Persist the full list of prepared/known spell names as a JSON string[]                                                                                                                                                                                                                                                  |
+| `character.updateFeatureUses`        | mutation | Persist the complete feature-use map (Record<string, number>) for tracking per-rest feature consumption                                                                                                                                                                                                                 |
+| `character.updateAbilityScores`      | mutation | Update all six ability scores (STR/DEX/CON/INT/WIS/CHA) for the authenticated user's character; each score validated min 1, max 30; used for Ability Score Improvements during level-up                                                                                                                                 |
+| `character.updateActiveConditions`   | mutation | Persist the full list of active condition/status names as a JSON string[]                                                                                                                                                                                                                                               |
+| `character.updateFeats`              | mutation | Persist the full list of feat names the character has taken as a JSON string[]                                                                                                                                                                                                                                          |
+| `character.updateNotes`              | mutation | Persist the character's free-text notes string                                                                                                                                                                                                                                                                          |
 
 ---
 
 ## Conventions
 
 ### File naming
+
 - Pages: `src/pages/featureName/index.tsx` for route `/featureName`
 - API routers: `src/server/routers/featureName.ts`
 - Reusable components: `src/components/ComponentName.tsx`
 - React hooks: `src/hooks/useHookName.ts`
 - Server utilities: `src/lib/utilityName.ts` (never imported client-side if using Node APIs)
-- Static data modules: `src/lib/featureData.ts` — import JSON directly (no `fs`), export typed arrays and helpers. Example: `src/lib/classData.ts` imports all 15 class JSON files from `data/class/` and exports `CLASS_LIST: ClassInfo[]` + `getClassByName(name)`. `src/lib/bookData.ts` imports all 53 book JSONs from `data/book/` and exports `BOOK_DATA_MAP: Record<string, BookSection[]>` (source code → data array), `BOOK_LIST: BookInfo[]`, and named exports `DMG_2014_DATA`, `DMG_2024_DATA`, `PHB_2014_DATA`, `PHB_2024_DATA` used by the rules pages. `src/lib/adventureData.ts` imports all 95 adventure JSONs from `data/adventure/` and exports `ADVENTURE_DATA_MAP: Record<string, AdventureSection[]>` (source code → sections array), `ADVENTURE_LIST: AdventureInfo[]` (source, name) — used by the adventure books listing and detail pages.
+- Static data modules: `src/lib/featureData.ts` — import JSON directly (no `fs`), export typed arrays and helpers. Example: `src/lib/classData.ts` imports all 15 class JSON files from `data/class/` and exports `CLASS_LIST: ClassInfo[]` (all versions — PHB, XPHB, and unique-source classes; each `ClassInfo` includes a `source` field), `getClassByName(name)`, `getClassesBySource(source)` (filters classes by rulebook source), `getClassByNameAndSource(name, source)`, and `DUAL_SOURCE_CLASS_NAMES` (names of classes that appear in both PHB and XPHB). Subclasses and features are filtered by source: PHB subclasses appear with PHB classes, XPHB with XPHB, and supplemental sources (XGE, TCE, etc.) appear with both. `src/lib/bookData.ts` imports all 53 book JSONs from `data/book/` and exports `BOOK_DATA_MAP: Record<string, BookSection[]>` (source code → data array), `BOOK_LIST: BookInfo[]`, and named exports `DMG_2014_DATA`, `DMG_2024_DATA`, `PHB_2014_DATA`, `PHB_2024_DATA` used by the rules pages. `src/lib/adventureData.ts` imports all 95 adventure JSONs from `data/adventure/` and exports `ADVENTURE_DATA_MAP: Record<string, AdventureSection[]>` (source code → sections array), `ADVENTURE_LIST: AdventureInfo[]` (source, name) — used by the adventure books listing and detail pages.
 - `src/lib/spellSlotData.ts` — spell slot tables for full/half/artificer/warlock casters; exports `getSpellSlots(className, level)` returning a 9-element array of total slots per spell level, `isSpellcaster(className)` returning true for classes with any spell slots, `isWarlock(className)` for Pact Magic handling, and `SPELLCASTING_TYPE: Record<string, SpellcastingType>` mapping class names to their casting type.
 - `src/lib/actionEconomy.ts` — action economy per class/level; exports `UNIVERSAL_ACTIONS: ActionEntry[]` (actions available to all characters), `CLASS_ACTIONS: Record<string, ClassActionEntry[]>` (class-specific actions keyed by class name, each with a `levelRequired` field), and `getCharacterActions(className, level)` which merges universal and class-specific actions available at the given level.
+- `src/lib/itemsData.ts` — imports `data/items-base.json` (196 base items) and `data/items.json` (2526 magic/special items), maps type abbreviations to display names, normalises rarity, parses entries via `parseTaggedText`, de-duplicates by name+source, and exports `ITEMS: Item[]`, `ITEM_SOURCES: string[]`, `ITEM_TYPES: string[]`, `ITEM_RARITIES: string[]`.
+- `src/lib/expertiseData.ts` — defines `EXPERTISE_CONFIG: ClassExpertiseConfig[]` mapping each class+source (PHB/XPHB) to the levels and counts where expertise is granted; exports `getExpertiseConfig(className, source)`, `getExpertiseCountAtLevel(className, source, level)` (total picks at or below a level), `getNewExpertiseAtLevel(className, source, level)` (new picks at exactly that level), and `classHasExpertise(className, source)`. Covers Rogue (PHB/XPHB), Bard (PHB/XPHB with different level thresholds), and Ranger (XPHB only).
+- `src/lib/backgroundData.ts` — imports `data/backgrounds.json` (160 raw entries), parses `skillProficiencies` into fixed skill names and optional `skillChoices` (from/count), de-duplicates by name (preferring PHB/XPHB sources), and exports `Background` interface, `BACKGROUNDS: Background[]` (sorted by name), and `BACKGROUND_NAMES: string[]`.
+- `src/lib/raceData.ts` — static race/species data for all 9 PHB (2014) races and 7 XPHB (2024) species (Half-Elf and Half-Orc removed in 2024); exports `AbilityScoreBonus` interface (ability name, amount, and optional `"choice"` type for races like Half-Elf), `RacialTrait` and `RaceInfo` interfaces (includes `abilityBonuses: AbilityScoreBonus[]` with structured ASI data per race — e.g., Elf: `[{ ability: "dexterity", amount: 2 }]`, Human: `[{ ability: "all", amount: 1 }]`, Half-Elf: fixed CHA +2 plus two `"choice"` +1 picks), `RACES: RaceInfo[]` (all versions), `getRaceByNameAndSource(name, source)` for source-aware lookup, and `getRaceByName(name)` which returns the PHB version for backward compatibility.
+- `src/lib/featData.ts` — imports `data/feats.json` (226 raw feats, 214 after filtering out fighting styles), parses entries via `parseTaggedText`, and exports `Feat` interface (name, source, category, prerequisiteText, levelRequired, abilityBonus, entries), `FeatAbilityBonus` interface, `FEATS: Feat[]`, `getFeatsBySource(source)` (PHB returns 149 feats including supplements, XPHB returns 162 feats including supplements), and `getFeatByNameAndSource(name, source)`.
+- `src/lib/conditionData.ts` — imports `data/conditionsdiseases.json`, filters out diseases, and exports `CONDITIONS: Condition[]` (each with name, source, and parsed text entries), `getConditionsBySource(source)`, and `getConditionByName(name, source)`.
 - `src/lib/dndTagParser.ts` — exports `parseTaggedText(text: string): string`. Converts 5etools `{@tag ...}` markup to readable plain text (e.g. `{@atkr m}` → `"Melee Attack:"`, `{@hit 7}` → `"+7"`, `{@h}14` → `"(avg. 14)"`, `{@recharge 5}` → `"(Recharge 5-6)"`, `{@actSave int}` → `"Intelligence saving throw"`, `{@actSaveFail}` → `"On a failed save,"`, `{@actSaveSuccess}` → `"On a successful save,"`, `{@actSaveSuccessOrFail}` → `"Regardless of the result,"`). Used in `bestiaryData.ts` when decoding action/trait text and spellcasting entries.
 
 ### Import alias
+
 `@/` maps to `src/`. Use it for all non-relative imports:
+
 ```typescript
 import { useAuth } from "@/hooks/useAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 ```
 
 ### Mutations vs queries
+
 - **Mutations** (`useMutation`): any write operation (login, register, create, update, delete).
 - **Queries** (`useQuery`): any read operation (fetch characters, campaigns, etc.).
 - Always use `onSuccess` / `onError` callbacks for mutations rather than `.then()` chains.
 
 ### Error handling
+
 - Server throws `TRPCError` with semantic codes (`UNAUTHORIZED`, `NOT_FOUND`, `CONFLICT`, `BAD_REQUEST`).
 - Client receives the error message via `onError: (err) => err.message`.
 - Zod validation errors are surfaced as `err.data.zodError` if needed for field-level display.
@@ -124,11 +140,11 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 
 **JWT in localStorage** was chosen for simplicity at this stage. Trade-offs:
 
-| Approach | Pro | Con |
-|----------|-----|-----|
-| localStorage JWT ✓ | Simple, no cookie config | Vulnerable to XSS (acceptable for internal tool) |
-| HttpOnly Cookie JWT | XSS-safe | Requires CSRF protection, more server setup |
-| NextAuth / Auth.js | Battle-tested | Heavy dependency, less control |
+| Approach            | Pro                      | Con                                              |
+| ------------------- | ------------------------ | ------------------------------------------------ |
+| localStorage JWT ✓  | Simple, no cookie config | Vulnerable to XSS (acceptable for internal tool) |
+| HttpOnly Cookie JWT | XSS-safe                 | Requires CSRF protection, more server setup      |
+| NextAuth / Auth.js  | Battle-tested            | Heavy dependency, less control                   |
 
 If security requirements increase (e.g. public-facing), migrate to HttpOnly cookies with `sameSite: strict` and add a `protectedProcedure` that reads the cookie server-side.
 
@@ -145,5 +161,6 @@ If security requirements increase (e.g. public-facing), migrate to HttpOnly cook
 ## Superjson
 
 `superjson` is used as the tRPC transformer. It serializes types that plain JSON cannot handle (e.g., `Date`, `BigInt`, `Map`, `Set`). This means:
+
 - Prisma `DateTime` fields arrive as real `Date` objects on the client, not strings.
 - No manual `.toISOString()` or `new Date(str)` conversions needed.

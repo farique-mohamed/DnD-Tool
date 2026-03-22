@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import {
-  CLASS_LIST,
+  getClassesBySource,
   type ClassInfo,
   type SubclassInfo,
   type FeatureEntry,
@@ -47,9 +47,11 @@ const DIVIDER_STYLE: React.CSSProperties = {
 /* ---------- Class list sidebar ---------- */
 
 function ClassListPanel({
+  classes,
   selected,
   onSelect,
 }: {
+  classes: ClassInfo[];
   selected: ClassInfo;
   onSelect: (c: ClassInfo) => void;
 }) {
@@ -63,7 +65,7 @@ function ClassListPanel({
         gap: "4px",
       }}
     >
-      {CLASS_LIST.map((cls) => {
+      {classes.map((cls) => {
         const isActive = cls.name === selected.name;
         return (
           <button
@@ -314,6 +316,41 @@ function renderFeatureEntry(
           {(entry.children ?? []).map((child, idx) =>
             renderFeatureEntry(child, isSubclass, `${key}-child-${idx}`),
           )}
+        </div>
+      );
+
+    case "table":
+      return (
+        <div key={key} style={{ marginBottom: "10px" }}>
+          {entry.caption && (
+            <p style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'Georgia', serif", marginBottom: "6px", letterSpacing: "0.5px" }}>
+              {entry.caption}
+            </p>
+          )}
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            {entry.colLabels && entry.colLabels.length > 0 && (
+              <thead>
+                <tr>
+                  {entry.colLabels.map((label, i) => (
+                    <th key={i} style={{ color: "#c9a84c", padding: "6px 10px", borderBottom: "1px solid rgba(201,168,76,0.3)", textAlign: "left", fontWeight: "bold", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.5px" }}>
+                      {label}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+            )}
+            <tbody>
+              {(entry.rows ?? []).map((row, ri) => (
+                <tr key={ri}>
+                  {row.map((cell, ci) => (
+                    <td key={ci} style={{ color: textColor, padding: "5px 10px", borderBottom: "1px solid rgba(201,168,76,0.1)" }}>
+                      {cell}
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       );
 
@@ -789,10 +826,19 @@ function ClassDetailPanel({ cls }: { cls: ClassInfo }) {
 /* ---------- Page ---------- */
 
 function ClassCompendiumContent() {
-  const [selected, setSelected] = useState<ClassInfo>(CLASS_LIST[0]!);
+  const [selectedSource, setSelectedSource] = useState<"PHB" | "XPHB">("PHB");
+  const filteredClasses = getClassesBySource(selectedSource);
+  const [selected, setSelected] = useState<ClassInfo>(filteredClasses[0]!);
 
   const handleSelect = (cls: ClassInfo) => {
     setSelected(cls);
+  };
+
+  const handleSourceChange = (source: "PHB" | "XPHB") => {
+    if (source === selectedSource) return;
+    setSelectedSource(source);
+    const newClasses = getClassesBySource(source);
+    setSelected(newClasses[0]!);
   };
 
   return (
@@ -818,12 +864,41 @@ function ClassCompendiumContent() {
           style={{
             color: "#a89060",
             fontSize: "14px",
-            marginBottom: "32px",
+            marginBottom: "20px",
             fontFamily: "'Georgia', serif",
           }}
         >
           Every path begins with a choice of calling.
         </p>
+        <div style={{ display: "flex", gap: "0", marginBottom: "20px" }}>
+          {([
+            { label: "Player's Handbook (2014)", value: "PHB" as const },
+            { label: "Player's Handbook (2024)", value: "XPHB" as const },
+          ]).map((opt) => (
+            <button
+              key={opt.value}
+              onClick={() => handleSourceChange(opt.value)}
+              style={{
+                background: selectedSource === opt.value
+                  ? "linear-gradient(135deg, #8b6914, #c9a84c)"
+                  : "rgba(0,0,0,0.4)",
+                border: selectedSource === opt.value
+                  ? "1px solid #c9a84c"
+                  : "1px solid rgba(201,168,76,0.3)",
+                color: selectedSource === opt.value ? "#1a1a2e" : "#a89060",
+                fontWeight: selectedSource === opt.value ? "bold" : "normal",
+                padding: "8px 18px",
+                fontSize: "12px",
+                fontFamily: "'Georgia', serif",
+                cursor: "pointer",
+                letterSpacing: "0.3px",
+                borderRadius: opt.value === "PHB" ? "6px 0 0 6px" : "0 6px 6px 0",
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
         <div
           style={{
             width: "80px",
@@ -835,8 +910,8 @@ function ClassCompendiumContent() {
         />
 
         <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
-          <ClassListPanel selected={selected} onSelect={handleSelect} />
-          <ClassDetailPanel key={selected.name} cls={selected} />
+          <ClassListPanel classes={filteredClasses} selected={selected} onSelect={handleSelect} />
+          <ClassDetailPanel key={`${selected.name}-${selected.source}`} cls={selected} />
         </div>
       </div>
     </>

@@ -84,8 +84,10 @@ model Character {
   name         String
   race         String
   characterClass String
+  rulesSource  String   @default("PHB")
   level        Int      @default(1)
   alignment    String   @default("True Neutral")
+  background   String?
   backstory    String?
 
   // Ability scores (standard D&D 5e: 1–20)
@@ -107,8 +109,12 @@ model Character {
   subclass           String?
   spellSlotsUsed     String  @default("[]")          // JSON: number[] (used per slot level 1-9)
   skillProficiencies String  @default("[]")           // JSON: string[] of proficient skill names
+  skillExpertise     String  @default("[]")           // JSON: string[] of skill names with expertise (double proficiency)
   preparedSpells     String  @default("[]")           // JSON: string[] of prepared/known spell names
   featureUses        String  @default("{}")           // JSON: Record<string, number> feature name → used count
+  activeConditions    String  @default("[]")           // JSON: string[] of active condition/status names
+  feats              String  @default("[]")           // JSON: string[] of taken feat names
+  notes              String  @default("")             // Free-text notes for the character
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
