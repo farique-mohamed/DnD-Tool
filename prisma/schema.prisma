@@ -32,6 +32,7 @@ model User {
   dmRequests DmRequest[]
   diceRolls  DiceRoll[]
   characters Character[]
+  adventures Adventure[]
 
   @@map("users")
 }
@@ -120,4 +121,42 @@ model Character {
   updatedAt    DateTime @updatedAt
 
   @@map("characters")
+}
+
+model Adventure {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  name      String
+  source    String
+  monsters  AdventureMonster[]
+  items     AdventureItem[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("adventures")
+}
+
+model AdventureMonster {
+  id          String    @id @default(cuid())
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  name        String
+  source      String
+  createdAt   DateTime  @default(now())
+
+  @@unique([adventureId, name, source])
+  @@map("adventure_monsters")
+}
+
+model AdventureItem {
+  id          String    @id @default(cuid())
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  name        String
+  source      String
+  createdAt   DateTime  @default(now())
+
+  @@unique([adventureId, name, source])
+  @@map("adventure_items")
 }
