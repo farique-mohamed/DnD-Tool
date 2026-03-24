@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Head from "next/head";
+import Link from "next/link";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
@@ -142,6 +143,10 @@ type CharacterData = {
   activeConditions?: string; // JSON string[]
   feats?: string; // JSON string[]
   notes?: string;
+  adventurePlayers?: Array<{
+    status: string;
+    adventure: { id: string; name: string; source: string };
+  }>;
 };
 
 // ---------------------------------------------------------------------------
@@ -4913,6 +4918,29 @@ function CharacterSheet({ character }: { character: CharacterData }) {
             >
               {character.alignment}
             </p>
+            {character.adventurePlayers && character.adventurePlayers.length > 0 && (() => {
+              const ap = character.adventurePlayers[0]!;
+              return (
+                <Link
+                  href={`/adventures/${ap.adventure.id}`}
+                  style={{
+                    display: "inline-block",
+                    marginTop: "8px",
+                    padding: "2px 10px",
+                    borderRadius: "12px",
+                    fontSize: "11px",
+                    fontFamily: "'Georgia', serif",
+                    letterSpacing: "0.3px",
+                    background: ap.status === "ACCEPTED" ? "rgba(74,124,42,0.2)" : "rgba(201,168,76,0.15)",
+                    border: ap.status === "ACCEPTED" ? "1px solid rgba(74,124,42,0.4)" : "1px solid rgba(201,168,76,0.3)",
+                    color: ap.status === "ACCEPTED" ? "#4a7c2a" : "#a89060",
+                    textDecoration: "none",
+                  }}
+                >
+                  {ap.status === "ACCEPTED" ? "In" : "Pending"}: {ap.adventure.name}
+                </Link>
+              );
+            })()}
           </div>
           {/* Combat quick stats */}
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>

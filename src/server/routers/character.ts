@@ -56,6 +56,15 @@ export const characterRouter = createTRPCRouter({
     return ctx.db.character.findMany({
       where: { userId: ctx.user.userId },
       orderBy: { createdAt: "desc" },
+      include: {
+        adventurePlayers: {
+          where: { status: { in: ["PENDING", "ACCEPTED"] } },
+          include: {
+            adventure: { select: { id: true, name: true, source: true } },
+          },
+          take: 1,
+        },
+      },
     });
   }),
 
@@ -64,6 +73,15 @@ export const characterRouter = createTRPCRouter({
     .query(async ({ ctx, input }) => {
       const character = await ctx.db.character.findFirst({
         where: { id: input.id, userId: ctx.user.userId },
+        include: {
+          adventurePlayers: {
+            where: { status: { in: ["PENDING", "ACCEPTED"] } },
+            include: {
+              adventure: { select: { id: true, name: true, source: true } },
+            },
+            take: 1,
+          },
+        },
       });
       if (!character) {
         throw new TRPCError({

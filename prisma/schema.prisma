@@ -22,6 +22,12 @@ enum DmRequestStatus {
   REJECTED
 }
 
+enum AdventurePlayerStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
 model User {
   id         String      @id @default(cuid())
   username   String      @unique
@@ -32,7 +38,8 @@ model User {
   dmRequests DmRequest[]
   diceRolls  DiceRoll[]
   characters Character[]
-  adventures Adventure[]
+  adventures       Adventure[]
+  adventurePlayers AdventurePlayer[]
 
   @@map("users")
 }
@@ -117,6 +124,8 @@ model Character {
   feats              String  @default("[]")           // JSON: string[] of taken feat names
   notes              String  @default("")             // Free-text notes for the character
 
+  adventurePlayers AdventurePlayer[]
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -124,15 +133,17 @@ model Character {
 }
 
 model Adventure {
-  id        String   @id @default(cuid())
-  userId    String
-  user      User     @relation(fields: [userId], references: [id])
-  name      String
-  source    String
-  monsters  AdventureMonster[]
-  items     AdventureItem[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  name       String
+  source     String
+  inviteCode String   @unique @default(cuid())
+  monsters   AdventureMonster[]
+  items      AdventureItem[]
+  players    AdventurePlayer[]
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   @@map("adventures")
 }
@@ -159,4 +170,20 @@ model AdventureItem {
 
   @@unique([adventureId, name, source])
   @@map("adventure_items")
+}
+
+model AdventurePlayer {
+  id          String                @id @default(cuid())
+  adventureId String
+  adventure   Adventure             @relation(fields: [adventureId], references: [id])
+  userId      String
+  user        User                  @relation(fields: [userId], references: [id])
+  characterId String
+  character   Character             @relation(fields: [characterId], references: [id])
+  status      AdventurePlayerStatus @default(PENDING)
+  joinedAt    DateTime              @default(now())
+  resolvedAt  DateTime?
+
+  @@unique([adventureId, userId])
+  @@map("adventure_players")
 }

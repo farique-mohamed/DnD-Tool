@@ -16,7 +16,7 @@ function getNavItems(role: string): NavItem[] {
     case "DUNGEON_MASTER":
       return [
         { label: "Adventure Books", href: "/dm/adventure-books" },
-        { label: "My Adventures", href: "/adventures" },
+        { label: "My Campaigns", href: "/adventures" },
         { label: "Spells", href: "/spells" },
         { label: "Classes", href: "/classes" },
         { label: "Monster Manual", href: "/dm/monster-manual" },
