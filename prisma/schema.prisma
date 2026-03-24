@@ -40,6 +40,9 @@ model User {
   characters Character[]
   adventures       Adventure[]
   adventurePlayers AdventurePlayer[]
+  dmNotesSent      DmNote[]          @relation("dmNotesSent")
+  dmNotesReceived  DmNote[]          @relation("dmNotesReceived")
+  sessionNotes     SessionNote[]
 
   @@map("users")
 }
@@ -125,6 +128,7 @@ model Character {
   notes              String  @default("")             // Free-text notes for the character
 
   adventurePlayers AdventurePlayer[]
+  dmNotes          DmNote[]
 
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -142,8 +146,10 @@ model Adventure {
   monsters   AdventureMonster[]
   items      AdventureItem[]
   players    AdventurePlayer[]
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
+  dmNotes      DmNote[]
+  sessionNotes SessionNote[]
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 
   @@map("adventures")
 }
@@ -186,4 +192,36 @@ model AdventurePlayer {
 
   @@unique([adventureId, userId])
   @@map("adventure_players")
+}
+
+model DmNote {
+  id          String    @id @default(cuid())
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  fromUserId  String
+  fromUser    User      @relation("dmNotesSent", fields: [fromUserId], references: [id])
+  toUserId    String
+  toUser      User      @relation("dmNotesReceived", fields: [toUserId], references: [id])
+  characterId String
+  character   Character @relation(fields: [characterId], references: [id])
+  content     String
+  reaction    String?
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  @@map("dm_notes")
+}
+
+model SessionNote {
+  id          String    @id @default(cuid())
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  userId      String
+  user        User      @relation(fields: [userId], references: [id])
+  title       String
+  content     String    @default("")
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@map("session_notes")
 }

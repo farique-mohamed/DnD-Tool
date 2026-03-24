@@ -11,7 +11,7 @@ src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── auth              — authRouter (auth.login, auth.register)
        └── user              — userRouter (user.requestDungeonMaster)
        └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
-       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers)
+       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote)
        └── (future routers)  — add here and re-export AppRouter type
 
 src/pages/api/trpc/[trpc].ts — Next.js API route that handles all tRPC calls
@@ -71,6 +71,8 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 | `AdventureMonster` | `"adventure_monsters"` | Monster assigned to an adventure — linked to `Adventure`, stores monster `name` and `source`; unique constraint on `[adventureId, name, source]` |
 | `AdventureItem` | `"adventure_items"` | Item assigned to an adventure — linked to `Adventure`, stores item `name` and `source`; unique constraint on `[adventureId, name, source]` |
 | `AdventurePlayer` | `"adventure_players"` | Player-adventure membership with invite status (PENDING/ACCEPTED/REJECTED); stores `characterId` FK → `Character` linking the joining character; unique per user+adventure |
+| `DmNote` | `"dm_notes"` | DM-to-player note within an adventure — linked to `Adventure`, sender `User` (via "dmNotesSent"), recipient `User` (via "dmNotesReceived"), and `Character`; stores `content` (text), optional `reaction` (String: "THUMBS_UP"/"THUMBS_DOWN"/null), and `readAt` (nullable DateTime for unread tracking) |
+| `SessionNote` | `"session_notes"` | Shared session note within an adventure — linked to `Adventure` and `User` (author); stores `title`, `content` (default `""`), `createdAt`, `updatedAt`; editable only by the author; visible to all adventure members (owner and accepted players) |
 
 See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
 
@@ -112,6 +114,13 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.getPendingPlayers` | query    | List pending join requests for an adventure (DM only); includes user and character data               |
 | `adventure.resolvePlayer`     | mutation | Accept or reject a pending player request (DM only); sets status and resolvedAt                      |
 | `adventure.getAcceptedPlayers`| query    | List accepted players for an adventure (DM only); includes user and character data                    |
+| `adventure.sendNote`          | mutation | DM sends a note to a player's character in their adventure; validates ownership; creates DmNote with fromUserId, toUserId, characterId, and content (1-2000 chars) |
+| `adventure.getNotes`          | query    | Get all DM notes for a character in an adventure; accessible by adventure owner or the accepted player; auto-marks unread notes as read when the target player views; returns notes sorted by createdAt descending |
+| `adventure.reactToNote`       | mutation | Player reacts to a DM note with THUMBS_UP, THUMBS_DOWN, or null (remove); only the note recipient can react |
+| `adventure.getUnreadNoteCount`| query    | Get unread DM note counts grouped by adventureId for the current user; used for notification badges |
+| `adventure.createSessionNote` | mutation | Create a session note in an adventure; accessible by adventure owner or accepted players; stores title, content, and author userId |
+| `adventure.getSessionNotes`   | query    | Get all session notes for an adventure ordered by createdAt descending; accessible by adventure owner or accepted players; includes user relation (id, username) |
+| `adventure.updateSessionNote` | mutation | Update a session note's title and/or content; only the note author can edit |
 
 ---
 

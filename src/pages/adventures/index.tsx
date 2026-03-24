@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -154,6 +154,7 @@ function AdventureCard({
   activeInviteAdventureId,
   setActiveInviteAdventureId,
   onClick,
+  unreadNoteCount,
 }: {
   adventure: { id: string; name: string; source: string; createdAt: Date; userId: string; _count?: { players?: number } };
   showInviteCode: boolean;
@@ -161,6 +162,7 @@ function AdventureCard({
   activeInviteAdventureId: string | null;
   setActiveInviteAdventureId: (id: string | null) => void;
   onClick: () => void;
+  unreadNoteCount?: number;
 }) {
   const pendingCount = adventure._count?.players ?? 0;
   return (
@@ -223,6 +225,25 @@ function AdventureCard({
             {pendingCount}
           </span>
         )}
+        {!!unreadNoteCount && unreadNoteCount > 0 && (
+          <span
+            style={{
+              background: "#c9a84c",
+              color: "#1a1a2e",
+              borderRadius: "50%",
+              width: "20px",
+              height: "20px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "11px",
+              fontWeight: "bold",
+            }}
+            title={`${unreadNoteCount} unread DM note${unreadNoteCount > 1 ? "s" : ""}`}
+          >
+            {unreadNoteCount}
+          </span>
+        )}
         {showInviteCode && (
           <InviteCodeButton
             adventureId={adventure.id}
@@ -245,6 +266,16 @@ function AdventuresContent() {
   const { user } = useAuth();
   const apiUtils = api.useUtils();
   const { data: adventures = [], isLoading } = api.adventure.list.useQuery();
+  const { data: unreadNoteCounts = [] } = api.adventure.getUnreadNoteCount.useQuery();
+
+  // Build a lookup map for unread note counts
+  const unreadNoteMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const entry of unreadNoteCounts as unknown as Array<{ adventureId: string; count: number }>) {
+      map[entry.adventureId] = entry.count;
+    }
+    return map;
+  }, [unreadNoteCounts]);
 
   // Join Adventure modal state
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -342,6 +373,7 @@ function AdventuresContent() {
               showPendingBadge={showBadge}
               activeInviteAdventureId={activeInviteAdventureId}
               setActiveInviteAdventureId={setActiveInviteAdventureId}
+              unreadNoteCount={unreadNoteMap[adventure.id] ?? 0}
               onClick={() => void router.push(`/adventures/${adventure.id}`)}
             />
           ))}
