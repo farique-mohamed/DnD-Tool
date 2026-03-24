@@ -27,6 +27,10 @@ function CharacterCard({ character, onClick }: { character: {
   wisdom: number;
   charisma: number;
   backstory?: string | null;
+  adventurePlayers?: Array<{
+    status: string;
+    adventure: { id: string; name: string; source: string };
+  }>;
 }; onClick?: () => void }) {
   const abilities = [
     { label: "STR", value: character.strength },
@@ -61,6 +65,25 @@ function CharacterCard({ character, onClick }: { character: {
             Level {character.level} {character.race} {character.characterClass}
           </p>
           <p style={{ color: "#a89060", fontSize: "12px", marginTop: "2px" }}>{character.alignment}</p>
+          {character.adventurePlayers && character.adventurePlayers.length > 0 && (() => {
+            const ap = character.adventurePlayers[0]!;
+            return (
+              <span style={{
+                display: "inline-block",
+                marginTop: "6px",
+                padding: "2px 10px",
+                borderRadius: "12px",
+                fontSize: "11px",
+                fontFamily: "'Georgia', serif",
+                letterSpacing: "0.3px",
+                background: ap.status === "ACCEPTED" ? "rgba(74,124,42,0.2)" : "rgba(201,168,76,0.15)",
+                border: ap.status === "ACCEPTED" ? "1px solid rgba(74,124,42,0.4)" : "1px solid rgba(201,168,76,0.3)",
+                color: ap.status === "ACCEPTED" ? "#4a7c2a" : "#a89060",
+              }}>
+                {ap.status === "ACCEPTED" ? "In" : "Pending"}: {ap.adventure.name}
+              </span>
+            );
+          })()}
         </div>
         <div style={{ textAlign: "right" }}>
           <div style={{ color: "#e8d5a3", fontSize: "13px" }}>

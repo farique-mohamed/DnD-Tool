@@ -821,7 +821,9 @@ export function getClassByNameAndSource(
   source: string,
 ): ClassInfo | undefined {
   return CLASS_LIST.find(
-    (c) => c.name.toLowerCase() === name.toLowerCase() && c.source === source,
+    (c) =>
+      c.name.toLowerCase() === name.toLowerCase() &&
+      (c.source === source || UNIQUE_SOURCE_CLASS_NAMES.has(c.name)),
   );
 }
 

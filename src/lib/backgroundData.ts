@@ -51,10 +51,17 @@ interface RawSkillProfEntry {
   any?: number;
 }
 
+interface RawCopy {
+  name: string;
+  source: string;
+  _mod?: unknown;
+}
+
 interface RawBackground {
   name: string;
   source: string;
   skillProficiencies?: RawSkillProfEntry[];
+  _copy?: RawCopy;
 }
 
 interface RawBackgroundFile {
@@ -113,11 +120,54 @@ function parseBackground(raw: RawBackground): Background {
 }
 
 // ---------------------------------------------------------------------------
-// Build de-duplicated background list
+// Resolve _copy references so child backgrounds inherit skillProficiencies
 // ---------------------------------------------------------------------------
+
+function resolveCopySkills(backgrounds: RawBackground[]): void {
+  // Build a lookup of all raw backgrounds by "name|source"
+  const lookup = new Map<string, RawBackground>();
+  for (const bg of backgrounds) {
+    const key = `${bg.name}|${bg.source}`;
+    lookup.set(key, bg);
+  }
+
+  // Recursively resolve skillProficiencies through _copy chains
+  const resolving = new Set<string>(); // cycle guard
+
+  function resolve(bg: RawBackground): RawSkillProfEntry[] | undefined {
+    if (bg.skillProficiencies) return bg.skillProficiencies;
+    if (!bg._copy) return undefined;
+
+    const key = `${bg.name}|${bg.source}`;
+    if (resolving.has(key)) return undefined; // prevent infinite loops
+    resolving.add(key);
+
+    const parentKey = `${bg._copy.name}|${bg._copy.source}`;
+    const parent = lookup.get(parentKey);
+    if (parent) {
+      const inherited = resolve(parent);
+      if (inherited) {
+        bg.skillProficiencies = inherited;
+      }
+    }
+
+    resolving.delete(key);
+    return bg.skillProficiencies;
+  }
+
+  for (const bg of backgrounds) {
+    if (bg._copy && !bg.skillProficiencies) {
+      resolve(bg);
+    }
+  }
+}
 
 function buildBackgrounds(): Background[] {
   const file = backgroundsData as RawBackgroundFile;
+
+  // Resolve _copy references before parsing
+  resolveCopySkills(file.background);
+
   const byName = new Map<string, Background>();
 
   for (const raw of file.background) {

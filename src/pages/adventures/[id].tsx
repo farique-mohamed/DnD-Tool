@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -18,13 +18,15 @@ import { ITEMS, type Item } from "@/lib/itemsData";
 // Tab definitions — easy to extend by adding entries here
 // ---------------------------------------------------------------------------
 
-const TABS = [
+const BASE_TABS = [
   { key: "story", label: "Story" },
   { key: "monsters", label: "Monsters" },
   { key: "items", label: "Items" },
 ] as const;
 
-type TabKey = (typeof TABS)[number]["key"];
+const PLAYERS_TAB = { key: "players" as const, label: "Players" };
+
+type TabKey = (typeof BASE_TABS)[number]["key"] | "players";
 
 // ---------------------------------------------------------------------------
 // Stat block styling constants
@@ -1958,6 +1960,433 @@ function ItemsTab({
 }
 
 // ---------------------------------------------------------------------------
+// Players Tab (DM only)
+// ---------------------------------------------------------------------------
+
+function PlayersTab({ adventureId }: { adventureId: string }) {
+  const utils = api.useUtils();
+  const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null);
+
+  const { data: pendingPlayers = [], isLoading: pendingLoading } =
+    api.adventure.getPendingPlayers.useQuery({ adventureId });
+  const { data: acceptedPlayers = [], isLoading: acceptedLoading } =
+    api.adventure.getAcceptedPlayers.useQuery({ adventureId });
+
+  const resolvePlayer = api.adventure.resolvePlayer.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getPendingPlayers.invalidate({ adventureId });
+      void utils.adventure.getAcceptedPlayers.invalidate({ adventureId });
+      void utils.adventure.getById.invalidate({ id: adventureId });
+    },
+  });
+
+  const renderCharacterSummary = (character: Record<string, unknown> | null | undefined) => {
+    if (!character) return null;
+    const name = character.name as string | undefined;
+    const race = character.race as string | undefined;
+    const charClass = character.characterClass as string | undefined;
+    const level = character.level as number | undefined;
+    return (
+      <p
+        style={{
+          color: GOLD_MUTED,
+          fontSize: "12px",
+          fontFamily: SERIF,
+          marginTop: "2px",
+        }}
+      >
+        {name ?? "Unknown"} — Level {level ?? "?"} {race ?? ""} {charClass ?? ""}
+      </p>
+    );
+  };
+
+  const renderCharacterOverview = (character: Record<string, unknown> | null | undefined) => {
+    if (!character) return null;
+    const str = character.strength as number | undefined;
+    const dex = character.dexterity as number | undefined;
+    const con = character.constitution as number | undefined;
+    const int = character.intelligence as number | undefined;
+    const wis = character.wisdom as number | undefined;
+    const cha = character.charisma as number | undefined;
+    const maxHp = character.maxHp as number | undefined;
+    const ac = character.armorClass as number | undefined;
+    const speed = character.speed as number | undefined;
+    const alignment = character.alignment as string | undefined;
+
+    const abilityScores = [
+      { label: "STR", value: str },
+      { label: "DEX", value: dex },
+      { label: "CON", value: con },
+      { label: "INT", value: int },
+      { label: "WIS", value: wis },
+      { label: "CHA", value: cha },
+    ];
+
+    return (
+      <div
+        style={{
+          background: "rgba(0,0,0,0.3)",
+          border: "1px solid rgba(201,168,76,0.15)",
+          borderRadius: "8px",
+          padding: "16px 20px",
+          marginTop: "10px",
+        }}
+      >
+        {/* Ability Scores Grid */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "8px", marginBottom: "12px" }}>
+          {abilityScores.map((stat) => (
+            <div key={stat.label} style={{ textAlign: "center" }}>
+              <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "2px" }}>{stat.label}</div>
+              <div style={{ color: GOLD_BRIGHT, fontSize: "16px", fontWeight: "bold" }}>{stat.value ?? "—"}</div>
+            </div>
+          ))}
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: "1px", background: "rgba(201,168,76,0.2)", margin: "8px 0" }} />
+
+        {/* Combat Stats */}
+        <div
+          style={{
+            display: "flex",
+            gap: "24px",
+            marginBottom: "8px",
+            fontSize: "13px",
+            fontFamily: SERIF,
+          }}
+        >
+          <div>
+            <span style={{ color: GOLD, fontWeight: "bold" }}>HP </span>
+            <span style={{ color: GOLD_BRIGHT }}>{maxHp ?? "—"}</span>
+          </div>
+          <div>
+            <span style={{ color: GOLD, fontWeight: "bold" }}>AC </span>
+            <span style={{ color: GOLD_BRIGHT }}>{ac ?? "—"}</span>
+          </div>
+          <div>
+            <span style={{ color: GOLD, fontWeight: "bold" }}>Speed </span>
+            <span style={{ color: GOLD_BRIGHT }}>{speed != null ? `${speed} ft.` : "—"}</span>
+          </div>
+        </div>
+
+        {/* Alignment */}
+        {alignment && (
+          <div style={{ fontSize: "13px", fontFamily: SERIF, marginBottom: "8px" }}>
+            <span style={{ color: GOLD, fontWeight: "bold" }}>Alignment </span>
+            <span style={{ color: GOLD_BRIGHT }}>{alignment}</span>
+          </div>
+        )}
+
+
+      </div>
+    );
+  };
+
+  const pendingSection = (
+    <>
+      {/* Pending Requests Section */}
+      <h3
+        style={{
+          color: GOLD,
+          fontSize: "16px",
+          fontWeight: "bold",
+          letterSpacing: "1px",
+          textTransform: "uppercase",
+          marginBottom: "16px",
+          fontFamily: SERIF,
+        }}
+      >
+        Pending Requests
+      </h3>
+
+      {pendingLoading ? (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "13px",
+            fontFamily: SERIF,
+            marginBottom: "24px",
+          }}
+        >
+          Loading pending requests...
+        </p>
+      ) : pendingPlayers.length === 0 ? (
+        <div
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            border: "1px solid rgba(201,168,76,0.2)",
+            borderRadius: "12px",
+            padding: "40px",
+            textAlign: "center",
+            marginBottom: "32px",
+          }}
+        >
+          <p
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "14px",
+              fontFamily: SERIF,
+            }}
+          >
+            No pending join requests.
+          </p>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+            marginBottom: "32px",
+          }}
+        >
+          {pendingPlayers.map((player) => {
+            const character = (player as unknown as { character?: Record<string, unknown> }).character ?? null;
+            const isExpanded = expandedPendingId === player.id;
+            return (
+              <div
+                key={player.id}
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div style={{ flex: 1 }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                      <span
+                        style={{
+                          color: GOLD_BRIGHT,
+                          fontSize: "14px",
+                          fontFamily: SERIF,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        {player.user.username}
+                      </span>
+                      <span
+                        style={{
+                          color: GOLD_MUTED,
+                          fontSize: "11px",
+                          fontFamily: SERIF,
+                        }}
+                      >
+                        Requested{" "}
+                        {new Date(player.joinedAt).toLocaleDateString("en-US", {
+                          year: "numeric",
+                          month: "short",
+                          day: "numeric",
+                        })}
+                      </span>
+                    </div>
+                    {renderCharacterSummary(character)}
+                  </div>
+                  <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                    {character && (
+                      <button
+                        onClick={() => setExpandedPendingId(isExpanded ? null : player.id)}
+                        style={{
+                          background: "none",
+                          border: "1px solid rgba(201,168,76,0.3)",
+                          color: GOLD_MUTED,
+                          borderRadius: "4px",
+                          padding: "4px 10px",
+                          fontFamily: SERIF,
+                          fontSize: "11px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {isExpanded ? "Hide Sheet" : "View Sheet"}
+                      </button>
+                    )}
+                    <button
+                      onClick={() =>
+                        resolvePlayer.mutate({
+                          adventurePlayerId: player.id,
+                          action: "ACCEPTED",
+                        })
+                      }
+                      disabled={resolvePlayer.isPending}
+                      style={{
+                        background: "#4a7c2a",
+                        color: "#e8d5a3",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "6px 16px",
+                        fontFamily: SERIF,
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        cursor: resolvePlayer.isPending ? "default" : "pointer",
+                        opacity: resolvePlayer.isPending ? 0.6 : 1,
+                      }}
+                    >
+                      Accept
+                    </button>
+                    <button
+                      onClick={() =>
+                        resolvePlayer.mutate({
+                          adventurePlayerId: player.id,
+                          action: "REJECTED",
+                        })
+                      }
+                      disabled={resolvePlayer.isPending}
+                      style={{
+                        background: "#e74c3c",
+                        color: "#fff",
+                        border: "none",
+                        borderRadius: "4px",
+                        padding: "6px 16px",
+                        fontFamily: SERIF,
+                        fontSize: "12px",
+                        fontWeight: "bold",
+                        cursor: resolvePlayer.isPending ? "default" : "pointer",
+                        opacity: resolvePlayer.isPending ? 0.6 : 1,
+                      }}
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+                {isExpanded && renderCharacterOverview(character)}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+
+  const acceptedSection = (
+    <>
+      {/* Accepted Players Section */}
+      <h3
+        style={{
+          color: GOLD,
+          fontSize: "16px",
+          fontWeight: "bold",
+          letterSpacing: "1px",
+          textTransform: "uppercase",
+          marginBottom: "16px",
+          fontFamily: SERIF,
+        }}
+      >
+        Accepted Players
+      </h3>
+
+      {acceptedLoading ? (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "13px",
+            fontFamily: SERIF,
+          }}
+        >
+          Loading accepted players...
+        </p>
+      ) : acceptedPlayers.length === 0 ? (
+        <div
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            border: "1px solid rgba(201,168,76,0.2)",
+            borderRadius: "12px",
+            padding: "40px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "14px",
+              fontFamily: SERIF,
+            }}
+          >
+            No players have been accepted yet.
+          </p>
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: "8px",
+          }}
+        >
+          {acceptedPlayers.map((player) => {
+            const character = (player as unknown as { character?: Record<string, unknown> }).character ?? null;
+            return (
+              <div
+                key={player.id}
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                }}
+              >
+                <div>
+                  <span
+                    style={{
+                      color: GOLD_BRIGHT,
+                      fontSize: "14px",
+                      fontFamily: SERIF,
+                      fontWeight: "bold",
+                    }}
+                  >
+                    {player.user.username}
+                  </span>
+                  {renderCharacterSummary(character)}
+                </div>
+                <span
+                  style={{
+                    color: GOLD_MUTED,
+                    fontSize: "11px",
+                    fontFamily: SERIF,
+                  }}
+                >
+                  Joined{" "}
+                  {new Date(player.joinedAt).toLocaleDateString("en-US", {
+                    year: "numeric",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </>
+  );
+
+  return (
+    <div>
+      {pendingPlayers.length > 0 ? (
+        <>
+          {pendingSection}
+          {acceptedSection}
+        </>
+      ) : (
+        <>
+          {acceptedSection}
+          {pendingSection}
+        </>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Main page content
 // ---------------------------------------------------------------------------
 
@@ -1969,16 +2398,24 @@ function AdventureDetailContent() {
   const [activeTab, setActiveTab] = useState<TabKey>("story");
   const [storySectionIndex, setStorySectionIndex] = useState(0);
 
-  useEffect(() => {
-    if (user && user.role !== "DUNGEON_MASTER" && user.role !== "ADMIN") {
-      void router.replace("/unauthorized");
-    }
-  }, [user, router]);
-
   const { data: adventure, isLoading } = api.adventure.getById.useQuery(
     { id },
     { enabled: !!id },
   );
+
+  const isOwner = !!(adventure && user && adventure.userId === user.userId);
+
+  // Count pending players from the adventure.players array
+  const pendingPlayerCount = adventure
+    ? ((adventure as unknown as { players?: Array<{ status: string }> }).players ?? []).filter(
+        (p) => p.status === "PENDING",
+      ).length
+    : 0;
+
+  // Build tabs dynamically — add "Players" tab for the adventure owner
+  const tabs = isOwner
+    ? [...BASE_TABS, PLAYERS_TAB]
+    : [...BASE_TABS];
 
   const adventureInfo = adventure
     ? ADVENTURE_LIST.find((a) => a.source === adventure.source)
@@ -2053,7 +2490,7 @@ function AdventureDetailContent() {
             textDecoration: "underline",
           }}
         >
-          My Adventures
+          {isOwner ? "My Campaigns" : "My Adventures"}
         </button>
         <span>/</span>
         <span>{adventure.name}</span>
@@ -2108,12 +2545,12 @@ function AdventureDetailContent() {
           marginBottom: "24px",
         }}
       >
-        {TABS.map((tab) => {
+        {tabs.map((tab) => {
           const isActive = activeTab === tab.key;
           return (
             <button
               key={tab.key}
-              onClick={() => setActiveTab(tab.key)}
+              onClick={() => setActiveTab(tab.key as TabKey)}
               style={{
                 padding: "12px 24px",
                 background: isActive ? "rgba(201,168,76,0.15)" : "transparent",
@@ -2128,9 +2565,30 @@ function AdventureDetailContent() {
                 letterSpacing: "1px",
                 textTransform: "uppercase",
                 cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: "8px",
               }}
             >
               {tab.label}
+              {tab.key === "players" && pendingPlayerCount > 0 && (
+                <span
+                  style={{
+                    background: "#c9a84c",
+                    color: "#1a1a2e",
+                    borderRadius: "50%",
+                    width: "20px",
+                    height: "20px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {pendingPlayerCount}
+                </span>
+              )}
             </button>
           );
         })}
@@ -2165,6 +2623,9 @@ function AdventureDetailContent() {
             setActiveTab("story");
           }}
         />
+      )}
+      {activeTab === "players" && isOwner && (
+        <PlayersTab adventureId={adventure.id} />
       )}
     </>
   );
