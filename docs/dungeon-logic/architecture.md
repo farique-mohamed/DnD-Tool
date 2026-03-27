@@ -124,7 +124,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.getSessionNotes`   | query    | Get session notes authored by the current user for an adventure ordered by createdAt descending; accessible by adventure owner or accepted players; includes user relation (id, username) |
 | `adventure.updateSessionNote` | mutation | Update a session note's title and/or content; only the note author can edit |
 | `adventure.getInventory`      | query    | Get all inventory items for a character in an adventure; accessible by adventure owner (DM) or the owning player; returns items ordered by createdAt asc with addedByUser relation |
-| `adventure.addInventoryItem`  | mutation | DM adds an item to a player's inventory; creates CharacterInventoryItem or increments quantity if already exists; DM-only |
+| `adventure.addInventoryItem`  | mutation | DM adds an item to a player's inventory; creates CharacterInventoryItem or increments quantity if already exists; DM-only; only items found in the official ITEMS list can be added (non-official/custom items are blocked in the UI) |
 | `adventure.addStartingItems`  | mutation | Bulk-add starting equipment to a character's inventory; accessible by the player or DM; throws CONFLICT if starting items already exist; marks all items as isStartingItem=true |
 | `adventure.removeInventoryItem` | mutation | Remove an item from a character's inventory; DM-only |
 | `adventure.updateInventoryItem` | mutation | Update quantity and/or customDescription on an inventory item; DM-only |

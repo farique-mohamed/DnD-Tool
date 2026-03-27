@@ -223,6 +223,14 @@ Get the current equipment status for a character, including computed values.
 
 ---
 
+## Inventory Item Restrictions
+
+Only items that exist in the official ITEMS list (from `src/lib/itemsData.ts`) can be added to a player's inventory. Adventure items that are not found in official sources are displayed in the adventure items list but cannot be added to any player's inventory — the Add button is disabled and a "not in official sources" notice is shown.
+
+The `customDescription` field on `CharacterInventoryItem` is retained in the database schema for backward compatibility with previously added items, and the DM can still edit `customDescription` on existing inventory items via `adventure.updateInventoryItem`. However, the UI no longer provides a way to set custom descriptions when adding new items.
+
+---
+
 ## Reusability Notes
 
 - The `equipmentData.ts` module is a static data module following the same pattern as `classData.ts`, `spellSlotData.ts`, and `actionEconomy.ts` — imported directly with no filesystem access.
