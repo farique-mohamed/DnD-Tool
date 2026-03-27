@@ -210,10 +210,10 @@ The page is accessible to both adventure owners and accepted players (no DM-only
 
 ### DM: Managing Players
 
-On the `/adventures/[id]` adventure detail page, DMs see a "Players" tab alongside the existing Story, Monsters, and Items tabs. The Players tab contains:
+On the `/adventures/[id]` adventure detail page, DMs see a "Players" tab alongside the existing Story, Monsters, Items, and Session Notes tabs. The Players tab presents a unified view with labeled subsections:
 
-1. **Pending Requests** — a list of players who have requested to join via invite code. Each entry shows the player's username and a character overview with ability scores, combat stats (HP, AC, speed), and alignment in an expand/collapse layout. "Accept" and "Reject" buttons appear per player. Accepting calls `adventure.resolvePlayer` with action `"ACCEPTED"`, rejecting calls it with `"REJECTED"`. When there are pending requests, this section appears at the top; when there are none, it moves to the bottom below the accepted players list.
-2. **Accepted Players** — a list of players who have been accepted into the adventure. This section appears below pending requests when there are active requests, or at the top when there are no pending requests.
+1. **Pending Requests** — a labeled subsection within the Players view showing players who have requested to join via invite code. Each entry shows the player's username and a character overview with ability scores, combat stats (HP, AC, speed), and alignment in an expand/collapse layout. "Accept" and "Reject" buttons appear per player. Accepting calls `adventure.resolvePlayer` with action `"ACCEPTED"`, rejecting calls it with `"REJECTED"`. When there are pending requests, this subsection appears at the top; when there are none, it moves to the bottom below the accepted players list.
+2. **Accepted Players** — a labeled subsection showing players who have been accepted into the adventure. Each accepted player card is clickable, opening a full read-only character sheet modal displaying ability scores, combat stats, saving throws, skills, active conditions, feats, backstory, and a DM Notes section. See `dm-notes.md` for full DM Notes documentation.
 
 ---
 

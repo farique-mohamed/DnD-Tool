@@ -11,7 +11,7 @@ src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── auth              — authRouter (auth.login, auth.register)
        └── user              — userRouter (user.requestDungeonMaster)
        └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
-       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers)
+       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.getUnreadReactionCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote)
        └── (future routers)  — add here and re-export AppRouter type
 
 src/pages/api/trpc/[trpc].ts — Next.js API route that handles all tRPC calls
@@ -70,7 +70,10 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 | `Adventure` | `"adventures"` | DM-created adventure instance — linked to `User`, stores adventure `name` and book `source` code, `inviteCode` (unique cuid for player invites), and `players` relation to `AdventurePlayer` |
 | `AdventureMonster` | `"adventure_monsters"` | Monster assigned to an adventure — linked to `Adventure`, stores monster `name` and `source`; unique constraint on `[adventureId, name, source]` |
 | `AdventureItem` | `"adventure_items"` | Item assigned to an adventure — linked to `Adventure`, stores item `name` and `source`; unique constraint on `[adventureId, name, source]` |
-| `AdventurePlayer` | `"adventure_players"` | Player-adventure membership with invite status (PENDING/ACCEPTED/REJECTED); stores `characterId` FK → `Character` linking the joining character; unique per user+adventure |
+| `AdventurePlayer` | `"adventure_players"` | Player-adventure membership with invite status (PENDING/ACCEPTED/REJECTED); stores `characterId` FK → `Character` linking the joining character; `playerNote` (String, default `""` — single editable note from the player visible to the DM); unique per user+adventure |
+| `DmNote` | `"dm_notes"` | DM-to-player note within an adventure — linked to `Adventure`, sender `User` (via "dmNotesSent"), recipient `User` (via "dmNotesReceived"), and `Character`; stores `content` (text), optional `reaction` (String: "THUMBS_UP"/"THUMBS_DOWN"/null), `readAt` (nullable DateTime for unread tracking), and `reactionReadAt` (nullable DateTime for DM reaction notification tracking — null means the DM has not yet seen the reaction) |
+| `SessionNote` | `"session_notes"` | Shared session note within an adventure — linked to `Adventure` and `User` (author); stores `title`, `content` (default `""`), `createdAt`, `updatedAt`; editable only by the author; visible only to the author |
+| `CharacterInventoryItem` | `"character_inventory_items"` | Item in a character's inventory within an adventure — linked to `AdventurePlayer` and `User` (addedBy, via "inventoryItemsAdded"); stores `itemName`, `itemSource`, `quantity` (default 1), `isStartingItem` (boolean), optional `customDescription` (DM-added description for non-official items); unique constraint on `[adventurePlayerId, itemName, itemSource]` |
 
 See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
 
@@ -112,6 +115,21 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.getPendingPlayers` | query    | List pending join requests for an adventure (DM only); includes user and character data               |
 | `adventure.resolvePlayer`     | mutation | Accept or reject a pending player request (DM only); sets status and resolvedAt                      |
 | `adventure.getAcceptedPlayers`| query    | List accepted players for an adventure (DM only); includes user and character data                    |
+| `adventure.sendNote`          | mutation | DM sends a note to a player's character in their adventure; validates ownership; creates DmNote with fromUserId, toUserId, characterId, and content (1-2000 chars) |
+| `adventure.getNotes`          | query    | Get all DM notes for a character in an adventure; accessible by adventure owner or the accepted player; auto-marks unread notes as read when the target player views; auto-marks `reactionReadAt` when the DM views notes; returns notes sorted by createdAt descending |
+| `adventure.reactToNote`       | mutation | Player reacts to a DM note with THUMBS_UP, THUMBS_DOWN, or null (remove); only the note recipient can react; resets `reactionReadAt` to null so the DM gets notified of new/changed reactions |
+| `adventure.getUnreadNoteCount`| query    | Get unread DM note counts grouped by adventureId for the current user; used for notification badges |
+| `adventure.getUnreadReactionCount` | query | Get unread reaction counts on DM notes grouped by adventureId and characterId for the current user (DM); used for notification badges on adventure list and player cards |
+| `adventure.createSessionNote` | mutation | Create a session note in an adventure; accessible by adventure owner or accepted players; stores title, content, and author userId |
+| `adventure.getSessionNotes`   | query    | Get session notes authored by the current user for an adventure ordered by createdAt descending; accessible by adventure owner or accepted players; includes user relation (id, username) |
+| `adventure.updateSessionNote` | mutation | Update a session note's title and/or content; only the note author can edit |
+| `adventure.getInventory`      | query    | Get all inventory items for a character in an adventure; accessible by adventure owner (DM) or the owning player; returns items ordered by createdAt asc with addedByUser relation |
+| `adventure.addInventoryItem`  | mutation | DM adds an item to a player's inventory; creates CharacterInventoryItem or increments quantity if already exists; DM-only |
+| `adventure.addStartingItems`  | mutation | Bulk-add starting equipment to a character's inventory; accessible by the player or DM; throws CONFLICT if starting items already exist; marks all items as isStartingItem=true |
+| `adventure.removeInventoryItem` | mutation | Remove an item from a character's inventory; DM-only |
+| `adventure.updateInventoryItem` | mutation | Update quantity and/or customDescription on an inventory item; DM-only |
+| `adventure.updatePlayerNote`   | mutation | Update the player's note to the DM; only the owning player can edit |
+| `adventure.getPlayerNote`      | query    | Get the player's note; accessible by the player or the adventure owner (DM) |
 
 ---
 
@@ -135,6 +153,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 - `src/lib/conditionData.ts` — imports `data/conditionsdiseases.json`, filters out diseases, and exports `CONDITIONS: Condition[]` (each with name, source, and parsed text entries), `getConditionsBySource(source)`, and `getConditionByName(name, source)`.
 - `src/lib/dndTagParser.ts` — exports `parseTaggedText(text: string): string`. Converts 5etools `{@tag ...}` markup to readable plain text (e.g. `{@atkr m}` → `"Melee Attack:"`, `{@hit 7}` → `"+7"`, `{@h}14` → `"(avg. 14)"`, `{@recharge 5}` → `"(Recharge 5-6)"`, `{@actSave int}` → `"Intelligence saving throw"`, `{@actSaveFail}` → `"On a failed save,"`, `{@actSaveSuccess}` → `"On a successful save,"`, `{@actSaveSuccessOrFail}` → `"Regardless of the result,"`). Used in `bestiaryData.ts` when decoding action/trait text and spellcasting entries.
 - `src/lib/adventureExtractor.ts` — parses adventure book JSON data for `{@creature}` and `{@item}` tags; exports `extractAdventureReferences(adventureSource)` which returns an `AdventureReferences` object containing deduplicated, alphabetically sorted arrays of `{ name, source }` for monsters and items. Used by `adventure.create` to auto-extract references at adventure creation time.
+- `src/lib/startingEquipmentData.ts` — parses starting equipment from all class JSONs (`data/class/class-*.json`) and the backgrounds JSON (`data/backgrounds.json`); handles PHB (2014) structured `defaultData` with lowercase keys, XPHB (2024) structured `defaultData` with uppercase keys, and background equipment arrays; exports `StartingEquipmentPreset`, `StartingItem`, `ClassStartingEquipment`, `BackgroundStartingEquipment` interfaces, `getClassStartingEquipment(className, source)`, `getBackgroundStartingEquipment(backgroundName)`, and `ALL_CLASS_STARTING_EQUIPMENT` / `ALL_BACKGROUND_STARTING_EQUIPMENT` arrays. Used by the inventory UI for adding starting items.
 
 ### Import alias
 

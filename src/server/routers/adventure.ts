@@ -436,4 +436,646 @@ export const adventureRouter = createTRPCRouter({
         },
       });
     }),
+
+  sendNote: protectedProcedure
+    .input(
+      z.object({
+        adventureId: z.string(),
+        toUserId: z.string(),
+        characterId: z.string(),
+        content: z.string().min(1).max(2000),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const adventure = await ctx.db.adventure.findUnique({
+        where: { id: input.adventureId },
+      });
+      if (!adventure) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure not found",
+        });
+      }
+      if (adventure.userId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the adventure owner can send notes",
+        });
+      }
+
+      return ctx.db.dmNote.create({
+        data: {
+          adventureId: input.adventureId,
+          fromUserId: ctx.user.userId,
+          toUserId: input.toUserId,
+          characterId: input.characterId,
+          content: input.content,
+        },
+        include: {
+          toUser: { select: { id: true, username: true } },
+        },
+      });
+    }),
+
+  getNotes: protectedProcedure
+    .input(
+      z.object({
+        adventureId: z.string(),
+        characterId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const adventure = await ctx.db.adventure.findUnique({
+        where: { id: input.adventureId },
+      });
+      if (!adventure) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure not found",
+        });
+      }
+
+      const isOwner = adventure.userId === ctx.user.userId;
+
+      // If the DM is viewing, mark all unread reactions as read
+      if (isOwner) {
+        await ctx.db.dmNote.updateMany({
+          where: {
+            adventureId: input.adventureId,
+            characterId: input.characterId,
+            fromUserId: ctx.user.userId,
+            reaction: { not: null },
+            reactionReadAt: null,
+          },
+          data: {
+            reactionReadAt: new Date(),
+          },
+        });
+      }
+
+      // If not the owner, verify the caller is an accepted player with this character
+      if (!isOwner) {
+        const membership = await ctx.db.adventurePlayer.findFirst({
+          where: {
+            adventureId: input.adventureId,
+            userId: ctx.user.userId,
+            characterId: input.characterId,
+            status: "ACCEPTED",
+          },
+        });
+        if (!membership) {
+          throw new TRPCError({
+            code: "FORBIDDEN",
+            message: "You do not have access to these notes",
+          });
+        }
+
+        // Mark all unread notes as read for the target player
+        await ctx.db.dmNote.updateMany({
+          where: {
+            adventureId: input.adventureId,
+            characterId: input.characterId,
+            toUserId: ctx.user.userId,
+            readAt: null,
+          },
+          data: {
+            readAt: new Date(),
+          },
+        });
+      }
+
+      return ctx.db.dmNote.findMany({
+        where: {
+          adventureId: input.adventureId,
+          characterId: input.characterId,
+        },
+        include: {
+          fromUser: { select: { id: true, username: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }),
+
+  reactToNote: protectedProcedure
+    .input(
+      z.object({
+        noteId: z.string(),
+        reaction: z.enum(["THUMBS_UP", "THUMBS_DOWN"]).nullable(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.dmNote.findUnique({
+        where: { id: input.noteId },
+      });
+      if (!note) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Note not found",
+        });
+      }
+      if (note.toUserId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the recipient can react to a note",
+        });
+      }
+
+      return ctx.db.dmNote.update({
+        where: { id: input.noteId },
+        data: {
+          reaction: input.reaction,
+          reactionReadAt: null,
+        },
+      });
+    }),
+
+  getUnreadNoteCount: protectedProcedure
+    .query(async ({ ctx }) => {
+      const counts = await ctx.db.dmNote.groupBy({
+        by: ["adventureId"],
+        where: {
+          toUserId: ctx.user.userId,
+          readAt: null,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      return counts.map((c) => ({
+        adventureId: c.adventureId,
+        count: c._count.id,
+      }));
+    }),
+
+  getUnreadReactionCount: protectedProcedure
+    .query(async ({ ctx }) => {
+      const counts = await ctx.db.dmNote.groupBy({
+        by: ["adventureId", "characterId"],
+        where: {
+          fromUserId: ctx.user.userId,
+          reaction: { not: null },
+          reactionReadAt: null,
+        },
+        _count: {
+          id: true,
+        },
+      });
+
+      return counts.map((c) => ({
+        adventureId: c.adventureId,
+        characterId: c.characterId,
+        count: c._count.id,
+      }));
+    }),
+
+  createSessionNote: protectedProcedure
+    .input(
+      z.object({
+        adventureId: z.string(),
+        title: z.string().min(1),
+        content: z.string().default(""),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const adventure = await ctx.db.adventure.findUnique({
+        where: { id: input.adventureId },
+        include: {
+          players: {
+            where: { userId: ctx.user.userId, status: "ACCEPTED" },
+          },
+        },
+      });
+      if (!adventure) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure not found",
+        });
+      }
+      const isOwner = adventure.userId === ctx.user.userId;
+      const isPlayer = adventure.players.length > 0;
+      if (!isOwner && !isPlayer) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only adventure members can create session notes",
+        });
+      }
+
+      return ctx.db.sessionNote.create({
+        data: {
+          adventureId: input.adventureId,
+          userId: ctx.user.userId,
+          title: input.title,
+          content: input.content,
+        },
+        include: {
+          user: { select: { id: true, username: true } },
+        },
+      });
+    }),
+
+  getSessionNotes: protectedProcedure
+    .input(z.object({ adventureId: z.string() }))
+    .query(async ({ ctx, input }) => {
+      const adventure = await ctx.db.adventure.findUnique({
+        where: { id: input.adventureId },
+        include: {
+          players: {
+            where: { userId: ctx.user.userId, status: "ACCEPTED" },
+          },
+        },
+      });
+      if (!adventure) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure not found",
+        });
+      }
+      const isOwner = adventure.userId === ctx.user.userId;
+      const isPlayer = adventure.players.length > 0;
+      if (!isOwner && !isPlayer) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only adventure members can view session notes",
+        });
+      }
+
+      return ctx.db.sessionNote.findMany({
+        where: {
+          adventureId: input.adventureId,
+          userId: ctx.user.userId,
+        },
+        include: {
+          user: { select: { id: true, username: true } },
+        },
+        orderBy: { createdAt: "desc" },
+      });
+    }),
+
+  updateSessionNote: protectedProcedure
+    .input(
+      z.object({
+        noteId: z.string(),
+        title: z.string().min(1).optional(),
+        content: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const note = await ctx.db.sessionNote.findUnique({
+        where: { id: input.noteId },
+      });
+      if (!note) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Session note not found",
+        });
+      }
+      if (note.userId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the author can edit a session note",
+        });
+      }
+
+      const data: { title?: string; content?: string } = {};
+      if (input.title !== undefined) data.title = input.title;
+      if (input.content !== undefined) data.content = input.content;
+
+      return ctx.db.sessionNote.update({
+        where: { id: input.noteId },
+        data,
+        include: {
+          user: { select: { id: true, username: true } },
+        },
+      });
+    }),
+
+  // ---------------------------------------------------------------------------
+  // Inventory procedures
+  // ---------------------------------------------------------------------------
+
+  getInventory: protectedProcedure
+    .input(
+      z.object({
+        adventureId: z.string(),
+        adventurePlayerId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const adventurePlayer = await ctx.db.adventurePlayer.findUnique({
+        where: { id: input.adventurePlayerId },
+        include: { adventure: true },
+      });
+      if (!adventurePlayer || adventurePlayer.adventureId !== input.adventureId) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure player not found",
+        });
+      }
+
+      const isOwner = adventurePlayer.adventure.userId === ctx.user.userId;
+      const isPlayer = adventurePlayer.userId === ctx.user.userId;
+      if (!isOwner && !isPlayer) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this inventory",
+        });
+      }
+
+      return ctx.db.characterInventoryItem.findMany({
+        where: { adventurePlayerId: input.adventurePlayerId },
+        include: {
+          addedByUser: { select: { id: true, username: true } },
+        },
+        orderBy: { createdAt: "asc" },
+      });
+    }),
+
+  addInventoryItem: protectedProcedure
+    .input(
+      z.object({
+        adventurePlayerId: z.string(),
+        itemName: z.string().min(1),
+        itemSource: z.string().min(1),
+        quantity: z.number().int().min(1).optional(),
+        customDescription: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const adventurePlayer = await ctx.db.adventurePlayer.findUnique({
+        where: { id: input.adventurePlayerId },
+        include: { adventure: true },
+      });
+      if (!adventurePlayer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure player not found",
+        });
+      }
+      if (adventurePlayer.adventure.userId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the DM can add inventory items",
+        });
+      }
+
+      // Handle unique constraint — if item already exists, increment quantity
+      const existing = await ctx.db.characterInventoryItem.findUnique({
+        where: {
+          adventurePlayerId_itemName_itemSource: {
+            adventurePlayerId: input.adventurePlayerId,
+            itemName: input.itemName,
+            itemSource: input.itemSource,
+          },
+        },
+      });
+
+      if (existing) {
+        return ctx.db.characterInventoryItem.update({
+          where: { id: existing.id },
+          data: {
+            quantity: existing.quantity + (input.quantity ?? 1),
+            customDescription: input.customDescription ?? existing.customDescription,
+          },
+          include: {
+            addedByUser: { select: { id: true, username: true } },
+          },
+        });
+      }
+
+      return ctx.db.characterInventoryItem.create({
+        data: {
+          adventurePlayerId: input.adventurePlayerId,
+          itemName: input.itemName,
+          itemSource: input.itemSource,
+          quantity: input.quantity ?? 1,
+          customDescription: input.customDescription,
+          addedByUserId: ctx.user.userId,
+        },
+        include: {
+          addedByUser: { select: { id: true, username: true } },
+        },
+      });
+    }),
+
+  addStartingItems: protectedProcedure
+    .input(
+      z.object({
+        adventurePlayerId: z.string(),
+        items: z.array(
+          z.object({
+            name: z.string().min(1),
+            source: z.string().min(1),
+            quantity: z.number().int().min(1).optional(),
+            displayName: z.string().optional(),
+          }),
+        ),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const adventurePlayer = await ctx.db.adventurePlayer.findUnique({
+        where: { id: input.adventurePlayerId },
+        include: { adventure: true },
+      });
+      if (!adventurePlayer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure player not found",
+        });
+      }
+
+      const isOwner = adventurePlayer.adventure.userId === ctx.user.userId;
+      const isPlayer = adventurePlayer.userId === ctx.user.userId;
+      if (!isOwner && !isPlayer) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the player or the DM can add starting items",
+        });
+      }
+
+      // Check that no starting items already exist
+      const existingCount = await ctx.db.characterInventoryItem.count({
+        where: {
+          adventurePlayerId: input.adventurePlayerId,
+          isStartingItem: true,
+        },
+      });
+      if (existingCount > 0) {
+        throw new TRPCError({
+          code: "CONFLICT",
+          message: "Starting items already added",
+        });
+      }
+
+      // Create all items, skipping duplicates
+      const created = [];
+      for (const item of input.items) {
+        const existing = await ctx.db.characterInventoryItem.findUnique({
+          where: {
+            adventurePlayerId_itemName_itemSource: {
+              adventurePlayerId: input.adventurePlayerId,
+              itemName: item.name,
+              itemSource: item.source,
+            },
+          },
+        });
+
+        if (existing) continue;
+
+        const inventoryItem = await ctx.db.characterInventoryItem.create({
+          data: {
+            adventurePlayerId: input.adventurePlayerId,
+            itemName: item.name,
+            itemSource: item.source,
+            quantity: item.quantity ?? 1,
+            isStartingItem: true,
+            customDescription: item.displayName ?? null,
+            addedByUserId: ctx.user.userId,
+          },
+          include: {
+            addedByUser: { select: { id: true, username: true } },
+          },
+        });
+        created.push(inventoryItem);
+      }
+
+      return created;
+    }),
+
+  removeInventoryItem: protectedProcedure
+    .input(z.object({ inventoryItemId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const item = await ctx.db.characterInventoryItem.findUnique({
+        where: { id: input.inventoryItemId },
+        include: {
+          adventurePlayer: {
+            include: { adventure: true },
+          },
+        },
+      });
+      if (!item) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Inventory item not found",
+        });
+      }
+      if (item.adventurePlayer.adventure.userId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the DM can remove inventory items",
+        });
+      }
+
+      await ctx.db.characterInventoryItem.delete({
+        where: { id: input.inventoryItemId },
+      });
+      return { success: true };
+    }),
+
+  updateInventoryItem: protectedProcedure
+    .input(
+      z.object({
+        inventoryItemId: z.string(),
+        quantity: z.number().int().min(0).optional(),
+        customDescription: z.string().optional(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const item = await ctx.db.characterInventoryItem.findUnique({
+        where: { id: input.inventoryItemId },
+        include: {
+          adventurePlayer: {
+            include: { adventure: true },
+          },
+        },
+      });
+      if (!item) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Inventory item not found",
+        });
+      }
+      if (item.adventurePlayer.adventure.userId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the DM can update inventory items",
+        });
+      }
+
+      const data: { quantity?: number; customDescription?: string } = {};
+      if (input.quantity !== undefined) data.quantity = input.quantity;
+      if (input.customDescription !== undefined) data.customDescription = input.customDescription;
+
+      return ctx.db.characterInventoryItem.update({
+        where: { id: input.inventoryItemId },
+        data,
+        include: {
+          addedByUser: { select: { id: true, username: true } },
+        },
+      });
+    }),
+
+  // ---------------------------------------------------------------------------
+  // Player note procedures
+  // ---------------------------------------------------------------------------
+
+  updatePlayerNote: protectedProcedure
+    .input(
+      z.object({
+        adventurePlayerId: z.string(),
+        content: z.string(),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const adventurePlayer = await ctx.db.adventurePlayer.findUnique({
+        where: { id: input.adventurePlayerId },
+      });
+      if (!adventurePlayer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure player not found",
+        });
+      }
+      if (adventurePlayer.userId !== ctx.user.userId) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "Only the player can update their own note",
+        });
+      }
+
+      return ctx.db.adventurePlayer.update({
+        where: { id: input.adventurePlayerId },
+        data: { playerNote: input.content },
+      });
+    }),
+
+  getPlayerNote: protectedProcedure
+    .input(
+      z.object({
+        adventurePlayerId: z.string(),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const adventurePlayer = await ctx.db.adventurePlayer.findUnique({
+        where: { id: input.adventurePlayerId },
+        include: { adventure: true },
+      });
+      if (!adventurePlayer) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Adventure player not found",
+        });
+      }
+
+      const isOwner = adventurePlayer.adventure.userId === ctx.user.userId;
+      const isPlayer = adventurePlayer.userId === ctx.user.userId;
+      if (!isOwner && !isPlayer) {
+        throw new TRPCError({
+          code: "FORBIDDEN",
+          message: "You do not have access to this player note",
+        });
+      }
+
+      return { playerNote: adventurePlayer.playerNote };
+    }),
 });
