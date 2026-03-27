@@ -110,3 +110,33 @@ export function getCharacterActions(className: string, level: number): ActionEnt
   const available = classSpecific.filter(e => e.levelRequired <= level);
   return [...universal, ...available];
 }
+
+/**
+ * Returns the full list of character actions including equipment-derived actions.
+ * Import EquippedItems and Item from their respective modules to use this function.
+ */
+export function getCharacterActionsWithEquipment(
+  className: string,
+  level: number,
+  equipmentActions?: ActionEntry[],
+): ActionEntry[] {
+  const baseActions = getCharacterActions(className, level);
+
+  if (!equipmentActions || equipmentActions.length === 0) {
+    return baseActions;
+  }
+
+  // If equipment provides an Offhand Attack action (from dual-wielding or Nick mastery),
+  // replace the generic "Two-Weapon Fighting (Offhand Attack)" universal action
+  const hasEquipmentOffhand = equipmentActions.some(
+    (a) => a.name.includes("Offhand Attack"),
+  );
+
+  const filtered = hasEquipmentOffhand
+    ? baseActions.filter(
+        (a) => a.name !== "Two-Weapon Fighting (Offhand Attack)",
+      )
+    : baseActions;
+
+  return [...filtered, ...equipmentActions];
+}
