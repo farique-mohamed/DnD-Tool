@@ -45,6 +45,7 @@ src/
 │   ├── jwt.ts                # Server-only: signToken / verifyToken (includes role)
 │   ├── constants.ts          # USER_ROLES tuple + UserRoleType for type-safe role checks
 │   ├── diceConstants.ts      # DICE_TYPES, DICE_SIDES, ROLL_LABELS, ROLL_MODES + type aliases (shared by router and component)
+│   ├── equipmentData.ts      # Equipment slots, proficiency, AC calculation, weapon masteries/properties, equipment actions
 │   └── classData.ts          # Static D&D 5e class data — imports data/class/ JSONs directly, exports CLASS_LIST + getClassByName
 ├── server/
 │   ├── db.ts                 # Prisma singleton
@@ -66,7 +67,8 @@ docs/
     ├── architecture.md       # tRPC setup, conventions, how to add features
     ├── ui-patterns.md        # D&D theme, colors, component conventions
     ├── roles.md              # Role system: PLAYER, DUNGEON_MASTER, ADMIN
-    └── dice-roller.md        # Dice roller feature: DB schema, tRPC procedures, UI component
+    ├── dice-roller.md        # Dice roller feature: DB schema, tRPC procedures, UI component
+    └── equipment.md          # Equipment system: slots, weapon properties/masteries, armor proficiency, AC calculation
 ```
 
 ## Environment Variables

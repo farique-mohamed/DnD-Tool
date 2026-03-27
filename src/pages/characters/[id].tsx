@@ -11,8 +11,17 @@ import type { FeatureEntry, FeatureDescription } from "@/lib/classData";
 import { getRaceByName, getRaceByNameAndSource } from "@/lib/raceData";
 import type { RaceInfo } from "@/lib/raceData";
 import { getSpellSlots, isSpellcaster, isWarlock } from "@/lib/spellSlotData";
-import { getCharacterActions } from "@/lib/actionEconomy";
+import { getCharacterActions, getCharacterActionsWithEquipment } from "@/lib/actionEconomy";
 import type { ActionEntry } from "@/lib/actionEconomy";
+import {
+  type EquipmentSlot,
+  type EquippedItems,
+  WEAPON_MASTERY_DESCRIPTIONS,
+  WEAPON_PROPERTY_DESCRIPTIONS,
+  calculateEquippedAC,
+  getArmorProficiencyPenalties,
+  getEquipmentActions,
+} from "@/lib/equipmentData";
 import { SPELLS } from "@/lib/spellsData";
 import { getConditionsBySource } from "@/lib/conditionData";
 import { getFeatsBySource, getFeatByNameAndSource } from "@/lib/featData";
@@ -152,6 +161,7 @@ type CharacterData = {
   feats?: string; // JSON string[]
   notes?: string;
   background?: string | null;
+  equippedItems?: string; // JSON EquippedItems
   adventurePlayers?: Array<{
     id: string;
     status: string;
@@ -2895,10 +2905,25 @@ function costBadgeStyle(cost: string): React.CSSProperties {
 }
 
 function ActionsTab({ character }: { character: CharacterData }) {
-  const actions = getCharacterActions(
-    character.characterClass,
-    character.level,
-  );
+  // Parse equipped items if available
+  const equippedItems: EquippedItems | undefined = (() => {
+    if (!character.equippedItems) return undefined;
+    try {
+      return JSON.parse(character.equippedItems) as EquippedItems;
+    } catch {
+      return undefined;
+    }
+  })();
+
+  // Compute equipment-based actions if equipment data is available
+  const equipmentActionsList = equippedItems
+    ? getEquipmentActions(equippedItems, character.characterClass, character.level, ITEMS)
+    : undefined;
+
+  // Use equipment-aware actions if equipment data is available, otherwise fall back
+  const actions = equipmentActionsList
+    ? getCharacterActionsWithEquipment(character.characterClass, character.level, equipmentActionsList)
+    : getCharacterActions(character.characterClass, character.level);
 
   const grouped: Record<string, ActionEntry[]> = {};
   for (const cost of ACTION_COST_ORDER) {
@@ -5835,6 +5860,148 @@ function DmNotesInCharacterView({ adventureId, characterId }: { adventureId: str
 }
 
 // ---------------------------------------------------------------------------
+// Equipment Summary (compact display in character header)
+// ---------------------------------------------------------------------------
+
+const EQUIP_SLOT_LABELS: Record<string, string> = {
+  mainHand: "Main Hand",
+  offHand: "Off Hand",
+  armor: "Armor",
+  shield: "Shield",
+};
+
+function EquipmentSummary({ character }: { character: CharacterData }) {
+  const equippedItems: EquippedItems | null = (() => {
+    if (!character.equippedItems) return null;
+    try {
+      return JSON.parse(character.equippedItems) as EquippedItems;
+    } catch {
+      return null;
+    }
+  })();
+
+  if (!equippedItems) return null;
+
+  const hasAnyEquipped = equippedItems.mainHand || equippedItems.offHand || equippedItems.armor || equippedItems.shield;
+  if (!hasAnyEquipped) return null;
+
+  const slots: EquipmentSlot[] = ["mainHand", "offHand", "armor", "shield"];
+
+  return (
+    <div
+      style={{
+        marginTop: "16px",
+        padding: "12px 16px",
+        background: "rgba(0,0,0,0.3)",
+        border: "1px solid rgba(201,168,76,0.15)",
+        borderRadius: "8px",
+      }}
+    >
+      <p
+        style={{
+          color: "#c9a84c",
+          fontSize: "10px",
+          fontWeight: "bold",
+          letterSpacing: "1.5px",
+          textTransform: "uppercase",
+          fontFamily: "'Georgia', serif",
+          marginBottom: "8px",
+        }}
+      >
+        Equipment
+      </p>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+        {slots.map((slot) => {
+          const name = equippedItems[slot];
+          if (!name) return null;
+          const itemData = ITEMS.find((it) => it.name.toLowerCase() === name.toLowerCase());
+          return (
+            <div
+              key={slot}
+              style={{
+                background: "rgba(201,168,76,0.08)",
+                border: "1px solid rgba(201,168,76,0.2)",
+                borderRadius: "6px",
+                padding: "6px 12px",
+                display: "flex",
+                alignItems: "center",
+                gap: "6px",
+              }}
+            >
+              <span
+                style={{
+                  color: "#a89060",
+                  fontSize: "10px",
+                  fontFamily: "'Georgia', serif",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.5px",
+                }}
+              >
+                {EQUIP_SLOT_LABELS[slot]}:
+              </span>
+              <span
+                style={{
+                  color: "#e8d5a3",
+                  fontSize: "12px",
+                  fontFamily: "'Georgia', serif",
+                }}
+              >
+                {name}
+              </span>
+              {/* Mastery badge */}
+              {itemData?.mastery && itemData.mastery.length > 0 && (
+                <span
+                  title={itemData.mastery.map((m) => WEAPON_MASTERY_DESCRIPTIONS?.[m] ?? m).join(", ")}
+                  style={{
+                    color: "#88aaff",
+                    fontSize: "9px",
+                    fontFamily: "'Georgia', serif",
+                    background: "rgba(136,170,255,0.1)",
+                    border: "1px solid rgba(136,170,255,0.2)",
+                    borderRadius: "3px",
+                    padding: "1px 5px",
+                    fontWeight: "bold",
+                  }}
+                >
+                  {itemData.mastery.join(", ")}
+                </span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Armor proficiency warnings */}
+      {(() => {
+        const result = getArmorProficiencyPenalties(
+          equippedItems,
+          character.characterClass,
+          character.strength,
+          ITEMS,
+        );
+        if (!result || result.penalties.length === 0) return null;
+        return (
+          <div style={{ marginTop: "8px" }}>
+            {result.penalties.map((penalty: string, i: number) => (
+              <p
+                key={i}
+                style={{
+                  color: "#cc4444",
+                  fontSize: "11px",
+                  fontFamily: "'Georgia', serif",
+                }}
+              >
+                Warning: {penalty}
+              </p>
+            ))}
+          </div>
+        );
+      })()}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // CharacterSheet (main component)
 // ---------------------------------------------------------------------------
 
@@ -6052,6 +6219,9 @@ function CharacterSheet({ character }: { character: CharacterData }) {
         </div>
 
         <HpManager character={character} />
+
+        {/* Equipment Summary (shown if character has equipped items) */}
+        <EquipmentSummary character={character} />
       </div>
 
       {/* Tab bar */}

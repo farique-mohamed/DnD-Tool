@@ -246,6 +246,36 @@ Emojis are used sparingly as decorative icons, not inline with text:
 
 ---
 
+## Equipment Panel
+
+### Adventure Inventory Tab — Equipment Panel
+
+The Inventory tab on the adventure detail page (`/adventures/[id]`) includes an Equipment Panel that allows players to equip and unequip items from their inventory into equipment slots.
+
+**Layout:**
+
+- The Equipment Panel displays four equipment slots: Main Hand, Off Hand, Armor, and Shield.
+- Each slot shows the currently equipped item name or an empty state indicator.
+- Items from the character's inventory can be equipped into compatible slots (e.g., weapons into hand slots, armor into the armor slot).
+- Equipping and unequipping is done through `adventure.equipItem` and `adventure.unequipItem` mutations.
+
+**Equipment Status Display:**
+
+- Computed AC is displayed with a breakdown (base + DEX modifier + shield bonus + class modifiers).
+- If the character is wearing non-proficient armor, a warning displays the penalties (disadvantage on STR/DEX checks, cannot cast spells, speed reduction).
+- Weapon properties and masteries are shown for equipped weapons.
+
+### Character Page — Equipment Summary
+
+The character detail page (`/characters/[id]`) shows an equipment summary section:
+
+- Displays currently equipped items across all four slots.
+- Shows computed AC based on equipped armor and shield.
+- Lists equipment-derived combat actions alongside class and universal actions (via `getCharacterActionsWithEquipment()`).
+- Weapon mastery information is displayed for characters using 2024 (XPHB) rules.
+
+---
+
 ## Loading States
 
 Mutations show loading state via `isPending`:

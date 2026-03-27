@@ -27,6 +27,10 @@ export interface Item {
   bonusAc?: string;
   bonusWeapon?: string;
   bonusSpellAttack?: string;
+  property?: string[];
+  mastery?: string[];
+  stealthDisadvantage?: boolean;
+  strengthRequirement?: number;
 }
 
 // ---------------------------------------------------------------------------
@@ -91,6 +95,46 @@ const DMG_TYPE_MAP: Record<string, string> = {
   Y: "Psychic",
 };
 
+// ---------------------------------------------------------------------------
+// Weapon property code → normalized name
+// ---------------------------------------------------------------------------
+
+const PROPERTY_CODE_MAP: Record<string, string> = {
+  F: "finesse",
+  L: "light",
+  H: "heavy",
+  "2H": "two-handed",
+  V: "versatile",
+  T: "thrown",
+  R: "reach",
+  LD: "loading",
+  RLD: "loading",
+  A: "ammunition",
+  AF: "ammunition",
+  S: "special",
+  BF: "burst-fire",
+};
+
+function normalizePropertyCodes(raw: (string | { uid?: string })[] | undefined): string[] | undefined {
+  if (!raw || raw.length === 0) return undefined;
+  const result: string[] = [];
+  const seen = new Set<string>();
+  for (const entry of raw) {
+    const code = typeof entry === "string" ? entry.split("|")[0]! : (entry.uid?.split("|")[0] ?? "");
+    const mapped = PROPERTY_CODE_MAP[code];
+    if (mapped && !seen.has(mapped)) {
+      seen.add(mapped);
+      result.push(mapped);
+    }
+  }
+  return result.length > 0 ? result : undefined;
+}
+
+function normalizeMasteryCodes(raw: string[] | undefined): string[] | undefined {
+  if (!raw || raw.length === 0) return undefined;
+  return raw.map((m) => m.split("|")[0]!);
+}
+
 function mapType(typeCode: string | undefined): string {
   if (!typeCode) return "Other";
   // Strip source suffix (e.g. "M|XPHB" → "M")
@@ -154,11 +198,14 @@ interface RawBaseItem {
   weight?: number;
   value?: number;
   weaponCategory?: string;
-  property?: string[];
+  property?: (string | { uid?: string })[];
+  mastery?: string[];
   range?: string;
   dmg1?: string;
   dmgType?: string;
   ac?: number;
+  stealth?: boolean;
+  strength?: string | number;
   entries?: unknown;
 }
 
@@ -217,6 +264,10 @@ function convertBaseItem(raw: RawBaseItem): Item {
     dmgType: mapDmgType(raw.dmgType),
     range: raw.range,
     ac: raw.ac,
+    property: normalizePropertyCodes(raw.property),
+    mastery: normalizeMasteryCodes(raw.mastery),
+    stealthDisadvantage: raw.stealth === true ? true : undefined,
+    strengthRequirement: raw.strength != null ? Number(raw.strength) : undefined,
   };
 }
 
