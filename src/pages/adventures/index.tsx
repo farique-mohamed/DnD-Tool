@@ -155,6 +155,7 @@ function AdventureCard({
   setActiveInviteAdventureId,
   onClick,
   unreadNoteCount,
+  unreadReactionCount,
 }: {
   adventure: { id: string; name: string; source: string; createdAt: Date; userId: string; _count?: { players?: number } };
   showInviteCode: boolean;
@@ -163,6 +164,7 @@ function AdventureCard({
   setActiveInviteAdventureId: (id: string | null) => void;
   onClick: () => void;
   unreadNoteCount?: number;
+  unreadReactionCount?: number;
 }) {
   const pendingCount = adventure._count?.players ?? 0;
   return (
@@ -244,6 +246,25 @@ function AdventureCard({
             {unreadNoteCount}
           </span>
         )}
+        {!!unreadReactionCount && unreadReactionCount > 0 && (
+          <span
+            style={{
+              background: "#c9a84c",
+              color: "#1a1a2e",
+              borderRadius: "50%",
+              width: "20px",
+              height: "20px",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "11px",
+              fontWeight: "bold",
+            }}
+            title={`${unreadReactionCount} new player reaction${unreadReactionCount > 1 ? "s" : ""}`}
+          >
+            {unreadReactionCount}
+          </span>
+        )}
         {showInviteCode && (
           <InviteCodeButton
             adventureId={adventure.id}
@@ -267,6 +288,7 @@ function AdventuresContent() {
   const apiUtils = api.useUtils();
   const { data: adventures = [], isLoading } = api.adventure.list.useQuery();
   const { data: unreadNoteCounts = [] } = api.adventure.getUnreadNoteCount.useQuery();
+  const { data: unreadReactionCounts = [] } = api.adventure.getUnreadReactionCount.useQuery();
 
   // Build a lookup map for unread note counts
   const unreadNoteMap = useMemo(() => {
@@ -276,6 +298,15 @@ function AdventuresContent() {
     }
     return map;
   }, [unreadNoteCounts]);
+
+  // Build a lookup map for unread reaction counts
+  const unreadReactionMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    for (const entry of unreadReactionCounts as unknown as Array<{ adventureId: string; characterId: string; count: number }>) {
+      map[entry.adventureId] = (map[entry.adventureId] ?? 0) + entry.count;
+    }
+    return map;
+  }, [unreadReactionCounts]);
 
   // Join Adventure modal state
   const [showJoinModal, setShowJoinModal] = useState(false);
@@ -374,6 +405,7 @@ function AdventuresContent() {
               activeInviteAdventureId={activeInviteAdventureId}
               setActiveInviteAdventureId={setActiveInviteAdventureId}
               unreadNoteCount={unreadNoteMap[adventure.id] ?? 0}
+              unreadReactionCount={unreadReactionMap[adventure.id] ?? 0}
               onClick={() => void router.push(`/adventures/${adventure.id}`)}
             />
           ))}

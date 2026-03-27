@@ -14,6 +14,12 @@ import {
 import { parseTaggedText } from "@/lib/dndTagParser";
 import { MONSTER_LIST, type MonsterInfo, abilityMod } from "@/lib/bestiaryData";
 import { ITEMS, type Item } from "@/lib/itemsData";
+import {
+  getClassStartingEquipment,
+  getBackgroundStartingEquipment,
+  type StartingEquipmentPreset,
+  type StartingItem,
+} from "@/lib/startingEquipmentData";
 
 // ---------------------------------------------------------------------------
 // Tab definitions — easy to extend by adding entries here
@@ -29,12 +35,13 @@ const DM_TABS = [
 const PLAYER_TABS = [
   { key: "mycharacter", label: "My Character" },
   { key: "inventory", label: "Inventory" },
-  { key: "sessionnotes", label: "Session Notes" },
+  { key: "dmnotes", label: "DM Notes" },
+  { key: "sessionnotes", label: "My Session Notes" },
 ] as const;
 
 const PLAYERS_TAB = { key: "players" as const, label: "Players" };
 
-type TabKey = "story" | "monsters" | "items" | "players" | "mycharacter" | "inventory" | "sessionnotes";
+type TabKey = "story" | "monsters" | "items" | "players" | "mycharacter" | "inventory" | "dmnotes" | "sessionnotes";
 
 // ---------------------------------------------------------------------------
 // Stat block styling constants
@@ -1453,17 +1460,41 @@ function ItemsTab({
   adventureId,
   adventureSource,
   items,
+  acceptedPlayers,
   onViewInStory,
 }: {
   adventureId: string;
   adventureSource: string;
   items: { id: string; name: string; source: string; createdAt: Date }[];
+  acceptedPlayers: Array<{
+    id: string;
+    user: { id: string; username: string };
+    character: Record<string, unknown> | null;
+  }>;
   onViewInStory: (sectionIndex: number) => void;
 }) {
   const utils = api.useUtils();
   const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [addToPlayerItemId, setAddToPlayerItemId] = useState<string | null>(null);
+  const [addToPlayerCustomDescs, setAddToPlayerCustomDescs] = useState<Record<string, string>>({});
+  const [attachedItemsTab, setAttachedItemsTab] = useState<Record<string, { name: string; source: string } | null>>({});
+  const [attachSearchTab, setAttachSearchTab] = useState<Record<string, string>>({});
+
+  const [addedSuccess, setAddedSuccess] = useState<string | null>(null);
+
+  const addInventoryItem = api.adventure.addInventoryItem.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate();
+      setAddToPlayerItemId(null);
+      setAddToPlayerCustomDescs({});
+      setAttachedItemsTab({});
+      setAttachSearchTab({});
+      setAddedSuccess("Item added to inventory!");
+      setTimeout(() => setAddedSuccess(null), 2000);
+    },
+  });
 
   const addItem = api.adventure.addItem.useMutation({
     onSuccess: () => {
@@ -1515,6 +1546,23 @@ function ItemsTab({
       >
         Add Item
       </button>
+
+      {addedSuccess && (
+        <p
+          style={{
+            color: "#4a8c3f",
+            fontSize: "13px",
+            fontFamily: SERIF,
+            marginBottom: "12px",
+            padding: "8px 14px",
+            background: "rgba(74,140,63,0.1)",
+            border: "1px solid rgba(74,140,63,0.3)",
+            borderRadius: "6px",
+          }}
+        >
+          {addedSuccess}
+        </p>
+      )}
 
       {items.length === 0 ? (
         <div
@@ -1587,29 +1635,240 @@ function ItemsTab({
                     <SourceBadge source={item.source} />
                     {itemData && <RarityBadge rarity={itemData.rarity} />}
                   </div>
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      removeItem.mutate({ id: item.id });
-                    }}
-                    disabled={removeItem.isPending}
-                    style={{
-                      background: "none",
-                      border: "none",
-                      color: "#e74c3c",
-                      fontSize: "16px",
-                      cursor: removeItem.isPending
-                        ? "default"
-                        : "pointer",
-                      padding: "4px 8px",
-                      fontFamily: "'Georgia', serif",
-                      opacity: removeItem.isPending ? 0.5 : 1,
-                    }}
-                    title="Remove item"
-                  >
-                    x
-                  </button>
+                  <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+                    {acceptedPlayers.length > 0 && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setAddToPlayerItemId(addToPlayerItemId === item.id ? null : item.id);
+                        }}
+                        style={{
+                          background: "none",
+                          border: "1px solid rgba(201,168,76,0.3)",
+                          color: GOLD_MUTED,
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          padding: "3px 10px",
+                          fontFamily: "'Georgia', serif",
+                          borderRadius: "4px",
+                          whiteSpace: "nowrap",
+                        }}
+                        title="Add to player inventory"
+                      >
+                        + Player
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        removeItem.mutate({ id: item.id });
+                      }}
+                      disabled={removeItem.isPending}
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "#e74c3c",
+                        fontSize: "16px",
+                        cursor: removeItem.isPending
+                          ? "default"
+                          : "pointer",
+                        padding: "4px 8px",
+                        fontFamily: "'Georgia', serif",
+                        opacity: removeItem.isPending ? 0.5 : 1,
+                      }}
+                      title="Remove item"
+                    >
+                      x
+                    </button>
+                  </div>
                 </div>
+
+                {/* Add to Player dropdown */}
+                {addToPlayerItemId === item.id && (
+                  <div
+                    style={{
+                      background: "rgba(0,0,0,0.5)",
+                      border: "1px solid rgba(201,168,76,0.3)",
+                      borderRadius: "8px",
+                      padding: "12px 16px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <p
+                      style={{
+                        color: GOLD,
+                        fontSize: "11px",
+                        fontFamily: SERIF,
+                        letterSpacing: "1px",
+                        textTransform: "uppercase",
+                        marginBottom: "8px",
+                      }}
+                    >
+                      Add to Player Inventory
+                    </p>
+                    {!itemData && (
+                      <>
+                        <textarea
+                          placeholder="Custom description for this item..."
+                          value={addToPlayerCustomDescs[item.id] ?? ""}
+                          onChange={(e) => setAddToPlayerCustomDescs(prev => ({ ...prev, [item.id]: e.target.value }))}
+                          rows={2}
+                          style={{
+                            width: "100%",
+                            marginBottom: "8px",
+                            padding: "6px 10px",
+                            background: "rgba(30,15,5,0.9)",
+                            border: "1px solid rgba(201,168,76,0.3)",
+                            borderRadius: "4px",
+                            color: GOLD_BRIGHT,
+                            fontFamily: SERIF,
+                            fontSize: "12px",
+                            outline: "none",
+                            resize: "vertical",
+                            boxSizing: "border-box",
+                          }}
+                        />
+                        {/* Attach official item */}
+                        <div style={{ marginBottom: "8px" }}>
+                          {attachedItemsTab[item.id] ? (
+                            <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                              <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF }}>
+                                Attached: {attachedItemsTab[item.id]!.name}
+                              </span>
+                              <SourceBadge source={attachedItemsTab[item.id]!.source} />
+                              <button
+                                onClick={() => setAttachedItemsTab(prev => ({ ...prev, [item.id]: null }))}
+                                style={{ background: "none", border: "none", color: "#e74c3c", cursor: "pointer", fontSize: "12px", padding: "0 4px" }}
+                              >
+                                x
+                              </button>
+                            </div>
+                          ) : (
+                            <div style={{ position: "relative" }}>
+                              <input
+                                type="text"
+                                placeholder="Attach official item..."
+                                value={attachSearchTab[item.id] ?? ""}
+                                onChange={(e) => setAttachSearchTab(prev => ({ ...prev, [item.id]: e.target.value }))}
+                                style={{
+                                  width: "100%",
+                                  padding: "4px 8px",
+                                  background: "rgba(30,15,5,0.9)",
+                                  border: "1px solid rgba(201,168,76,0.2)",
+                                  borderRadius: "4px",
+                                  color: GOLD_BRIGHT,
+                                  fontFamily: SERIF,
+                                  fontSize: "11px",
+                                  outline: "none",
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                              {(attachSearchTab[item.id] ?? "").length >= 2 && (
+                                <div style={{
+                                  position: "absolute",
+                                  top: "100%",
+                                  left: 0,
+                                  right: 0,
+                                  maxHeight: "150px",
+                                  overflowY: "auto",
+                                  background: "rgba(20,10,5,0.98)",
+                                  border: "1px solid rgba(201,168,76,0.3)",
+                                  borderRadius: "4px",
+                                  zIndex: 10,
+                                }}>
+                                  {ITEMS.filter(it => it.name.toLowerCase().includes((attachSearchTab[item.id] ?? "").toLowerCase())).slice(0, 10).map((it, idx) => (
+                                    <button
+                                      key={`${it.name}-${it.source}-${idx}`}
+                                      onClick={() => {
+                                        setAttachedItemsTab(prev => ({ ...prev, [item.id]: { name: it.name, source: it.source } }));
+                                        setAttachSearchTab(prev => ({ ...prev, [item.id]: "" }));
+                                      }}
+                                      style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: "6px",
+                                        width: "100%",
+                                        textAlign: "left",
+                                        padding: "4px 8px",
+                                        background: "transparent",
+                                        border: "none",
+                                        borderBottom: "1px solid rgba(201,168,76,0.1)",
+                                        cursor: "pointer",
+                                        color: GOLD_BRIGHT,
+                                        fontFamily: SERIF,
+                                        fontSize: "11px",
+                                      }}
+                                      onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.1)"; }}
+                                      onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+                                    >
+                                      {it.name} <SourceBadge source={it.source} />
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      </>
+                    )}
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {acceptedPlayers.map((player) => {
+                        const charName = player.character
+                          ? (player.character.name as string) ?? "Unknown"
+                          : "No character";
+                        return (
+                          <button
+                            key={player.id}
+                            onClick={() => {
+                              {
+                                let desc = (addToPlayerCustomDescs[item.id] ?? "").trim();
+                                const attached = attachedItemsTab[item.id];
+                                if (attached) {
+                                  desc = `[ATTACHED:${attached.name}|${attached.source}]${desc ? "\n" + desc : ""}`;
+                                }
+                                addInventoryItem.mutate({
+                                  adventurePlayerId: player.id,
+                                  itemName: item.name,
+                                  itemSource: item.source,
+                                  customDescription: !itemData && desc ? desc : undefined,
+                                });
+                              }
+                            }}
+                            disabled={addInventoryItem.isPending}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              width: "100%",
+                              textAlign: "left",
+                              padding: "8px 10px",
+                              background: "transparent",
+                              border: "none",
+                              borderBottom: "1px solid rgba(201,168,76,0.1)",
+                              cursor: addInventoryItem.isPending ? "default" : "pointer",
+                              transition: "background 0.1s",
+                            }}
+                            onMouseEnter={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.background =
+                                "rgba(201,168,76,0.1)";
+                            }}
+                            onMouseLeave={(e) => {
+                              (e.currentTarget as HTMLButtonElement).style.background =
+                                "transparent";
+                            }}
+                          >
+                            <span style={{ color: GOLD_BRIGHT, fontSize: "13px", fontFamily: SERIF, fontWeight: "bold" }}>
+                              {player.user.username}
+                            </span>
+                            <span style={{ color: GOLD_MUTED, fontSize: "12px", fontFamily: SERIF }}>
+                              ({charName})
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
                 {isExpanded && itemData && (
                   <div
@@ -2342,19 +2601,777 @@ function DmNotesSection({
 // Character Sheet Modal (read-only, opened from Players Tab)
 // ---------------------------------------------------------------------------
 
+// ---------------------------------------------------------------------------
+// DM Inventory Panel (used inside character sheet modal Inventory tab)
+// ---------------------------------------------------------------------------
+
+function DmInventoryPanel({
+  adventureId,
+  adventurePlayerId,
+  adventureItems,
+  characterClass,
+  classSource,
+  background,
+}: {
+  adventureId: string;
+  adventurePlayerId: string;
+  adventureItems: { id: string; name: string; source: string }[];
+  characterClass: string;
+  classSource: string;
+  background: string;
+}) {
+  const utils = api.useUtils();
+  const [searchText, setSearchText] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showAddFromAdventureModal, setShowAddFromAdventureModal] = useState(false);
+  const [showAddItemModal, setShowAddItemModal] = useState(false);
+  const [showStartingModal, setShowStartingModal] = useState(false);
+  const [addItemSearch, setAddItemSearch] = useState("");
+  const [editingQtyId, setEditingQtyId] = useState<string | null>(null);
+  const [editingQtyValue, setEditingQtyValue] = useState("");
+  const [adventureCustomDescs, setAdventureCustomDescs] = useState<Record<string, string>>({});
+  const [attachedItems, setAttachedItems] = useState<Record<string, { name: string; source: string } | null>>({});
+  const [attachSearch, setAttachSearch] = useState<Record<string, string>>({});
+
+  const { data: inventoryItems = [], isLoading } =
+    api.adventure.getInventory.useQuery(
+      { adventureId, adventurePlayerId },
+      { enabled: !!adventurePlayerId },
+    );
+
+  const addInventoryItem = api.adventure.addInventoryItem.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate({ adventureId, adventurePlayerId });
+      setShowAddFromAdventureModal(false);
+      setShowAddItemModal(false);
+      setAddItemSearch("");
+      setAdventureCustomDescs({});
+      setAttachedItems({});
+      setAttachSearch({});
+    },
+  });
+
+  const removeInventoryItem = api.adventure.removeInventoryItem.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate({ adventureId, adventurePlayerId });
+    },
+  });
+
+  const updateInventoryItem = api.adventure.updateInventoryItem.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate({ adventureId, adventurePlayerId });
+      setEditingQtyId(null);
+    },
+  });
+
+  type InventoryItem = {
+    id: string;
+    adventurePlayerId: string;
+    itemName: string;
+    itemSource: string;
+    quantity: number;
+    isStartingItem: boolean;
+    customDescription: string | null;
+    addedByUserId: string;
+    createdAt: string | Date;
+    addedByUser: { id: string; username: string };
+  };
+
+  const typedItems = inventoryItems as unknown as InventoryItem[];
+  const hasStartingItems = typedItems.some((item) => item.isStartingItem);
+
+  const filteredItems = useMemo(() => {
+    if (!searchText.trim()) return typedItems;
+    const lower = searchText.toLowerCase();
+    return typedItems.filter((item) =>
+      item.itemName.toLowerCase().includes(lower),
+    );
+  }, [typedItems, searchText]);
+
+  const addItemFilteredResults = useMemo(() => {
+    if (addItemSearch.length < 2) return [];
+    const lower = addItemSearch.toLowerCase();
+    const results: Item[] = [];
+    for (const item of ITEMS) {
+      if (item.name.toLowerCase().includes(lower)) {
+        results.push(item);
+        if (results.length >= 50) break;
+      }
+    }
+    return results;
+  }, [addItemSearch]);
+
+  if (isLoading) {
+    return (
+      <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>
+        Loading inventory...
+      </p>
+    );
+  }
+
+  return (
+    <div>
+      {/* Action buttons */}
+      <div
+        style={{
+          display: "flex",
+          gap: "8px",
+          marginBottom: "16px",
+          flexWrap: "wrap",
+        }}
+      >
+        <button
+          onClick={() => {
+            setShowAddFromAdventureModal(true);
+            setAdventureCustomDescs({});
+            setAttachedItems({});
+            setAttachSearch({});
+          }}
+          style={{
+            background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+            color: "#1a1a2e",
+            border: "none",
+            borderRadius: "6px",
+            padding: "8px 16px",
+            fontSize: "12px",
+            fontFamily: "'Georgia', serif",
+            fontWeight: "bold",
+            cursor: "pointer",
+            letterSpacing: "0.5px",
+          }}
+        >
+          Add from Adventure
+        </button>
+        <button
+          onClick={() => {
+            setAddItemSearch("");
+            setShowAddItemModal(true);
+          }}
+          style={{
+            background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+            color: "#1a1a2e",
+            border: "none",
+            borderRadius: "6px",
+            padding: "8px 16px",
+            fontSize: "12px",
+            fontFamily: "'Georgia', serif",
+            fontWeight: "bold",
+            cursor: "pointer",
+            letterSpacing: "0.5px",
+          }}
+        >
+          Add Item
+        </button>
+        {!hasStartingItems && (
+          <button
+            onClick={() => setShowStartingModal(true)}
+            style={{
+              background: "none",
+              border: "1px solid rgba(201,168,76,0.4)",
+              color: GOLD,
+              borderRadius: "6px",
+              padding: "8px 16px",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              fontWeight: "bold",
+              cursor: "pointer",
+              letterSpacing: "0.5px",
+            }}
+          >
+            Add Starting Items
+          </button>
+        )}
+      </div>
+
+      {/* Search */}
+      {typedItems.length > 0 && (
+        <input
+          type="text"
+          placeholder="Search inventory..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{
+            background: "rgba(30,15,5,0.9)",
+            border: "1px solid rgba(201,168,76,0.4)",
+            color: GOLD_BRIGHT,
+            fontFamily: "'Georgia', serif",
+            borderRadius: "6px",
+            padding: "8px 12px",
+            width: "100%",
+            fontSize: "13px",
+            boxSizing: "border-box",
+            outline: "none",
+            marginBottom: "12px",
+          }}
+        />
+      )}
+
+      {/* Inventory list */}
+      {typedItems.length === 0 ? (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "13px",
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            textAlign: "center",
+            padding: "20px",
+          }}
+        >
+          No items in inventory yet.
+        </p>
+      ) : filteredItems.length === 0 ? (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "13px",
+            fontFamily: SERIF,
+            textAlign: "center",
+            padding: "20px",
+          }}
+        >
+          No items match your search.
+        </p>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          {filteredItems.map((item) => {
+            const isExpanded = expandedId === item.id;
+            const itemData = ITEMS.find(
+              (it) =>
+                it.name.toLowerCase() === item.itemName.toLowerCase() &&
+                it.source.toLowerCase() === item.itemSource.toLowerCase(),
+            ) ?? ITEMS.find(
+              (it) => it.name.toLowerCase() === item.itemName.toLowerCase(),
+            );
+            const isEditingQty = editingQtyId === item.id;
+
+            return (
+              <div
+                key={item.id}
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  borderRadius: "8px",
+                  padding: "10px 14px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      flex: 1,
+                      cursor: "pointer",
+                      flexWrap: "wrap",
+                    }}
+                    onClick={() => setExpandedId(isExpanded ? null : item.id)}
+                  >
+                    <span
+                      style={{
+                        color: GOLD_BRIGHT,
+                        fontSize: "13px",
+                        fontFamily: "'Georgia', serif",
+                      }}
+                    >
+                      {isExpanded ? "\u25BC" : "\u25B6"} {item.itemName}
+                    </span>
+                    {/* Editable quantity */}
+                    {isEditingQty ? (
+                      <input
+                        type="number"
+                        min={0}
+                        value={editingQtyValue}
+                        onChange={(e) => setEditingQtyValue(e.target.value)}
+                        onBlur={() => {
+                          const val = parseInt(editingQtyValue, 10);
+                          if (!isNaN(val) && val >= 0) {
+                            updateInventoryItem.mutate({
+                              inventoryItemId: item.id,
+                              quantity: val,
+                            });
+                          } else {
+                            setEditingQtyId(null);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            (e.target as HTMLInputElement).blur();
+                          }
+                          if (e.key === "Escape") setEditingQtyId(null);
+                        }}
+                        onClick={(e) => e.stopPropagation()}
+                        autoFocus
+                        style={{
+                          width: "50px",
+                          padding: "2px 6px",
+                          background: "rgba(30,15,5,0.9)",
+                          border: "1px solid rgba(201,168,76,0.5)",
+                          borderRadius: "4px",
+                          color: GOLD_BRIGHT,
+                          fontSize: "12px",
+                          fontFamily: SERIF,
+                          textAlign: "center",
+                          outline: "none",
+                        }}
+                      />
+                    ) : (
+                      <span
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setEditingQtyId(item.id);
+                          setEditingQtyValue(String(item.quantity));
+                        }}
+                        style={{
+                          color: GOLD,
+                          fontSize: "11px",
+                          fontFamily: "'Georgia', serif",
+                          background: "rgba(201,168,76,0.15)",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: "bold",
+                          cursor: "pointer",
+                        }}
+                        title="Click to edit quantity"
+                      >
+                        x{item.quantity}
+                      </span>
+                    )}
+                    <SourceBadge source={item.itemSource} />
+                    {item.isStartingItem && (
+                      <span
+                        style={{
+                          color: "#4a8c3f",
+                          fontSize: "9px",
+                          fontFamily: "'Georgia', serif",
+                          background: "rgba(74,140,63,0.15)",
+                          padding: "2px 6px",
+                          borderRadius: "4px",
+                          letterSpacing: "0.5px",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Starting
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      removeInventoryItem.mutate({ inventoryItemId: item.id });
+                    }}
+                    disabled={removeInventoryItem.isPending}
+                    style={{
+                      background: "none",
+                      border: "none",
+                      color: "#e74c3c",
+                      fontSize: "14px",
+                      cursor: removeInventoryItem.isPending ? "default" : "pointer",
+                      padding: "4px 6px",
+                      fontFamily: "'Georgia', serif",
+                      opacity: removeInventoryItem.isPending ? 0.5 : 1,
+                    }}
+                    title="Remove item"
+                  >
+                    x
+                  </button>
+                </div>
+
+                {isExpanded && (
+                  <div
+                    style={{
+                      background: "rgba(0,0,0,0.3)",
+                      border: "1px solid rgba(201,168,76,0.15)",
+                      borderRadius: "8px",
+                      padding: "12px 16px",
+                      marginTop: "8px",
+                    }}
+                  >
+                    <InventoryItemDescription
+                      itemData={itemData}
+                      customDescription={item.customDescription}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Add from Adventure Modal */}
+      {showAddFromAdventureModal && (
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            zIndex: 1002,
+            background: "rgba(0,0,0,0.7)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onClick={() => setShowAddFromAdventureModal(false)}
+        >
+          <div
+            style={{
+              background: "rgba(15,8,3,0.95)",
+              border: "2px solid #c9a84c",
+              borderRadius: "12px",
+              padding: "24px",
+              maxWidth: "500px",
+              width: "90%",
+              maxHeight: "70vh",
+              display: "flex",
+              flexDirection: "column",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "16px",
+              }}
+            >
+              <h3
+                style={{
+                  color: GOLD,
+                  fontSize: "16px",
+                  fontWeight: "bold",
+                  letterSpacing: "1px",
+                  textTransform: "uppercase",
+                  fontFamily: SERIF,
+                }}
+              >
+                Add from Adventure Items
+              </h3>
+              <button
+                onClick={() => setShowAddFromAdventureModal(false)}
+                style={{
+                  background: "none",
+                  border: "none",
+                  color: GOLD_MUTED,
+                  fontSize: "20px",
+                  cursor: "pointer",
+                  padding: "0 4px",
+                }}
+              >
+                x
+              </button>
+            </div>
+
+            {addInventoryItem.isPending && (
+              <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF, textAlign: "center", padding: "8px" }}>
+                Adding...
+              </p>
+            )}
+
+            <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+              {adventureItems.length === 0 ? (
+                <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF, textAlign: "center", padding: "20px" }}>
+                  No items in the adventure yet.
+                </p>
+              ) : (
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                  {adventureItems.map((advItem) => {
+                    const officialItem = ITEMS.find(
+                      (it) =>
+                        it.name.toLowerCase() === advItem.name.toLowerCase() &&
+                        it.source.toLowerCase() === advItem.source.toLowerCase(),
+                    ) ?? ITEMS.find(
+                      (it) => it.name.toLowerCase() === advItem.name.toLowerCase(),
+                    );
+                    const isNonOfficial = !officialItem;
+
+                    return (
+                      <div
+                        key={advItem.id}
+                        style={{
+                          padding: "8px 12px",
+                          borderBottom: "1px solid rgba(201,168,76,0.1)",
+                        }}
+                      >
+                        <div
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            gap: "10px",
+                          }}
+                        >
+                          <span
+                            style={{
+                              color: GOLD_BRIGHT,
+                              fontSize: "13px",
+                              fontFamily: SERIF,
+                              flex: 1,
+                            }}
+                          >
+                            {advItem.name}
+                          </span>
+                          <SourceBadge source={advItem.source} />
+                          <button
+                            onClick={() => {
+                              let desc = (adventureCustomDescs[advItem.id] ?? "").trim();
+                              const attached = attachedItems[advItem.id];
+                              if (attached) {
+                                desc = `[ATTACHED:${attached.name}|${attached.source}]${desc ? "\n" + desc : ""}`;
+                              }
+                              addInventoryItem.mutate({
+                                adventurePlayerId,
+                                itemName: advItem.name,
+                                itemSource: advItem.source,
+                                customDescription: isNonOfficial && desc
+                                  ? desc
+                                  : undefined,
+                              });
+                            }}
+                            disabled={addInventoryItem.isPending}
+                            style={{
+                              background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+                              color: "#1a1a2e",
+                              border: "none",
+                              borderRadius: "4px",
+                              padding: "4px 12px",
+                              fontSize: "11px",
+                              fontFamily: SERIF,
+                              fontWeight: "bold",
+                              cursor: addInventoryItem.isPending ? "default" : "pointer",
+                              opacity: addInventoryItem.isPending ? 0.6 : 1,
+                            }}
+                          >
+                            Add
+                          </button>
+                        </div>
+                        {isNonOfficial && (
+                          <>
+                            <textarea
+                              placeholder="Custom description (not found in official data)..."
+                              value={adventureCustomDescs[advItem.id] ?? ""}
+                              onChange={(e) => setAdventureCustomDescs(prev => ({ ...prev, [advItem.id]: e.target.value }))}
+                              rows={2}
+                              style={{
+                                width: "100%",
+                                marginTop: "6px",
+                                padding: "6px 10px",
+                                background: "rgba(30,15,5,0.9)",
+                                border: "1px solid rgba(201,168,76,0.3)",
+                                borderRadius: "4px",
+                                color: GOLD_BRIGHT,
+                                fontFamily: SERIF,
+                                fontSize: "12px",
+                                outline: "none",
+                                resize: "vertical",
+                                boxSizing: "border-box",
+                              }}
+                            />
+                            {/* Attach official item */}
+                            <div style={{ marginTop: "6px" }}>
+                              {attachedItems[advItem.id] ? (
+                                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                                  <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF }}>
+                                    Attached: {attachedItems[advItem.id]!.name}
+                                  </span>
+                                  <SourceBadge source={attachedItems[advItem.id]!.source} />
+                                  <button
+                                    onClick={() => setAttachedItems(prev => ({ ...prev, [advItem.id]: null }))}
+                                    style={{ background: "none", border: "none", color: "#e74c3c", cursor: "pointer", fontSize: "12px", padding: "0 4px" }}
+                                  >
+                                    x
+                                  </button>
+                                </div>
+                              ) : (
+                                <div style={{ position: "relative" }}>
+                                  <input
+                                    type="text"
+                                    placeholder="Attach official item..."
+                                    value={attachSearch[advItem.id] ?? ""}
+                                    onChange={(e) => setAttachSearch(prev => ({ ...prev, [advItem.id]: e.target.value }))}
+                                    style={{
+                                      width: "100%",
+                                      padding: "4px 8px",
+                                      background: "rgba(30,15,5,0.9)",
+                                      border: "1px solid rgba(201,168,76,0.2)",
+                                      borderRadius: "4px",
+                                      color: GOLD_BRIGHT,
+                                      fontFamily: SERIF,
+                                      fontSize: "11px",
+                                      outline: "none",
+                                      boxSizing: "border-box",
+                                    }}
+                                  />
+                                  {(attachSearch[advItem.id] ?? "").length >= 2 && (
+                                    <div style={{
+                                      position: "absolute",
+                                      top: "100%",
+                                      left: 0,
+                                      right: 0,
+                                      maxHeight: "150px",
+                                      overflowY: "auto",
+                                      background: "rgba(20,10,5,0.98)",
+                                      border: "1px solid rgba(201,168,76,0.3)",
+                                      borderRadius: "4px",
+                                      zIndex: 10,
+                                    }}>
+                                      {ITEMS.filter(it => it.name.toLowerCase().includes((attachSearch[advItem.id] ?? "").toLowerCase())).slice(0, 10).map((it, idx) => (
+                                        <button
+                                          key={`${it.name}-${it.source}-${idx}`}
+                                          onClick={() => {
+                                            setAttachedItems(prev => ({ ...prev, [advItem.id]: { name: it.name, source: it.source } }));
+                                            setAttachSearch(prev => ({ ...prev, [advItem.id]: "" }));
+                                          }}
+                                          style={{
+                                            display: "flex",
+                                            alignItems: "center",
+                                            gap: "6px",
+                                            width: "100%",
+                                            textAlign: "left",
+                                            padding: "4px 8px",
+                                            background: "transparent",
+                                            border: "none",
+                                            borderBottom: "1px solid rgba(201,168,76,0.1)",
+                                            cursor: "pointer",
+                                            color: GOLD_BRIGHT,
+                                            fontFamily: SERIF,
+                                            fontSize: "11px",
+                                          }}
+                                          onMouseEnter={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.1)"; }}
+                                          onMouseLeave={(e) => { (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
+                                        >
+                                          {it.name} <SourceBadge source={it.source} />
+                                        </button>
+                                      ))}
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add Item (from all ITEMS) Modal */}
+      <SearchModal
+        title="Add Item to Inventory"
+        open={showAddItemModal}
+        onClose={() => setShowAddItemModal(false)}
+        searchText={addItemSearch}
+        onSearchChange={setAddItemSearch}
+        isPending={addInventoryItem.isPending}
+      >
+        {addItemSearch.length < 2 ? (
+          <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: "'Georgia', serif", textAlign: "center", padding: "20px" }}>
+            Type at least 2 characters to search.
+          </p>
+        ) : addItemFilteredResults.length === 0 ? (
+          <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: "'Georgia', serif", textAlign: "center", padding: "20px" }}>
+            No items found.
+          </p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+            {addItemFilteredResults.map((item, i) => (
+              <button
+                key={`${item.name}-${item.source}-${i}`}
+                onClick={() =>
+                  addInventoryItem.mutate({
+                    adventurePlayerId,
+                    itemName: item.name,
+                    itemSource: item.source,
+                  })
+                }
+                disabled={addInventoryItem.isPending}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "12px",
+                  width: "100%",
+                  textAlign: "left",
+                  padding: "10px 12px",
+                  background: "transparent",
+                  border: "none",
+                  borderBottom: "1px solid rgba(201,168,76,0.1)",
+                  cursor: addInventoryItem.isPending ? "default" : "pointer",
+                  transition: "background 0.1s",
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    "rgba(201,168,76,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLButtonElement).style.background =
+                    "transparent";
+                }}
+              >
+                <span style={{ color: GOLD_BRIGHT, fontSize: "13px", fontFamily: "'Georgia', serif", flex: 1 }}>
+                  {item.name}
+                </span>
+                <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: "'Georgia', serif", minWidth: "70px" }}>
+                  {item.type}
+                </span>
+                <RarityBadge rarity={item.rarity} />
+                <SourceBadge source={item.source} />
+              </button>
+            ))}
+          </div>
+        )}
+      </SearchModal>
+
+      {/* Starting Items Modal */}
+      <StartingItemsModal
+        open={showStartingModal}
+        onClose={() => setShowStartingModal(false)}
+        characterClass={characterClass}
+        classSource={classSource}
+        background={background}
+        adventurePlayerId={adventurePlayerId}
+        adventureId={adventureId}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Character Sheet Modal (with tabs: Sheet, Notes, Inventory)
+// ---------------------------------------------------------------------------
+
+type CharSheetTab = "sheet" | "notes" | "inventory";
+
 function CharacterSheetModal({
   character,
   username,
   adventureId,
   toUserId,
+  adventurePlayerId,
+  adventureItems,
+  playerNote,
   onClose,
 }: {
   character: Record<string, unknown>;
   username: string;
   adventureId: string;
   toUserId: string;
+  adventurePlayerId: string;
+  adventureItems: { id: string; name: string; source: string }[];
+  playerNote?: string;
   onClose: () => void;
 }) {
+  const [charSheetTab, setCharSheetTab] = useState<CharSheetTab>("sheet");
+
   const name = character.name as string | undefined;
   const race = character.race as string | undefined;
   const charClass = character.characterClass as string | undefined;
@@ -2365,6 +3382,7 @@ function CharacterSheetModal({
   const background = character.background as string | undefined;
   const notes = character.notes as string | undefined;
   const characterId = character.id as string;
+  const classSource = (character.rulesSource as string) ?? "PHB";
 
   const str = (character.strength as number | undefined) ?? 10;
   const dex = (character.dexterity as number | undefined) ?? 10;
@@ -2408,6 +3426,12 @@ function CharacterSheetModal({
     borderBottom: "1px solid rgba(201,168,76,0.2)",
     fontFamily: SERIF,
   };
+
+  const charSheetTabs: Array<{ key: CharSheetTab; label: string }> = [
+    { key: "sheet", label: "Character Sheet" },
+    { key: "notes", label: "Notes" },
+    { key: "inventory", label: "Inventory" },
+  ];
 
   return (
     <div
@@ -2460,7 +3484,7 @@ function CharacterSheetModal({
         </button>
 
         {/* Header */}
-        <div style={{ marginBottom: "24px" }}>
+        <div style={{ marginBottom: "16px" }}>
           <p
             style={{
               color: GOLD_MUTED,
@@ -2500,363 +3524,463 @@ function CharacterSheetModal({
           </p>
         </div>
 
-        {/* Divider */}
+        {/* Tab bar */}
         <div
           style={{
-            height: "1px",
-            background: "rgba(201,168,76,0.3)",
+            display: "flex",
+            gap: "0",
+            borderBottom: "1px solid rgba(201,168,76,0.3)",
             marginBottom: "24px",
           }}
-        />
-
-        {/* Ability Scores */}
-        <div
-          style={{
-            background: "rgba(0,0,0,0.5)",
-            border: "1px solid rgba(201,168,76,0.3)",
-            borderRadius: "12px",
-            padding: "20px 24px",
-            marginBottom: "16px",
-          }}
         >
-          <p style={sectionTitle}>Ability Scores</p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(6, 1fr)",
-              gap: "12px",
-            }}
-          >
-            {ABILITY_NAMES_SHORT.map(({ key, label }) => (
-              <div
-                key={key}
+          {charSheetTabs.map((tab) => {
+            const isActive = charSheetTab === tab.key;
+            return (
+              <button
+                key={tab.key}
+                onClick={() => setCharSheetTab(tab.key)}
                 style={{
-                  textAlign: "center",
-                  background: "rgba(201,168,76,0.05)",
-                  border: "1px solid rgba(201,168,76,0.2)",
-                  borderRadius: "8px",
-                  padding: "12px 8px",
+                  padding: "10px 20px",
+                  background: isActive ? "rgba(201,168,76,0.15)" : "transparent",
+                  border: "none",
+                  borderBottom: isActive
+                    ? "2px solid #c9a84c"
+                    : "2px solid transparent",
+                  color: isActive ? GOLD : GOLD_MUTED,
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  fontWeight: "bold",
+                  letterSpacing: "1px",
+                  textTransform: "uppercase",
+                  cursor: "pointer",
                 }}
               >
-                <div
-                  style={{
-                    color: "#b8934a",
-                    fontSize: "10px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    fontFamily: SERIF,
-                    marginBottom: "6px",
-                  }}
-                >
-                  {label}
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Character Sheet tab */}
+        {charSheetTab === "sheet" && (
+          <>
+            {/* Ability Scores */}
+            <div
+              style={{
+                background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(201,168,76,0.3)",
+                borderRadius: "12px",
+                padding: "20px 24px",
+                marginBottom: "16px",
+              }}
+            >
+              <p style={sectionTitle}>Ability Scores</p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(6, 1fr)",
+                  gap: "12px",
+                }}
+              >
+                {ABILITY_NAMES_SHORT.map(({ key, label }) => (
+                  <div
+                    key={key}
+                    style={{
+                      textAlign: "center",
+                      background: "rgba(201,168,76,0.05)",
+                      border: "1px solid rgba(201,168,76,0.2)",
+                      borderRadius: "8px",
+                      padding: "12px 8px",
+                    }}
+                  >
+                    <div
+                      style={{
+                        color: "#b8934a",
+                        fontSize: "10px",
+                        textTransform: "uppercase",
+                        letterSpacing: "0.08em",
+                        fontFamily: SERIF,
+                        marginBottom: "6px",
+                      }}
+                    >
+                      {label}
+                    </div>
+                    <div
+                      style={{
+                        color: GOLD_BRIGHT,
+                        fontSize: "22px",
+                        fontWeight: "bold",
+                        fontFamily: SERIF,
+                        lineHeight: 1,
+                      }}
+                    >
+                      {abilityScores[key]}
+                    </div>
+                    <div
+                      style={{
+                        color: GOLD_MUTED,
+                        fontSize: "13px",
+                        fontFamily: SERIF,
+                        marginTop: "4px",
+                      }}
+                    >
+                      {modString(abilityScores[key]!)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Combat Stats */}
+            <div
+              style={{
+                background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(201,168,76,0.3)",
+                borderRadius: "12px",
+                padding: "20px 24px",
+                marginBottom: "16px",
+              }}
+            >
+              <p style={sectionTitle}>Combat</p>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, 1fr)",
+                  gap: "16px",
+                  fontSize: "13px",
+                  fontFamily: SERIF,
+                }}
+              >
+                <div>
+                  <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>HP</div>
+                  <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>
+                    {currentHp}/{maxHp}
+                    {tempHp > 0 && (
+                      <span style={{ color: GOLD_MUTED, fontSize: "13px", fontWeight: "normal" }}>
+                        {" "}(+{tempHp} temp)
+                      </span>
+                    )}
+                  </div>
                 </div>
-                <div
+                <div>
+                  <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>AC</div>
+                  <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>{ac}</div>
+                </div>
+                <div>
+                  <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>SPEED</div>
+                  <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>{speed} ft.</div>
+                </div>
+                <div>
+                  <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>INITIATIVE</div>
+                  <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>{initiativeStr}</div>
+                </div>
+                <div>
+                  <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>PROFICIENCY</div>
+                  <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>+{prof}</div>
+                </div>
+              </div>
+            </div>
+
+            {/* Saving Throws & Skills side by side */}
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "1fr 1fr",
+                gap: "16px",
+                marginBottom: "16px",
+              }}
+            >
+              {/* Saving Throws */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(201,168,76,0.3)",
+                  borderRadius: "12px",
+                  padding: "20px 24px",
+                }}
+              >
+                <p style={sectionTitle}>Saving Throws</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                  {ABILITY_NAMES_SHORT.map(({ key, label }) => {
+                    const isProficient = savingProfs.includes(key);
+                    const total =
+                      abilityModifier(abilityScores[key]!) + (isProficient ? prof : 0);
+                    const totalStr = total >= 0 ? `+${total}` : `${total}`;
+                    return (
+                      <div
+                        key={key}
+                        style={{ display: "flex", alignItems: "center", gap: "10px" }}
+                      >
+                        <span style={{ color: isProficient ? GOLD : GOLD_MUTED, fontSize: "12px" }}>
+                          {isProficient ? "\u25CF" : "\u25CB"}
+                        </span>
+                        <span
+                          style={{
+                            color: GOLD_BRIGHT,
+                            fontSize: "13px",
+                            fontFamily: SERIF,
+                            flex: 1,
+                          }}
+                        >
+                          {label}
+                        </span>
+                        <span
+                          style={{
+                            color: GOLD_BRIGHT,
+                            fontSize: "13px",
+                            fontFamily: SERIF,
+                            fontWeight: isProficient ? "bold" : "normal",
+                          }}
+                        >
+                          {totalStr}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Skills */}
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(201,168,76,0.3)",
+                  borderRadius: "12px",
+                  padding: "20px 24px",
+                  maxHeight: "400px",
+                  overflowY: "auto",
+                }}
+              >
+                <p style={sectionTitle}>Skills</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
+                  {SKILLS_LIST.map(({ name: skillName, ability }) => {
+                    const score = abilityScores[ability] ?? 10;
+                    const baseMod = abilityModifier(score);
+                    const hasExpertise = expertiseSkills.includes(skillName);
+                    const isProficient = proficientSkills.includes(skillName);
+                    const total = hasExpertise
+                      ? baseMod + prof * 2
+                      : isProficient
+                        ? baseMod + prof
+                        : baseMod;
+                    const skillStr = total >= 0 ? `+${total}` : `${total}`;
+                    const indicator = hasExpertise ? "\u2605" : isProficient ? "\u25CF" : "\u25CB";
+                    const indicatorColor = hasExpertise || isProficient ? GOLD : GOLD_MUTED;
+                    const isHighlighted = hasExpertise || isProficient;
+                    const abilityLabel = ABILITY_NAMES_SHORT.find((a) => a.key === ability)?.label ?? "";
+                    return (
+                      <div
+                        key={skillName}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "10px",
+                          padding: "2px 4px",
+                        }}
+                      >
+                        <span style={{ color: indicatorColor, fontSize: "12px" }}>{indicator}</span>
+                        <span
+                          style={{
+                            color: GOLD_BRIGHT,
+                            fontSize: "13px",
+                            fontFamily: SERIF,
+                            flex: 1,
+                            fontWeight: isHighlighted ? "bold" : "normal",
+                          }}
+                        >
+                          {skillName}
+                        </span>
+                        <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF }}>
+                          ({abilityLabel})
+                        </span>
+                        <span
+                          style={{
+                            color: isHighlighted ? GOLD : GOLD_BRIGHT,
+                            fontSize: "13px",
+                            fontFamily: SERIF,
+                            fontWeight: isHighlighted ? "bold" : "normal",
+                          }}
+                        >
+                          {skillStr}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Active Conditions */}
+            {activeConditions.length > 0 && (
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(201,168,76,0.3)",
+                  borderRadius: "12px",
+                  padding: "20px 24px",
+                  marginBottom: "16px",
+                }}
+              >
+                <p style={sectionTitle}>Active Conditions</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {activeConditions.map((cond) => (
+                    <span
+                      key={cond}
+                      style={{
+                        background: "rgba(231,76,60,0.15)",
+                        border: "1px solid rgba(201,168,76,0.4)",
+                        borderRadius: "20px",
+                        padding: "4px 14px",
+                        fontSize: "12px",
+                        fontFamily: SERIF,
+                        color: "#e74c3c",
+                        fontWeight: "bold",
+                      }}
+                    >
+                      {cond}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Feats */}
+            {feats.length > 0 && (
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(201,168,76,0.3)",
+                  borderRadius: "12px",
+                  padding: "20px 24px",
+                  marginBottom: "16px",
+                }}
+              >
+                <p style={sectionTitle}>Feats</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+                  {feats.map((feat) => (
+                    <span
+                      key={feat}
+                      style={{
+                        background: "rgba(201,168,76,0.1)",
+                        border: "1px solid rgba(201,168,76,0.3)",
+                        borderRadius: "20px",
+                        padding: "4px 14px",
+                        fontSize: "12px",
+                        fontFamily: SERIF,
+                        color: GOLD_BRIGHT,
+                      }}
+                    >
+                      {feat}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Backstory */}
+            {backstory && (
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.5)",
+                  border: "1px solid rgba(201,168,76,0.3)",
+                  borderRadius: "12px",
+                  padding: "20px 24px",
+                  marginBottom: "16px",
+                }}
+              >
+                <p style={sectionTitle}>Backstory</p>
+                <p
                   style={{
                     color: GOLD_BRIGHT,
-                    fontSize: "22px",
-                    fontWeight: "bold",
+                    fontSize: "14px",
                     fontFamily: SERIF,
-                    lineHeight: 1,
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-wrap",
                   }}
                 >
-                  {abilityScores[key]}
-                </div>
-                <div
+                  {backstory}
+                </p>
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Notes tab */}
+        {charSheetTab === "notes" && (
+          <>
+            {/* Player's Note to DM (read-only) */}
+            <div
+              style={{
+                background: "rgba(0,0,0,0.5)",
+                border: "1px solid rgba(101,168,126,0.3)",
+                borderLeft: "3px solid rgba(101,168,126,0.6)",
+                borderRadius: "12px",
+                padding: "20px 24px",
+                marginBottom: "16px",
+              }}
+            >
+              <p
+                style={{
+                  color: GOLD,
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  letterSpacing: "2px",
+                  textTransform: "uppercase",
+                  marginBottom: "12px",
+                  paddingBottom: "8px",
+                  borderBottom: "1px solid rgba(201,168,76,0.2)",
+                  fontFamily: SERIF,
+                }}
+              >
+                Player&apos;s Note
+              </p>
+              {playerNote ? (
+                <p
+                  style={{
+                    color: GOLD_BRIGHT,
+                    fontSize: "13px",
+                    fontFamily: SERIF,
+                    lineHeight: 1.7,
+                    whiteSpace: "pre-wrap",
+                    margin: 0,
+                  }}
+                >
+                  {playerNote}
+                </p>
+              ) : (
+                <p
                   style={{
                     color: GOLD_MUTED,
                     fontSize: "13px",
                     fontFamily: SERIF,
-                    marginTop: "4px",
+                    fontStyle: "italic",
+                    margin: 0,
                   }}
                 >
-                  {modString(abilityScores[key]!)}
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Combat Stats */}
-        <div
-          style={{
-            background: "rgba(0,0,0,0.5)",
-            border: "1px solid rgba(201,168,76,0.3)",
-            borderRadius: "12px",
-            padding: "20px 24px",
-            marginBottom: "16px",
-          }}
-        >
-          <p style={sectionTitle}>Combat</p>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: "16px",
-              fontSize: "13px",
-              fontFamily: SERIF,
-            }}
-          >
-            <div>
-              <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>HP</div>
-              <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>
-                {currentHp}/{maxHp}
-                {tempHp > 0 && (
-                  <span style={{ color: GOLD_MUTED, fontSize: "13px", fontWeight: "normal" }}>
-                    {" "}(+{tempHp} temp)
-                  </span>
-                )}
-              </div>
+                  No note from player.
+                </p>
+              )}
             </div>
-            <div>
-              <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>AC</div>
-              <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>{ac}</div>
-            </div>
-            <div>
-              <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>SPEED</div>
-              <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>{speed} ft.</div>
-            </div>
-            <div>
-              <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>INITIATIVE</div>
-              <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>{initiativeStr}</div>
-            </div>
-            <div>
-              <div style={{ color: GOLD_MUTED, fontSize: "10px", letterSpacing: "1px", marginBottom: "4px" }}>PROFICIENCY</div>
-              <div style={{ color: GOLD_BRIGHT, fontSize: "18px", fontWeight: "bold" }}>+{prof}</div>
-            </div>
-          </div>
-        </div>
-
-        {/* Saving Throws & Skills side by side */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: "16px",
-            marginBottom: "16px",
-          }}
-        >
-          {/* Saving Throws */}
-          <div
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "1px solid rgba(201,168,76,0.3)",
-              borderRadius: "12px",
-              padding: "20px 24px",
-            }}
-          >
-            <p style={sectionTitle}>Saving Throws</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-              {ABILITY_NAMES_SHORT.map(({ key, label }) => {
-                const isProficient = savingProfs.includes(key);
-                const total =
-                  abilityModifier(abilityScores[key]!) + (isProficient ? prof : 0);
-                const totalStr = total >= 0 ? `+${total}` : `${total}`;
-                return (
-                  <div
-                    key={key}
-                    style={{ display: "flex", alignItems: "center", gap: "10px" }}
-                  >
-                    <span style={{ color: isProficient ? GOLD : GOLD_MUTED, fontSize: "12px" }}>
-                      {isProficient ? "\u25CF" : "\u25CB"}
-                    </span>
-                    <span
-                      style={{
-                        color: GOLD_BRIGHT,
-                        fontSize: "13px",
-                        fontFamily: SERIF,
-                        flex: 1,
-                      }}
-                    >
-                      {label}
-                    </span>
-                    <span
-                      style={{
-                        color: GOLD_BRIGHT,
-                        fontSize: "13px",
-                        fontFamily: SERIF,
-                        fontWeight: isProficient ? "bold" : "normal",
-                      }}
-                    >
-                      {totalStr}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Skills */}
-          <div
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "1px solid rgba(201,168,76,0.3)",
-              borderRadius: "12px",
-              padding: "20px 24px",
-              maxHeight: "400px",
-              overflowY: "auto",
-            }}
-          >
-            <p style={sectionTitle}>Skills</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: "7px" }}>
-              {SKILLS_LIST.map(({ name: skillName, ability }) => {
-                const score = abilityScores[ability] ?? 10;
-                const baseMod = abilityModifier(score);
-                const hasExpertise = expertiseSkills.includes(skillName);
-                const isProficient = proficientSkills.includes(skillName);
-                const total = hasExpertise
-                  ? baseMod + prof * 2
-                  : isProficient
-                    ? baseMod + prof
-                    : baseMod;
-                const skillStr = total >= 0 ? `+${total}` : `${total}`;
-                const indicator = hasExpertise ? "\u2605" : isProficient ? "\u25CF" : "\u25CB";
-                const indicatorColor = hasExpertise || isProficient ? GOLD : GOLD_MUTED;
-                const isHighlighted = hasExpertise || isProficient;
-                const abilityLabel = ABILITY_NAMES_SHORT.find((a) => a.key === ability)?.label ?? "";
-                return (
-                  <div
-                    key={skillName}
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "10px",
-                      padding: "2px 4px",
-                    }}
-                  >
-                    <span style={{ color: indicatorColor, fontSize: "12px" }}>{indicator}</span>
-                    <span
-                      style={{
-                        color: GOLD_BRIGHT,
-                        fontSize: "13px",
-                        fontFamily: SERIF,
-                        flex: 1,
-                        fontWeight: isHighlighted ? "bold" : "normal",
-                      }}
-                    >
-                      {skillName}
-                    </span>
-                    <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF }}>
-                      ({abilityLabel})
-                    </span>
-                    <span
-                      style={{
-                        color: isHighlighted ? GOLD : GOLD_BRIGHT,
-                        fontSize: "13px",
-                        fontFamily: SERIF,
-                        fontWeight: isHighlighted ? "bold" : "normal",
-                      }}
-                    >
-                      {skillStr}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </div>
-
-        {/* Active Conditions */}
-        {activeConditions.length > 0 && (
-          <div
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "1px solid rgba(201,168,76,0.3)",
-              borderRadius: "12px",
-              padding: "20px 24px",
-              marginBottom: "16px",
-            }}
-          >
-            <p style={sectionTitle}>Active Conditions</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {activeConditions.map((cond) => (
-                <span
-                  key={cond}
-                  style={{
-                    background: "rgba(231,76,60,0.15)",
-                    border: "1px solid rgba(201,168,76,0.4)",
-                    borderRadius: "20px",
-                    padding: "4px 14px",
-                    fontSize: "12px",
-                    fontFamily: SERIF,
-                    color: "#e74c3c",
-                    fontWeight: "bold",
-                  }}
-                >
-                  {cond}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Feats */}
-        {feats.length > 0 && (
-          <div
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "1px solid rgba(201,168,76,0.3)",
-              borderRadius: "12px",
-              padding: "20px 24px",
-              marginBottom: "16px",
-            }}
-          >
-            <p style={sectionTitle}>Feats</p>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              {feats.map((feat) => (
-                <span
-                  key={feat}
-                  style={{
-                    background: "rgba(201,168,76,0.1)",
-                    border: "1px solid rgba(201,168,76,0.3)",
-                    borderRadius: "20px",
-                    padding: "4px 14px",
-                    fontSize: "12px",
-                    fontFamily: SERIF,
-                    color: GOLD_BRIGHT,
-                  }}
-                >
-                  {feat}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Backstory */}
-        {backstory && (
-          <div
-            style={{
-              background: "rgba(0,0,0,0.5)",
-              border: "1px solid rgba(201,168,76,0.3)",
-              borderRadius: "12px",
-              padding: "20px 24px",
-              marginBottom: "16px",
-            }}
-          >
-            <p style={sectionTitle}>Backstory</p>
-            <p
-              style={{
-                color: GOLD_BRIGHT,
-                fontSize: "14px",
-                fontFamily: SERIF,
-                lineHeight: 1.7,
-                whiteSpace: "pre-wrap",
-              }}
-            >
-              {backstory}
-            </p>
-          </div>
-        )}
-
-        {/* DM Notes Section */}
-        <div style={{ marginTop: "8px" }}>
           <DmNotesSection
             adventureId={adventureId}
             characterId={characterId}
             toUserId={toUserId}
-            playerNotes={notes}
+            playerNotes={null}
           />
-        </div>
+          </>
+        )}
+
+        {/* Inventory tab */}
+        {charSheetTab === "inventory" && (
+          <DmInventoryPanel
+            adventureId={adventureId}
+            adventurePlayerId={adventurePlayerId}
+            adventureItems={adventureItems}
+            characterClass={charClass ?? ""}
+            classSource={classSource}
+            background={background ?? ""}
+          />
+        )}
       </div>
     </div>
   );
@@ -2866,13 +3990,15 @@ function CharacterSheetModal({
 // Players Tab (DM only)
 // ---------------------------------------------------------------------------
 
-function PlayersTab({ adventureId }: { adventureId: string }) {
+function PlayersTab({ adventureId, adventureItems, unreadReactionByCharacter }: { adventureId: string; adventureItems: { id: string; name: string; source: string }[]; unreadReactionByCharacter?: Record<string, number> }) {
   const utils = api.useUtils();
   const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null);
   const [sheetModalPlayer, setSheetModalPlayer] = useState<{
     character: Record<string, unknown>;
     username: string;
     userId: string;
+    adventurePlayerId: string;
+    playerNote?: string;
   } | null>(null);
 
   const { data: pendingPlayers = [], isLoading: pendingLoading } =
@@ -3202,6 +4328,8 @@ function PlayersTab({ adventureId }: { adventureId: string }) {
           {acceptedPlayers.map((player) => {
             const character = (player as unknown as { character?: Record<string, unknown> }).character ?? null;
             const userId = (player as unknown as { userId: string }).userId;
+            const characterId = (character as { id?: string } | null)?.id;
+            const reactionCount = characterId ? (unreadReactionByCharacter?.[characterId] ?? 0) : 0;
             return (
               <div
                 key={player.id}
@@ -3222,6 +4350,8 @@ function PlayersTab({ adventureId }: { adventureId: string }) {
                       character,
                       username: player.user.username,
                       userId,
+                      adventurePlayerId: player.id,
+                      playerNote: (player as unknown as { playerNote?: string }).playerNote,
                     });
                   }
                 }}
@@ -3262,6 +4392,25 @@ function PlayersTab({ adventureId }: { adventureId: string }) {
                       day: "numeric",
                     })}
                   </span>
+                  {reactionCount > 0 && (
+                    <span
+                      style={{
+                        background: "#c9a84c",
+                        color: "#1a1a2e",
+                        borderRadius: "50%",
+                        width: "20px",
+                        height: "20px",
+                        display: "inline-flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        fontSize: "11px",
+                        fontWeight: "bold",
+                      }}
+                      title={`${reactionCount} new reaction${reactionCount > 1 ? "s" : ""}`}
+                    >
+                      {reactionCount}
+                    </span>
+                  )}
                 </div>
               </div>
             );
@@ -3276,6 +4425,9 @@ function PlayersTab({ adventureId }: { adventureId: string }) {
           username={sheetModalPlayer.username}
           adventureId={adventureId}
           toUserId={sheetModalPlayer.userId}
+          adventurePlayerId={sheetModalPlayer.adventurePlayerId}
+          adventureItems={adventureItems}
+          playerNote={sheetModalPlayer.playerNote}
           onClose={() => setSheetModalPlayer(null)}
         />
       )}
@@ -3327,8 +4479,6 @@ function SessionNotesTab({ adventureId }: { adventureId: string }) {
 
   const typedNotes = sessionNotes as unknown as SessionNoteItem[];
   const selectedNote: SessionNoteItem | null = typedNotes[selectedNoteIndex] ?? null;
-  const isAuthor = !!(selectedNote && user && selectedNote.userId === user.userId);
-
   const handleCreate = () => {
     const trimmed = newTitle.trim();
     if (!trimmed) return;
@@ -3389,7 +4539,7 @@ function SessionNotesTab({ adventureId }: { adventureId: string }) {
             fontFamily: SERIF,
           }}
         >
-          Session Notes
+          My Session Notes
         </p>
 
         {/* Add Session Note */}
@@ -3513,7 +4663,6 @@ function SessionNotesTab({ adventureId }: { adventureId: string }) {
                   marginTop: "2px",
                 }}
               >
-                {note.user.username} &mdash;{" "}
                 {new Date(note.createdAt).toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
@@ -3657,7 +4806,6 @@ function SessionNotesTab({ adventureId }: { adventureId: string }) {
                         fontFamily: SERIF,
                       }}
                     >
-                      By {selectedNote.user.username} &mdash;{" "}
                       {new Date(selectedNote.createdAt).toLocaleDateString("en-US", {
                         year: "numeric",
                         month: "short",
@@ -3667,7 +4815,6 @@ function SessionNotesTab({ adventureId }: { adventureId: string }) {
                       })}
                     </p>
                   </div>
-                  {isAuthor && (
                     <button
                       onClick={handleStartEdit}
                       style={{
@@ -3683,7 +4830,6 @@ function SessionNotesTab({ adventureId }: { adventureId: string }) {
                     >
                       Edit
                     </button>
-                  )}
                 </div>
                 <p
                   style={{
@@ -3960,23 +5106,1190 @@ function MyCharacterTab({ adventure }: { adventure: { id: string; players: Array
 }
 
 // ---------------------------------------------------------------------------
-// Inventory Tab (placeholder)
+// Shared: Inventory Item Description (used by both player & DM views)
 // ---------------------------------------------------------------------------
 
-function InventoryTab() {
+function InventoryItemDescription({
+  itemData,
+  customDescription,
+}: {
+  itemData: Item | undefined;
+  customDescription: string | null | undefined;
+}) {
+  // Parse attached item from customDescription
+  let attachedItemData: Item | undefined;
+  let cleanCustomDescription = customDescription;
+
+  if (customDescription?.startsWith("[ATTACHED:")) {
+    const endBracket = customDescription.indexOf("]");
+    if (endBracket !== -1) {
+      const ref = customDescription.slice(10, endBracket);
+      const pipeIdx = ref.lastIndexOf("|");
+      if (pipeIdx !== -1) {
+        const attachedName = ref.slice(0, pipeIdx);
+        const attachedSource = ref.slice(pipeIdx + 1);
+        attachedItemData = ITEMS.find(
+          (it) => it.name === attachedName && it.source === attachedSource,
+        );
+      }
+      cleanCustomDescription = customDescription.slice(endBracket + 1).trim() || null;
+    }
+  }
+
+  const displayItemData = itemData ?? attachedItemData;
+
+  if (!displayItemData && !cleanCustomDescription) {
+    return (
+      <p
+        style={{
+          color: TEXT_DIM,
+          fontSize: "13px",
+          fontFamily: SERIF,
+          fontStyle: "italic",
+        }}
+      >
+        No description available.
+      </p>
+    );
+  }
+
+  return (
+    <>
+      {attachedItemData && !itemData && (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "10px",
+            fontFamily: SERIF,
+            letterSpacing: "1px",
+            textTransform: "uppercase",
+            marginBottom: "6px",
+          }}
+        >
+          Based on: {attachedItemData.name}
+          {" "}<SourceBadge source={attachedItemData.source} />
+        </p>
+      )}
+      {displayItemData && (
+        <>
+          {/* Type, rarity, source */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              marginBottom: "8px",
+              flexWrap: "wrap",
+            }}
+          >
+            {displayItemData.type && (
+              <span
+                style={{
+                  color: GOLD_MUTED,
+                  fontSize: "13px",
+                  fontFamily: SERIF,
+                  fontStyle: "italic",
+                }}
+              >
+                {displayItemData.type}
+              </span>
+            )}
+            <RarityBadge rarity={displayItemData.rarity} />
+            <SourceBadge source={displayItemData.source} />
+          </div>
+
+          {/* Weight, value, attunement */}
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "4px",
+              marginBottom: "12px",
+              fontSize: "13px",
+              fontFamily: SERIF,
+            }}
+          >
+            {displayItemData.weight != null && (
+              <div>
+                <span style={{ color: GOLD, fontWeight: "bold" }}>Weight </span>
+                <span style={{ color: GOLD_BRIGHT }}>{displayItemData.weight} lb.</span>
+              </div>
+            )}
+            {displayItemData.value != null && (
+              <div>
+                <span style={{ color: GOLD, fontWeight: "bold" }}>Value </span>
+                <span style={{ color: GOLD_BRIGHT }}>{displayItemData.value} gp</span>
+              </div>
+            )}
+            {displayItemData.reqAttune && (
+              <div>
+                <span style={{ color: GOLD, fontWeight: "bold" }}>Attunement </span>
+                <span style={{ color: GOLD_BRIGHT }}>{displayItemData.reqAttune}</span>
+              </div>
+            )}
+          </div>
+
+          {/* Weapon stats */}
+          {displayItemData.weaponCategory && (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "4px",
+                marginBottom: "12px",
+                fontSize: "13px",
+                fontFamily: SERIF,
+              }}
+            >
+              <div>
+                <span style={{ color: GOLD, fontWeight: "bold" }}>Category </span>
+                <span style={{ color: GOLD_BRIGHT }}>{displayItemData.weaponCategory}</span>
+              </div>
+              {displayItemData.dmg1 && (
+                <div>
+                  <span style={{ color: GOLD, fontWeight: "bold" }}>Damage </span>
+                  <span style={{ color: GOLD_BRIGHT }}>
+                    {displayItemData.dmg1}
+                    {displayItemData.dmgType ? ` ${displayItemData.dmgType}` : ""}
+                  </span>
+                </div>
+              )}
+              {displayItemData.range && (
+                <div>
+                  <span style={{ color: GOLD, fontWeight: "bold" }}>Range </span>
+                  <span style={{ color: GOLD_BRIGHT }}>{displayItemData.range}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* AC for armor/shields */}
+          {(displayItemData.ac != null || displayItemData.bonusAc) && (
+            <div
+              style={{
+                marginBottom: "12px",
+                fontSize: "13px",
+                fontFamily: SERIF,
+              }}
+            >
+              {displayItemData.ac != null && (
+                <div>
+                  <span style={{ color: GOLD, fontWeight: "bold" }}>AC </span>
+                  <span style={{ color: GOLD_BRIGHT }}>{displayItemData.ac}</span>
+                </div>
+              )}
+              {displayItemData.bonusAc && (
+                <div>
+                  <span style={{ color: GOLD, fontWeight: "bold" }}>Bonus AC </span>
+                  <span style={{ color: GOLD_BRIGHT }}>{displayItemData.bonusAc}</span>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Description */}
+          {displayItemData.description && (
+            <div
+              style={{
+                borderTop: "1px solid rgba(201,168,76,0.2)",
+                paddingTop: "8px",
+              }}
+            >
+              <p
+                style={{
+                  color: GOLD_BRIGHT,
+                  fontSize: "13px",
+                  fontFamily: SERIF,
+                  lineHeight: "1.6",
+                }}
+                dangerouslySetInnerHTML={{
+                  __html: parseTaggedText(displayItemData.description),
+                }}
+              />
+            </div>
+          )}
+        </>
+      )}
+
+      {/* Custom description (DM-added) */}
+      {cleanCustomDescription && (
+        <div
+          style={{
+            background: "rgba(201,168,76,0.08)",
+            border: "1px solid rgba(201,168,76,0.25)",
+            borderLeft: "3px solid #c9a84c",
+            borderRadius: "4px",
+            padding: "12px 16px",
+            marginTop: displayItemData ? "12px" : "0",
+          }}
+        >
+          <p
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "10px",
+              fontFamily: SERIF,
+              letterSpacing: "1px",
+              textTransform: "uppercase",
+              marginBottom: "6px",
+            }}
+          >
+            DM Note
+          </p>
+          <p
+            style={{
+              color: GOLD_BRIGHT,
+              fontSize: "13px",
+              fontFamily: SERIF,
+              lineHeight: "1.6",
+              whiteSpace: "pre-wrap",
+              margin: 0,
+            }}
+          >
+            {cleanCustomDescription}
+          </p>
+        </div>
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Starting Items Modal (shared between player & DM views)
+// ---------------------------------------------------------------------------
+
+function StartingItemsModal({
+  open,
+  onClose,
+  characterClass,
+  classSource,
+  background,
+  adventurePlayerId,
+  adventureId,
+}: {
+  open: boolean;
+  onClose: () => void;
+  characterClass: string;
+  classSource: string;
+  background: string;
+  adventurePlayerId: string;
+  adventureId: string;
+}) {
+  const utils = api.useUtils();
+  const [selectedPresetIdx, setSelectedPresetIdx] = useState(0);
+
+  const addStartingItems = api.adventure.addStartingItems.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate({
+        adventureId,
+        adventurePlayerId,
+      });
+      onClose();
+    },
+  });
+
+  if (!open) return null;
+
+  const classEquip = getClassStartingEquipment(characterClass, classSource);
+  const bgEquip = getBackgroundStartingEquipment(background);
+
+  const classPresets: StartingEquipmentPreset[] = classEquip?.presets ?? [];
+  const selectedPreset = classPresets[selectedPresetIdx] ?? null;
+  const bgItems: StartingItem[] = bgEquip?.items ?? [];
+
+  const handleConfirm = () => {
+    const items: Array<{
+      name: string;
+      source: string;
+      quantity?: number;
+      displayName?: string;
+    }> = [];
+
+    if (selectedPreset) {
+      for (const si of selectedPreset.items) {
+        items.push({
+          name: si.name,
+          source: si.source,
+          quantity: si.quantity,
+          displayName: si.displayName,
+        });
+      }
+    }
+
+    for (const bi of bgItems) {
+      items.push({
+        name: bi.name,
+        source: bi.source,
+        quantity: bi.quantity,
+        displayName: bi.displayName,
+      });
+    }
+
+    if (items.length === 0) return;
+
+    addStartingItems.mutate({
+      adventurePlayerId,
+      items,
+    });
+  };
+
   return (
     <div
       style={{
-        background: "rgba(0,0,0,0.4)",
-        border: "1px solid rgba(201,168,76,0.2)",
-        borderRadius: "12px",
-        padding: "60px 40px",
-        textAlign: "center",
+        position: "fixed",
+        inset: 0,
+        zIndex: 1001,
+        background: "rgba(0,0,0,0.7)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
       }}
+      onClick={onClose}
     >
-      <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF }}>
-        Inventory coming soon...
+      <div
+        style={{
+          background: "rgba(15,8,3,0.95)",
+          border: "2px solid #c9a84c",
+          borderRadius: "12px",
+          padding: "24px",
+          maxWidth: "600px",
+          width: "90%",
+          maxHeight: "80vh",
+          display: "flex",
+          flexDirection: "column",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: "16px",
+          }}
+        >
+          <h2
+            style={{
+              color: GOLD,
+              fontSize: "18px",
+              fontWeight: "bold",
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              fontFamily: SERIF,
+            }}
+          >
+            Starting Equipment
+          </h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              color: GOLD_MUTED,
+              fontSize: "20px",
+              cursor: "pointer",
+              padding: "0 4px",
+            }}
+          >
+            x
+          </button>
+        </div>
+
+        <div style={{ overflowY: "auto", flex: 1, minHeight: 0 }}>
+          {/* Class equipment presets */}
+          {classPresets.length > 0 && (
+            <div style={{ marginBottom: "20px" }}>
+              <p
+                style={{
+                  color: GOLD,
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  marginBottom: "10px",
+                  fontFamily: SERIF,
+                }}
+              >
+                {characterClass} Equipment
+              </p>
+
+              {/* Preset selection pills */}
+              <div
+                style={{
+                  display: "flex",
+                  gap: "8px",
+                  marginBottom: "12px",
+                  flexWrap: "wrap",
+                }}
+              >
+                {classPresets.map((preset, idx) => {
+                  const isSelected = idx === selectedPresetIdx;
+                  return (
+                    <button
+                      key={idx}
+                      onClick={() => setSelectedPresetIdx(idx)}
+                      style={{
+                        background: isSelected
+                          ? "linear-gradient(135deg, #8b6914, #c9a84c)"
+                          : "rgba(201,168,76,0.1)",
+                        color: isSelected ? "#1a1a2e" : GOLD_BRIGHT,
+                        border: isSelected
+                          ? "none"
+                          : "1px solid rgba(201,168,76,0.3)",
+                        borderRadius: "20px",
+                        padding: "6px 16px",
+                        fontSize: "12px",
+                        fontFamily: SERIF,
+                        fontWeight: isSelected ? "bold" : "normal",
+                        cursor: "pointer",
+                        letterSpacing: "0.5px",
+                      }}
+                    >
+                      {preset.label}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Selected preset items */}
+              {selectedPreset && (
+                <div
+                  style={{
+                    background: "rgba(0,0,0,0.3)",
+                    border: "1px solid rgba(201,168,76,0.15)",
+                    borderRadius: "8px",
+                    padding: "12px 16px",
+                  }}
+                >
+                  {selectedPreset.items.map((item, idx) => (
+                    <div
+                      key={idx}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "8px",
+                        padding: "4px 0",
+                        borderBottom:
+                          idx < selectedPreset.items.length - 1
+                            ? "1px solid rgba(201,168,76,0.1)"
+                            : "none",
+                      }}
+                    >
+                      <span
+                        style={{
+                          color: GOLD_BRIGHT,
+                          fontSize: "13px",
+                          fontFamily: SERIF,
+                          flex: 1,
+                        }}
+                      >
+                        {item.displayName ?? item.name}
+                        {item.quantity > 1 ? ` (x${item.quantity})` : ""}
+                      </span>
+                      {item.source && <SourceBadge source={item.source} />}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {classEquip?.goldAlternative && (
+                <p
+                  style={{
+                    color: GOLD_MUTED,
+                    fontSize: "12px",
+                    fontFamily: SERIF,
+                    fontStyle: "italic",
+                    marginTop: "8px",
+                  }}
+                >
+                  Gold alternative: {classEquip.goldAlternative}
+                </p>
+              )}
+            </div>
+          )}
+
+          {/* Background equipment */}
+          {bgItems.length > 0 && (
+            <div style={{ marginBottom: "20px" }}>
+              <p
+                style={{
+                  color: GOLD,
+                  fontSize: "12px",
+                  fontWeight: "bold",
+                  letterSpacing: "1.5px",
+                  textTransform: "uppercase",
+                  marginBottom: "10px",
+                  fontFamily: SERIF,
+                }}
+              >
+                {background} Background Equipment
+              </p>
+              <div
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(201,168,76,0.15)",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                }}
+              >
+                {bgItems.map((item, idx) => (
+                  <div
+                    key={idx}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "4px 0",
+                      borderBottom:
+                        idx < bgItems.length - 1
+                          ? "1px solid rgba(201,168,76,0.1)"
+                          : "none",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: GOLD_BRIGHT,
+                        fontSize: "13px",
+                        fontFamily: SERIF,
+                        flex: 1,
+                      }}
+                    >
+                      {item.displayName ?? item.name}
+                      {item.quantity > 1 ? ` (x${item.quantity})` : ""}
+                    </span>
+                    {item.source && <SourceBadge source={item.source} />}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {classPresets.length === 0 && bgItems.length === 0 && (
+            <p
+              style={{
+                color: GOLD_MUTED,
+                fontSize: "13px",
+                fontFamily: SERIF,
+                textAlign: "center",
+                padding: "20px",
+              }}
+            >
+              No starting equipment data found for this class/background combination.
+            </p>
+          )}
+        </div>
+
+        {/* Confirm button */}
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "flex-end",
+            gap: "8px",
+            marginTop: "16px",
+            paddingTop: "16px",
+            borderTop: "1px solid rgba(201,168,76,0.2)",
+          }}
+        >
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "1px solid rgba(201,168,76,0.3)",
+              color: GOLD_MUTED,
+              borderRadius: "6px",
+              padding: "8px 20px",
+              fontSize: "12px",
+              fontFamily: SERIF,
+              cursor: "pointer",
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirm}
+            disabled={
+              addStartingItems.isPending ||
+              (classPresets.length === 0 && bgItems.length === 0)
+            }
+            style={{
+              background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+              color: "#1a1a2e",
+              border: "none",
+              borderRadius: "6px",
+              padding: "8px 20px",
+              fontSize: "12px",
+              fontFamily: SERIF,
+              fontWeight: "bold",
+              cursor:
+                addStartingItems.isPending ||
+                (classPresets.length === 0 && bgItems.length === 0)
+                  ? "default"
+                  : "pointer",
+              opacity:
+                addStartingItems.isPending ||
+                (classPresets.length === 0 && bgItems.length === 0)
+                  ? 0.6
+                  : 1,
+            }}
+          >
+            {addStartingItems.isPending ? "Adding..." : "Confirm Starting Items"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Inventory Tab (Player View)
+// ---------------------------------------------------------------------------
+
+function InventoryTab({
+  adventure,
+}: {
+  adventure: {
+    id: string;
+    players: Array<{
+      id: string;
+      userId: string;
+      status: string;
+      character: Record<string, unknown>;
+    }>;
+  };
+}) {
+  const { user } = useAuth();
+  const [searchText, setSearchText] = useState("");
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [showStartingModal, setShowStartingModal] = useState(false);
+
+  const myPlayerRecord = adventure.players.find(
+    (p) => p.userId === user?.userId && p.status === "ACCEPTED",
+  );
+  const myCharacter = myPlayerRecord?.character ?? null;
+  const adventurePlayerId = myPlayerRecord?.id ?? "";
+
+  const { data: inventoryItems = [], isLoading } =
+    api.adventure.getInventory.useQuery(
+      { adventureId: adventure.id, adventurePlayerId },
+      { enabled: !!adventurePlayerId },
+    );
+
+  type InventoryItem = {
+    id: string;
+    adventurePlayerId: string;
+    itemName: string;
+    itemSource: string;
+    quantity: number;
+    isStartingItem: boolean;
+    customDescription: string | null;
+    addedByUserId: string;
+    createdAt: string | Date;
+    addedByUser: { id: string; username: string };
+  };
+
+  const typedItems = inventoryItems as unknown as InventoryItem[];
+
+  const hasStartingItems = typedItems.some((item) => item.isStartingItem);
+
+  const filteredItems = useMemo(() => {
+    if (!searchText.trim()) return typedItems;
+    const lower = searchText.toLowerCase();
+    return typedItems.filter((item) =>
+      item.itemName.toLowerCase().includes(lower),
+    );
+  }, [typedItems, searchText]);
+
+  if (!myPlayerRecord || !myCharacter) {
+    return (
+      <div
+        style={{
+          background: "rgba(0,0,0,0.4)",
+          border: "1px solid rgba(201,168,76,0.2)",
+          borderRadius: "12px",
+          padding: "60px 40px",
+          textAlign: "center",
+        }}
+      >
+        <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF }}>
+          No character found for this adventure.
+        </p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return (
+      <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>
+        Loading inventory...
       </p>
+    );
+  }
+
+  const charClass = (myCharacter.characterClass as string) ?? "";
+  const classSource = (myCharacter.rulesSource as string) ?? "PHB";
+  const background = (myCharacter.background as string) ?? "";
+
+  return (
+    <div>
+      {/* Starting items button */}
+      {!hasStartingItems && (
+        <button
+          onClick={() => setShowStartingModal(true)}
+          style={{
+            background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+            color: "#1a1a2e",
+            border: "none",
+            borderRadius: "6px",
+            padding: "10px 24px",
+            fontSize: "14px",
+            fontFamily: "'Georgia', serif",
+            fontWeight: "bold",
+            cursor: "pointer",
+            letterSpacing: "0.5px",
+            marginBottom: "20px",
+          }}
+        >
+          Add Starting Items
+        </button>
+      )}
+
+      {/* Search input */}
+      {typedItems.length > 0 && (
+        <input
+          type="text"
+          placeholder="Search inventory..."
+          value={searchText}
+          onChange={(e) => setSearchText(e.target.value)}
+          style={{
+            background: "rgba(30,15,5,0.9)",
+            border: "1px solid rgba(201,168,76,0.4)",
+            color: GOLD_BRIGHT,
+            fontFamily: "'Georgia', serif",
+            borderRadius: "6px",
+            padding: "10px 14px",
+            width: "100%",
+            fontSize: "14px",
+            boxSizing: "border-box",
+            outline: "none",
+            marginBottom: "16px",
+          }}
+        />
+      )}
+
+      {/* Inventory list */}
+      {typedItems.length === 0 ? (
+        <div
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            border: "1px solid rgba(201,168,76,0.2)",
+            borderRadius: "12px",
+            padding: "60px 40px",
+            textAlign: "center",
+          }}
+        >
+          <p
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "16px",
+              fontFamily: SERIF,
+              fontStyle: "italic",
+              marginBottom: "8px",
+            }}
+          >
+            Your pack is empty, adventurer...
+          </p>
+          <p style={{ color: TEXT_DIM, fontSize: "13px", fontFamily: SERIF }}>
+            Add starting items or wait for your DM to grant you equipment.
+          </p>
+        </div>
+      ) : filteredItems.length === 0 ? (
+        <div
+          style={{
+            background: "rgba(0,0,0,0.4)",
+            border: "1px solid rgba(201,168,76,0.2)",
+            borderRadius: "12px",
+            padding: "40px",
+            textAlign: "center",
+          }}
+        >
+          <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF }}>
+            No items match your search.
+          </p>
+        </div>
+      ) : (
+        <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+          {filteredItems.map((item) => {
+            const isExpanded = expandedId === item.id;
+            const itemData = ITEMS.find(
+              (it) =>
+                it.name.toLowerCase() === item.itemName.toLowerCase() &&
+                it.source.toLowerCase() === item.itemSource.toLowerCase(),
+            ) ?? ITEMS.find(
+              (it) => it.name.toLowerCase() === item.itemName.toLowerCase(),
+            );
+
+            return (
+              <div
+                key={item.id}
+                style={{
+                  background: "rgba(0,0,0,0.4)",
+                  border: "1px solid rgba(201,168,76,0.2)",
+                  borderRadius: "8px",
+                  padding: "12px 16px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: "pointer",
+                  }}
+                  onClick={() =>
+                    setExpandedId(isExpanded ? null : item.id)
+                  }
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "10px",
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <span
+                      style={{
+                        color: GOLD_BRIGHT,
+                        fontSize: "14px",
+                        fontFamily: "'Georgia', serif",
+                      }}
+                    >
+                      {isExpanded ? "\u25BC" : "\u25B6"} {item.itemName}
+                    </span>
+                    {item.quantity > 1 && (
+                      <span
+                        style={{
+                          color: GOLD,
+                          fontSize: "12px",
+                          fontFamily: "'Georgia', serif",
+                          background: "rgba(201,168,76,0.15)",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          fontWeight: "bold",
+                        }}
+                      >
+                        x{item.quantity}
+                      </span>
+                    )}
+                    <SourceBadge source={item.itemSource} />
+                    {itemData && <RarityBadge rarity={itemData.rarity} />}
+                    {item.isStartingItem && (
+                      <span
+                        style={{
+                          color: "#4a8c3f",
+                          fontSize: "10px",
+                          fontFamily: "'Georgia', serif",
+                          background: "rgba(74,140,63,0.15)",
+                          padding: "2px 8px",
+                          borderRadius: "4px",
+                          letterSpacing: "0.5px",
+                          textTransform: "uppercase",
+                        }}
+                      >
+                        Starting
+                      </span>
+                    )}
+                  </div>
+                  <span
+                    style={{
+                      color: GOLD_MUTED,
+                      fontSize: "12px",
+                      fontFamily: SERIF,
+                    }}
+                  >
+                    {isExpanded ? "\u25B2" : "\u25BC"}
+                  </span>
+                </div>
+
+                {isExpanded && (
+                  <div
+                    style={{
+                      background: "rgba(0,0,0,0.3)",
+                      border: "1px solid rgba(201,168,76,0.15)",
+                      borderRadius: "8px",
+                      padding: "16px 20px",
+                      marginTop: "8px",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    <InventoryItemDescription
+                      itemData={itemData}
+                      customDescription={item.customDescription}
+                    />
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Starting Items Modal */}
+      <StartingItemsModal
+        open={showStartingModal}
+        onClose={() => setShowStartingModal(false)}
+        characterClass={charClass}
+        classSource={classSource}
+        background={background}
+        adventurePlayerId={adventurePlayerId}
+        adventureId={adventure.id}
+      />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Player DM Notes tab (read-only view of notes from the DM + reactions)
+// ---------------------------------------------------------------------------
+
+function PlayerDmNotesTab({ adventure }: { adventure: { id: string; players: Array<{ id: string; userId: string; status: string; playerNote?: string; character: { id: string } }> } }) {
+  const { user } = useAuth();
+  const utils = api.useUtils();
+  const [notePage, setNotePage] = useState(0);
+
+  const myPlayerRecord = adventure.players.find(
+    (p) => p.userId === user?.userId && p.status === "ACCEPTED",
+  );
+  const characterId = (myPlayerRecord?.character as { id: string } | undefined)?.id;
+  const adventurePlayerId = myPlayerRecord?.id ?? "";
+  const initialPlayerNote = (myPlayerRecord?.playerNote as string | undefined) ?? "";
+
+  const [playerNote, setPlayerNote] = useState(initialPlayerNote);
+  const [playerNoteSaved, setPlayerNoteSaved] = useState(true);
+
+  const updatePlayerNote = api.adventure.updatePlayerNote.useMutation({
+    onSuccess: () => {
+      setPlayerNoteSaved(true);
+      void utils.adventure.getById.invalidate({ id: adventure.id });
+    },
+  });
+
+  const handleSavePlayerNote = () => {
+    if (!adventurePlayerId) return;
+    updatePlayerNote.mutate({ adventurePlayerId, content: playerNote });
+  };
+
+  const { data: dmNotes = [], isLoading } = api.adventure.getNotes.useQuery(
+    { adventureId: adventure.id, characterId: characterId! },
+    { enabled: !!characterId },
+  );
+
+  const reactToNote = api.adventure.reactToNote.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getNotes.invalidate({ adventureId: adventure.id, characterId: characterId! });
+    },
+  });
+
+  if (!characterId) {
+    return (
+      <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "12px", padding: "60px 40px", textAlign: "center" }}>
+        <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF }}>No character found in this adventure.</p>
+      </div>
+    );
+  }
+
+  if (isLoading) {
+    return <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>Loading DM notes...</p>;
+  }
+
+  const typedNotes = dmNotes as unknown as Array<{
+    id: string;
+    content: string;
+    createdAt: string | Date;
+    reaction: string | null;
+    fromUser: { username: string };
+  }>;
+
+  if (typedNotes.length === 0) {
+    return (
+      <div>
+        {/* Note to DM */}
+        <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "28px 32px", marginBottom: "16px" }}>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "8px", borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
+            <p style={{ color: GOLD, fontSize: "12px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", fontFamily: SERIF, margin: 0 }}>
+              Note to DM
+            </p>
+            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+              {!playerNoteSaved && (
+                <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF, fontStyle: "italic" }}>
+                  Unsaved changes
+                </span>
+              )}
+              <button
+                onClick={handleSavePlayerNote}
+                disabled={updatePlayerNote.isPending || playerNoteSaved}
+                style={{
+                  background: playerNoteSaved ? "rgba(201,168,76,0.1)" : "linear-gradient(135deg, #8b6914, #c9a84c)",
+                  color: playerNoteSaved ? GOLD_MUTED : "#1a1a2e",
+                  border: "none",
+                  borderRadius: "6px",
+                  padding: "6px 16px",
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  fontWeight: "bold",
+                  cursor: playerNoteSaved ? "default" : "pointer",
+                  opacity: playerNoteSaved ? 0.6 : 1,
+                }}
+              >
+                {updatePlayerNote.isPending ? "Saving..." : "Save"}
+              </button>
+            </div>
+          </div>
+          <textarea
+            value={playerNote}
+            onChange={(e) => { setPlayerNote(e.target.value); setPlayerNoteSaved(false); }}
+            placeholder="Write a note for your DM..."
+            style={{
+              width: "100%",
+              minHeight: "100px",
+              background: "rgba(30,15,5,0.9)",
+              border: "1px solid rgba(201,168,76,0.4)",
+              color: GOLD_BRIGHT,
+              fontFamily: SERIF,
+              borderRadius: "6px",
+              padding: "10px 14px",
+              fontSize: "13px",
+              lineHeight: "1.6",
+              boxSizing: "border-box",
+              outline: "none",
+              resize: "vertical",
+            }}
+          />
+        </div>
+
+        <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "12px", padding: "60px 40px", textAlign: "center" }}>
+          <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF }}>No notes from the DM yet.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const NOTES_PER_PAGE = 5;
+  const pageNotes = typedNotes.slice(notePage * NOTES_PER_PAGE, (notePage + 1) * NOTES_PER_PAGE);
+  const totalPages = Math.ceil(typedNotes.length / NOTES_PER_PAGE);
+
+  const handleReact = (noteId: string, currentReaction: string | null, newReaction: "THUMBS_UP" | "THUMBS_DOWN") => {
+    reactToNote.mutate({
+      noteId,
+      reaction: currentReaction === newReaction ? null : newReaction,
+    });
+  };
+
+  return (
+    <div>
+      {/* Note to DM */}
+      <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "28px 32px", marginBottom: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "16px", paddingBottom: "8px", borderBottom: "1px solid rgba(201,168,76,0.2)" }}>
+          <p style={{ color: GOLD, fontSize: "12px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", fontFamily: SERIF, margin: 0 }}>
+            Note to DM
+          </p>
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            {!playerNoteSaved && (
+              <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF, fontStyle: "italic" }}>
+                Unsaved changes
+              </span>
+            )}
+            <button
+              onClick={handleSavePlayerNote}
+              disabled={updatePlayerNote.isPending || playerNoteSaved}
+              style={{
+                background: playerNoteSaved ? "rgba(201,168,76,0.1)" : "linear-gradient(135deg, #8b6914, #c9a84c)",
+                color: playerNoteSaved ? GOLD_MUTED : "#1a1a2e",
+                border: "none",
+                borderRadius: "6px",
+                padding: "6px 16px",
+                fontSize: "12px",
+                fontFamily: SERIF,
+                fontWeight: "bold",
+                cursor: playerNoteSaved ? "default" : "pointer",
+                opacity: playerNoteSaved ? 0.6 : 1,
+              }}
+            >
+              {updatePlayerNote.isPending ? "Saving..." : "Save"}
+            </button>
+          </div>
+        </div>
+        <textarea
+          value={playerNote}
+          onChange={(e) => { setPlayerNote(e.target.value); setPlayerNoteSaved(false); }}
+          placeholder="Write a note for your DM..."
+          style={{
+            width: "100%",
+            minHeight: "100px",
+            background: "rgba(30,15,5,0.9)",
+            border: "1px solid rgba(201,168,76,0.4)",
+            color: GOLD_BRIGHT,
+            fontFamily: SERIF,
+            borderRadius: "6px",
+            padding: "10px 14px",
+            fontSize: "13px",
+            lineHeight: "1.6",
+            boxSizing: "border-box",
+            outline: "none",
+            resize: "vertical",
+          }}
+        />
+      </div>
+
+    <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "8px", padding: "28px 32px" }}>
+      <p style={{ color: GOLD, fontSize: "12px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "16px", paddingBottom: "8px", borderBottom: "1px solid rgba(201,168,76,0.2)", fontFamily: SERIF }}>
+        Notes from the Dungeon Master
+      </p>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: "10px", marginBottom: totalPages > 1 ? "16px" : "0" }}>
+        {pageNotes.map((note) => (
+          <div key={note.id} style={{ background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.15)", borderRadius: "8px", padding: "12px 16px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "6px" }}>
+              <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF }}>
+                {new Date(note.createdAt).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}
+              </span>
+              <div style={{ display: "flex", gap: "8px" }}>
+                <button
+                  onClick={() => handleReact(note.id, note.reaction, "THUMBS_UP")}
+                  disabled={reactToNote.isPending}
+                  style={{ background: "none", border: "none", fontSize: "16px", cursor: reactToNote.isPending ? "default" : "pointer", opacity: note.reaction === "THUMBS_UP" ? 1 : 0.4, transition: "opacity 0.15s" }}
+                  title="Thumbs Up"
+                >
+                  👍
+                </button>
+                <button
+                  onClick={() => handleReact(note.id, note.reaction, "THUMBS_DOWN")}
+                  disabled={reactToNote.isPending}
+                  style={{ background: "none", border: "none", fontSize: "16px", cursor: reactToNote.isPending ? "default" : "pointer", opacity: note.reaction === "THUMBS_DOWN" ? 1 : 0.4, transition: "opacity 0.15s" }}
+                  title="Thumbs Down"
+                >
+                  👎
+                </button>
+              </div>
+            </div>
+            <p style={{ color: GOLD_BRIGHT, fontSize: "13px", fontFamily: SERIF, lineHeight: 1.6, whiteSpace: "pre-wrap", margin: 0 }}>
+              {note.content}
+            </p>
+          </div>
+        ))}
+      </div>
+
+      {totalPages > 1 && (
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: "12px" }}>
+          <button onClick={() => setNotePage((p) => Math.max(0, p - 1))} disabled={notePage === 0} style={{ background: "none", border: "1px solid rgba(201,168,76,0.3)", color: notePage === 0 ? GOLD_MUTED : GOLD, borderRadius: "4px", padding: "4px 12px", fontFamily: SERIF, fontSize: "11px", cursor: notePage === 0 ? "default" : "pointer", opacity: notePage === 0 ? 0.5 : 1 }}>
+            Prev
+          </button>
+          <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: SERIF }}>{notePage + 1} / {totalPages}</span>
+          <button onClick={() => setNotePage((p) => Math.min(totalPages - 1, p + 1))} disabled={notePage >= totalPages - 1} style={{ background: "none", border: "1px solid rgba(201,168,76,0.3)", color: notePage >= totalPages - 1 ? GOLD_MUTED : GOLD, borderRadius: "4px", padding: "4px 12px", fontFamily: SERIF, fontSize: "11px", cursor: notePage >= totalPages - 1 ? "default" : "pointer", opacity: notePage >= totalPages - 1 ? 0.5 : 1 }}>
+            Next
+          </button>
+        </div>
+      )}
+    </div>
     </div>
   );
 }
@@ -4000,6 +6313,24 @@ function AdventureDetailContent() {
 
   const isOwner = !!(adventure && user && adventure.userId === user.userId);
 
+  const { data: unreadReactionCounts = [] } = api.adventure.getUnreadReactionCount.useQuery(
+    undefined,
+    { enabled: isOwner },
+  );
+
+  // Build a lookup map for the current adventure's character-level reaction counts
+  const unreadReactionMap = useMemo(() => {
+    const map: Record<string, number> = {};
+    let total = 0;
+    for (const entry of unreadReactionCounts as unknown as Array<{ adventureId: string; characterId: string; count: number }>) {
+      if (adventure && entry.adventureId === adventure.id) {
+        map[entry.characterId] = entry.count;
+        total += entry.count;
+      }
+    }
+    return { byCharacter: map, total };
+  }, [unreadReactionCounts, adventure]);
+
   // Set default tab once adventure data is available
   const resolvedTab: TabKey = activeTab ?? (isOwner ? "story" : "mycharacter");
 
@@ -4010,7 +6341,7 @@ function AdventureDetailContent() {
       ).length
     : 0;
 
-  // Build tabs dynamically — DM gets Story/Monsters/Items/SessionNotes/Players, Player gets MyCharacter/Inventory/SessionNotes
+  // Build tabs dynamically — DM gets Story/Monsters/Items/SessionNotes/Players, Player gets MyCharacter/Inventory/DmNotes/SessionNotes
   const tabs: Array<{ key: string; label: string }> = isOwner
     ? [...DM_TABS, PLAYERS_TAB]
     : [...PLAYER_TABS];
@@ -4187,6 +6518,25 @@ function AdventureDetailContent() {
                   {pendingPlayerCount}
                 </span>
               )}
+              {tab.key === "players" && unreadReactionMap.total > 0 && (
+                <span
+                  style={{
+                    background: "#c9a84c",
+                    color: "#1a1a2e",
+                    borderRadius: "50%",
+                    width: "20px",
+                    height: "20px",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "11px",
+                    fontWeight: "bold",
+                  }}
+                  title={`${unreadReactionMap.total} new player reaction${unreadReactionMap.total > 1 ? "s" : ""}`}
+                >
+                  {unreadReactionMap.total}
+                </span>
+              )}
             </button>
           );
         })}
@@ -4216,6 +6566,11 @@ function AdventureDetailContent() {
           adventureId={adventure.id}
           adventureSource={adventure.source}
           items={adventure.items}
+          acceptedPlayers={
+            ((adventure as unknown as { players: Array<{ id: string; status: string; user: { id: string; username: string }; character: Record<string, unknown> | null }> }).players ?? [])
+              .filter((p) => p.status === "ACCEPTED")
+              .map((p) => ({ id: p.id, user: p.user, character: p.character }))
+          }
           onViewInStory={(idx) => {
             setStorySectionIndex(idx);
             setActiveTab("story");
@@ -4223,7 +6578,7 @@ function AdventureDetailContent() {
         />
       )}
       {resolvedTab === "players" && isOwner && (
-        <PlayersTab adventureId={adventure.id} />
+        <PlayersTab adventureId={adventure.id} adventureItems={adventure.items} unreadReactionByCharacter={unreadReactionMap.byCharacter} />
       )}
       {resolvedTab === "sessionnotes" && (
         <SessionNotesTab adventureId={adventure.id} />
@@ -4231,8 +6586,23 @@ function AdventureDetailContent() {
       {resolvedTab === "mycharacter" && !isOwner && (
         <MyCharacterTab adventure={adventure as unknown as { id: string; players: Array<{ userId: string; status: string; character: Record<string, unknown> }> }} />
       )}
+      {resolvedTab === "dmnotes" && !isOwner && (
+        <PlayerDmNotesTab adventure={adventure as unknown as { id: string; players: Array<{ id: string; userId: string; status: string; playerNote?: string; character: { id: string } }> }} />
+      )}
       {resolvedTab === "inventory" && !isOwner && (
-        <InventoryTab />
+        <InventoryTab
+          adventure={
+            adventure as unknown as {
+              id: string;
+              players: Array<{
+                id: string;
+                userId: string;
+                status: string;
+                character: Record<string, unknown>;
+              }>;
+            }
+          }
+        />
       )}
     </>
   );

@@ -43,6 +43,7 @@ model User {
   dmNotesSent      DmNote[]          @relation("dmNotesSent")
   dmNotesReceived  DmNote[]          @relation("dmNotesReceived")
   sessionNotes     SessionNote[]
+  inventoryItemsAdded CharacterInventoryItem[] @relation("inventoryItemsAdded")
 
   @@map("users")
 }
@@ -187,8 +188,11 @@ model AdventurePlayer {
   characterId String
   character   Character             @relation(fields: [characterId], references: [id])
   status      AdventurePlayerStatus @default(PENDING)
+  playerNote  String                @default("")  // Player's note to the DM
   joinedAt    DateTime              @default(now())
   resolvedAt  DateTime?
+
+  inventoryItems CharacterInventoryItem[]
 
   @@unique([adventureId, userId])
   @@map("adventure_players")
@@ -205,8 +209,9 @@ model DmNote {
   characterId String
   character   Character @relation(fields: [characterId], references: [id])
   content     String
-  reaction    String?
-  readAt      DateTime?
+  reaction       String?
+  reactionReadAt DateTime?
+  readAt         DateTime?
   createdAt   DateTime  @default(now())
 
   @@map("dm_notes")
@@ -224,4 +229,21 @@ model SessionNote {
   updatedAt   DateTime  @updatedAt
 
   @@map("session_notes")
+}
+
+model CharacterInventoryItem {
+  id                String          @id @default(cuid())
+  adventurePlayerId String
+  adventurePlayer   AdventurePlayer @relation(fields: [adventurePlayerId], references: [id])
+  itemName          String
+  itemSource        String
+  quantity          Int             @default(1)
+  isStartingItem    Boolean         @default(false)
+  customDescription String?
+  addedByUserId     String
+  addedByUser       User            @relation("inventoryItemsAdded", fields: [addedByUserId], references: [id])
+  createdAt         DateTime        @default(now())
+
+  @@unique([adventurePlayerId, itemName, itemSource])
+  @@map("character_inventory_items")
 }
