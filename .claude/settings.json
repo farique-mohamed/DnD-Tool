@@ -11,5 +11,8 @@
       "Bash(pnpm docker:up)",
       "Bash(pnpm type-check:*)"
     ]
+  },
+  "enabledPlugins": {
+    "devops-automator@awesome-claude-code-plugins": true
   }
 }
