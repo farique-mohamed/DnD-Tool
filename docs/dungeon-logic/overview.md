@@ -38,7 +38,9 @@ src/
 │   ├── ProtectedRoute.tsx    # Reusable auth wrapper for any page
 │   ├── NavBar.tsx            # Vertical sidebar navigation (role-aware)
 │   ├── Layout.tsx            # Flex wrapper: NavBar + main content + DiceRoller
-│   └── DiceRoller.tsx        # Floating dice roller popup (fixed bottom-right, all auth pages)
+│   ├── DiceRoller.tsx        # Floating dice roller popup (fixed bottom-right, all auth pages)
+│   └── adventure/
+│       └── EncounterTab.tsx  # Encounter combat tracker tab (initiative, HP, conditions, death saves)
 ├── hooks/
 │   └── useAuth.ts            # Reads JWT from localStorage, exposes user/logout/role
 ├── lib/
@@ -54,7 +56,10 @@ src/
 │       ├── _app.ts           # Root router (aggregates all sub-routers)
 │       ├── auth.ts           # auth.login, auth.register mutations
 │       ├── user.ts           # user.requestDungeonMaster mutation (stub)
-│       └── dice.ts           # dice.roll mutation, dice.history / dice.globalHistory queries
+│       ├── dice.ts           # dice.roll mutation, dice.history / dice.globalHistory queries
+│       └── adventure/
+│           ├── index.ts      # Adventure router aggregating all adventure procedures
+│           └── encounter.ts  # Encounter tRPC procedures (create, get, end, participants, HP, conditions, death saves, initiative)
 ├── styles/
 │   └── globals.css           # Box-sizing reset, Georgia font, full-height body
 └── utils/
@@ -68,7 +73,8 @@ docs/
     ├── ui-patterns.md        # D&D theme, colors, component conventions
     ├── roles.md              # Role system: PLAYER, DUNGEON_MASTER, ADMIN
     ├── dice-roller.md        # Dice roller feature: DB schema, tRPC procedures, UI component
-    └── equipment.md          # Equipment system: slots, weapon properties/masteries, armor proficiency, AC calculation
+    ├── equipment.md          # Equipment system: slots, weapon properties/masteries, armor proficiency, AC calculation
+    └── encounters.md         # Encounter system: combat tracking, initiative, HP, conditions, death saves
 ```
 
 ## Environment Variables

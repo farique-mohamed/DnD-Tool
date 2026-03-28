@@ -11,7 +11,7 @@ src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── auth              — authRouter (auth.login, auth.register)
        └── user              — userRouter (user.requestDungeonMaster)
        └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
-       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.getUnreadReactionCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote, adventure.equipItem, adventure.unequipItem, adventure.getEquipmentStatus)
+       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.getUnreadReactionCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote, adventure.equipItem, adventure.unequipItem, adventure.getEquipmentStatus, adventure.createEncounter, adventure.getEncounter, adventure.endEncounter, adventure.addEncounterPlayer, adventure.addEncounterMonster, adventure.removeParticipant, adventure.nextTurn, adventure.updateParticipantHp, adventure.updateParticipantConditions, adventure.updateDeathSaves, adventure.togglePrivateDeathSaves, adventure.updateInitiative)
        └── (future routers)  — add here and re-export AppRouter type
 
 src/pages/api/trpc/[trpc].ts — Next.js API route that handles all tRPC calls
@@ -74,6 +74,8 @@ After adding a new model, Prisma will automatically provide `ctx.db.newModel` in
 | `DmNote` | `"dm_notes"` | DM-to-player note within an adventure — linked to `Adventure`, sender `User` (via "dmNotesSent"), recipient `User` (via "dmNotesReceived"), and `Character`; stores `content` (text), optional `reaction` (String: "THUMBS_UP"/"THUMBS_DOWN"/null), `readAt` (nullable DateTime for unread tracking), and `reactionReadAt` (nullable DateTime for DM reaction notification tracking — null means the DM has not yet seen the reaction) |
 | `SessionNote` | `"session_notes"` | Shared session note within an adventure — linked to `Adventure` and `User` (author); stores `title`, `content` (default `""`), `createdAt`, `updatedAt`; editable only by the author; visible only to the author |
 | `CharacterInventoryItem` | `"character_inventory_items"` | Item in a character's inventory within an adventure — linked to `AdventurePlayer` and `User` (addedBy, via "inventoryItemsAdded"); stores `itemName`, `itemSource`, `quantity` (default 1), `isStartingItem` (boolean), optional `customDescription` (DM-added description for non-official items); unique constraint on `[adventurePlayerId, itemName, itemSource]` |
+| `Encounter` | `"encounters"` | Active combat encounter for an adventure — linked to `Adventure` (unique, one per adventure); stores `currentTurnIndex` (Int), `round` (Int, default 1), `privateDeathSaves` (Boolean, default false); has `participants` relation to `EncounterParticipant[]` |
+| `EncounterParticipant` | `"encounter_participants"` | Participant in an encounter — linked to `Encounter` (cascade delete); stores `type` (enum: PLAYER/MONSTER), `initiativeRoll` (Int), `sortOrder` (Int, tiebreaker), optional `adventurePlayerId` FK → `AdventurePlayer` (for players), optional `name`/`monsterSource`/`maxHp`/`currentHp`/`armorClass` (for monsters), `tempHp` (Int, default 0), `conditions` (JSON string[], default "[]"), `deathSaveSuccesses`/`deathSaveFailures` (Int, 0–3), `isActive` (Boolean, default true) |
 
 See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the full `Character` schema.
 
@@ -133,6 +135,18 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.equipItem`          | mutation | Equip an inventory item to a character slot (mainHand, offHand, armor, shield); validates item type and slot compatibility; updates character's equippedItems JSON |
 | `adventure.unequipItem`        | mutation | Remove item from a character equipment slot; updates character's equippedItems JSON |
 | `adventure.getEquipmentStatus` | query    | Get current equipment status including computed AC with breakdown, armor proficiency penalties, equipment-derived actions, and weapon mastery info |
+| `adventure.createEncounter`    | mutation | Create a new encounter for an adventure; DM-only; rejects if an encounter already exists |
+| `adventure.getEncounter`       | query    | Fetch the active encounter with participants sorted by initiative desc; hides monster HP from players; hides death saves when privateDeathSaves is enabled |
+| `adventure.endEncounter`       | mutation | End and delete the encounter; syncs player conditions back to character sheets; DM-only |
+| `adventure.addEncounterPlayer` | mutation | Add an accepted player to the encounter with initiative roll; copies character HP, tempHp, AC, and conditions; DM-only |
+| `adventure.addEncounterMonster`| mutation | Add a monster to the encounter with name, source, maxHp, AC, and initiative; DM-only |
+| `adventure.removeParticipant`  | mutation | Remove a participant from the encounter; syncs conditions back to character sheet for players; DM-only |
+| `adventure.nextTurn`           | mutation | Advance to the next active participant; increments round on wrap; DM always, players only on their turn |
+| `adventure.updateParticipantHp`| mutation | Apply damage (absorbed by tempHp first), healing (capped at maxHp), or set tempHp; syncs to character sheet for players; DM or own character |
+| `adventure.updateParticipantConditions` | mutation | Set conditions for a participant; syncs to character sheet for players; DM or own character |
+| `adventure.updateDeathSaves`   | mutation | Set death save successes (0–3) and failures (0–3); DM or owning player |
+| `adventure.togglePrivateDeathSaves` | mutation | Toggle privateDeathSaves flag on the encounter; DM-only |
+| `adventure.updateInitiative`   | mutation | Change a participant's initiative roll; DM-only |
 
 ---
 

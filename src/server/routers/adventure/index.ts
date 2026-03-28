@@ -29,6 +29,20 @@ import {
   updateInventoryItem,
 } from "./inventory";
 import { equipItem, unequipItem, getEquipmentStatus } from "./equipment";
+import {
+  createEncounter,
+  getEncounter,
+  endEncounter,
+  addPlayer as addEncounterPlayer,
+  addMonster as addEncounterMonster,
+  removeParticipant,
+  nextTurn,
+  updateParticipantHp,
+  updateParticipantConditions,
+  updateDeathSaves,
+  togglePrivateDeathSaves,
+  updateInitiative,
+} from "./encounter";
 
 export const adventureRouter = createTRPCRouter({
   // Core CRUD
@@ -74,4 +88,18 @@ export const adventureRouter = createTRPCRouter({
   equipItem,
   unequipItem,
   getEquipmentStatus,
+
+  // Encounter
+  createEncounter,
+  getEncounter,
+  endEncounter,
+  addEncounterPlayer,
+  addEncounterMonster,
+  removeParticipant,
+  nextTurn,
+  updateParticipantHp,
+  updateParticipantConditions,
+  updateDeathSaves,
+  togglePrivateDeathSaves,
+  updateInitiative,
 });

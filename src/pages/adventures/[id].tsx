@@ -19,6 +19,7 @@ import {
   MyCharacterTab,
   InventoryTab,
   PlayerDmNotesTab,
+  EncounterTab,
 } from "@/components/adventure";
 
 // ---------------------------------------------------------------------------
@@ -306,6 +307,18 @@ function AdventureDetailContent() {
       )}
       {resolvedTab === "players" && isOwner && (
         <PlayersTab adventureId={adventure.id} adventureItems={adventure.items} unreadReactionByCharacter={unreadReactionMap.byCharacter} />
+      )}
+      {resolvedTab === "encounter" && (
+        <EncounterTab
+          adventureId={adventure.id}
+          isOwner={isOwner}
+          acceptedPlayers={
+            ((adventure as unknown as { players: Array<{ id: string; status: string; user: { id: string; username: string }; character: { id: string; name: string; characterClass: string; level: number; maxHp: number; currentHp: number; tempHp: number; armorClass: number } | null }> }).players ?? [])
+              .filter((p) => p.status === "ACCEPTED")
+              .map((p) => ({ id: p.id, user: p.user, character: p.character }))
+          }
+          adventureMonsters={adventure.monsters}
+        />
       )}
       {resolvedTab === "sessionnotes" && (
         <SessionNotesTab adventureId={adventure.id} />

@@ -23,11 +23,13 @@ export const DM_TABS = [
   { key: "story", label: "Story" },
   { key: "monsters", label: "Monsters" },
   { key: "items", label: "Items" },
+  { key: "encounter", label: "Encounter" },
   { key: "sessionnotes", label: "Session Notes" },
 ] as const;
 
 export const PLAYER_TABS = [
   { key: "mycharacter", label: "My Character" },
+  { key: "encounter", label: "Encounter" },
   { key: "inventory", label: "Inventory" },
   { key: "dmnotes", label: "DM Notes" },
   { key: "sessionnotes", label: "My Session Notes" },
@@ -35,7 +37,7 @@ export const PLAYER_TABS = [
 
 export const PLAYERS_TAB = { key: "players" as const, label: "Players" };
 
-export type TabKey = "story" | "monsters" | "items" | "players" | "mycharacter" | "inventory" | "dmnotes" | "sessionnotes";
+export type TabKey = "story" | "monsters" | "items" | "players" | "encounter" | "mycharacter" | "inventory" | "dmnotes" | "sessionnotes";
 
 // ---------------------------------------------------------------------------
 // Character constants

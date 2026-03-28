@@ -6,6 +6,7 @@ export { SessionNotesTab } from "./SessionNotesTab";
 export { MyCharacterTab } from "./MyCharacterTab";
 export { InventoryTab } from "./InventoryTab";
 export { PlayerDmNotesTab } from "./PlayerDmNotesTab";
+export { EncounterTab } from "./EncounterTab";
 export {
   DM_TABS,
   PLAYER_TABS,
