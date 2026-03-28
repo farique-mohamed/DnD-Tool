@@ -14,7 +14,8 @@
     "db:studio": "prisma studio",
     "docker:up": "docker compose up -d",
     "docker:down": "docker compose down",
-    "dev:setup": "pnpm docker:down && pnpm docker:up && pnpm db:migrate && pnpm dev"
+    "dev:setup": "pnpm docker:down && pnpm docker:up && pnpm db:migrate && pnpm dev",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@prisma/client": "^5.10.2",
