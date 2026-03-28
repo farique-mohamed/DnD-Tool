@@ -28,6 +28,11 @@ enum AdventurePlayerStatus {
   REJECTED
 }
 
+enum EncounterParticipantType {
+  PLAYER
+  MONSTER
+}
+
 model User {
   id         String      @id @default(cuid())
   username   String      @unique
@@ -148,6 +153,7 @@ model Adventure {
   monsters   AdventureMonster[]
   items      AdventureItem[]
   players    AdventurePlayer[]
+  encounter    Encounter?
   dmNotes      DmNote[]
   sessionNotes SessionNote[]
   createdAt    DateTime @default(now())
@@ -194,6 +200,7 @@ model AdventurePlayer {
   resolvedAt  DateTime?
 
   inventoryItems CharacterInventoryItem[]
+  encounterParticipants EncounterParticipant[]
 
   @@unique([adventureId, userId])
   @@map("adventure_players")
@@ -247,4 +254,49 @@ model CharacterInventoryItem {
 
   @@unique([adventurePlayerId, itemName, itemSource])
   @@map("character_inventory_items")
+}
+
+model Encounter {
+  id                String   @id @default(cuid())
+  adventureId       String   @unique
+  adventure         Adventure @relation(fields: [adventureId], references: [id])
+  currentTurnIndex  Int      @default(0)
+  round             Int      @default(1)
+  privateDeathSaves Boolean  @default(false)
+  participants      EncounterParticipant[]
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@map("encounters")
+}
+
+model EncounterParticipant {
+  id                String                    @id @default(cuid())
+  encounterId       String
+  encounter         Encounter                 @relation(fields: [encounterId], references: [id], onDelete: Cascade)
+  type              EncounterParticipantType
+  initiativeRoll    Int
+  sortOrder         Int                       @default(0)
+
+  // Player fields (only set for PLAYER type)
+  adventurePlayerId String?
+  adventurePlayer   AdventurePlayer?          @relation(fields: [adventurePlayerId], references: [id])
+
+  // Monster fields (only set for MONSTER type)
+  name              String?
+  monsterSource     String?
+  maxHp             Int?
+  currentHp         Int?
+  tempHp            Int                       @default(0)
+  armorClass        Int?
+
+  // Shared combat fields
+  conditions        String                    @default("[]")  // JSON: string[] of active condition names
+  deathSaveSuccesses Int                      @default(0)
+  deathSaveFailures  Int                      @default(0)
+  isActive          Boolean                   @default(true)
+
+  createdAt         DateTime                  @default(now())
+
+  @@map("encounter_participants")
 }
