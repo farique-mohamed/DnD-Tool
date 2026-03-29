@@ -449,6 +449,22 @@ export function ItemsTab({
                             </span>
                           </div>
                         )}
+                        {itemData.property && itemData.property.length > 0 && (
+                          <div>
+                            <span style={{ color: GOLD, fontWeight: "bold" }}>Properties </span>
+                            <span style={{ color: GOLD_BRIGHT }}>
+                              {itemData.property.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(", ")}
+                            </span>
+                          </div>
+                        )}
+                        {itemData.mastery && itemData.mastery.length > 0 && (
+                          <div>
+                            <span style={{ color: GOLD, fontWeight: "bold" }}>Mastery </span>
+                            <span style={{ color: GOLD_BRIGHT }}>
+                              {itemData.mastery.join(", ")}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     )}
 

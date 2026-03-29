@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
 import { ITEMS, type Item } from "@/lib/itemsData";
-import { parseTaggedText } from "@/lib/dndTagParser";
+import { parseTaggedTextToHtml } from "@/lib/dndTagParser";
+import { WEAPON_PROPERTY_DESCRIPTIONS, WEAPON_MASTERY_DESCRIPTIONS } from "@/lib/equipmentData";
+import { EquipButton } from "@/components/adventure/EquipButton";
 import {
   getClassStartingEquipment,
   getBackgroundStartingEquipment,
@@ -199,6 +201,60 @@ function InventoryItemDescription({
                   <span style={{ color: "#e8d5a3" }}>{displayItemData.range}</span>
                 </div>
               )}
+              {displayItemData.property && displayItemData.property.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                  {displayItemData.property.map((prop) => {
+                    const displayName = prop
+                      .split("-")
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join("-");
+                    return (
+                      <div
+                        key={prop}
+                        style={{
+                          background: "rgba(0,0,0,0.3)",
+                          border: "1px solid rgba(201,168,76,0.15)",
+                          borderRadius: "6px",
+                          padding: "8px 12px",
+                        }}
+                      >
+                        <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                          {displayName}
+                        </div>
+                        {WEAPON_PROPERTY_DESCRIPTIONS[prop] && (
+                          <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                            {WEAPON_PROPERTY_DESCRIPTIONS[prop]}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {displayItemData.mastery && displayItemData.mastery.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                  {displayItemData.mastery.map((mastery) => (
+                    <div
+                      key={mastery}
+                      style={{
+                        background: "rgba(0,0,0,0.3)",
+                        border: "1px solid rgba(201,168,76,0.15)",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                      }}
+                    >
+                      <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                        {mastery}
+                      </div>
+                      {WEAPON_MASTERY_DESCRIPTIONS[mastery] && (
+                        <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                          {WEAPON_MASTERY_DESCRIPTIONS[mastery]}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -242,7 +298,7 @@ function InventoryItemDescription({
                   lineHeight: "1.6",
                 }}
                 dangerouslySetInnerHTML={{
-                  __html: parseTaggedText(displayItemData.description),
+                  __html: parseTaggedTextToHtml(displayItemData.description),
                 }}
               />
             </div>
@@ -870,6 +926,16 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                       itemData={itemData}
                       customDescription={item.customDescription}
                     />
+                    {adventurePlayerId && (
+                      <div style={{ marginTop: "10px" }}>
+                        <EquipButton
+                          itemName={item.itemName}
+                          itemSource={item.itemSource}
+                          adventurePlayerId={adventurePlayerId}
+                          itemData={itemData}
+                        />
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

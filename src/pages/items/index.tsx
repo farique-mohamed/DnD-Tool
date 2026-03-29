@@ -11,6 +11,8 @@ import {
   ITEM_RARITIES,
   type Item,
 } from "@/lib/itemsData";
+import { WEAPON_PROPERTY_DESCRIPTIONS, WEAPON_MASTERY_DESCRIPTIONS } from "@/lib/equipmentData";
+import { parseTaggedTextToHtml } from "@/lib/dndTagParser";
 
 const PLAYER_SOURCES = new Set(["PHB", "XPHB"]);
 
@@ -244,6 +246,7 @@ function ItemDetailPanel({ item, isMobile, onBack }: { item: Item; isMobile?: bo
   if (item.range) {
     metaRows.push({ label: "Range", value: `${item.range} ft.` });
   }
+  // Properties & Mastery are shown in a dedicated section below meta stats
   if (item.ac != null) {
     metaRows.push({ label: "AC", value: String(item.ac) });
   }
@@ -418,6 +421,71 @@ function ItemDetailPanel({ item, isMobile, onBack }: { item: Item; isMobile?: bo
         ))}
       </div>
 
+      {/* Properties & Mastery */}
+      {((item.property && item.property.length > 0) || (item.mastery && item.mastery.length > 0)) && (
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+          <span
+            style={{
+              color: GOLD,
+              fontSize: "10px",
+              textTransform: "uppercase",
+              letterSpacing: "1.2px",
+              fontFamily: SERIF,
+            }}
+          >
+            Properties &amp; Mastery
+          </span>
+          {item.property?.map((prop) => {
+            const displayName = prop
+              .split("-")
+              .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+              .join("-");
+            return (
+              <div
+                key={prop}
+                style={{
+                  background: "rgba(0,0,0,0.3)",
+                  border: "1px solid rgba(201,168,76,0.15)",
+                  borderRadius: "6px",
+                  padding: "8px 12px",
+                  marginBottom: "0",
+                }}
+              >
+                <div style={{ color: GOLD, fontWeight: "bold", fontSize: "13px", fontFamily: SERIF }}>
+                  {displayName}
+                </div>
+                {WEAPON_PROPERTY_DESCRIPTIONS[prop] && (
+                  <div style={{ color: GOLD_BRIGHT, fontSize: "12px", fontFamily: SERIF, fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                    {WEAPON_PROPERTY_DESCRIPTIONS[prop]}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+          {item.mastery?.map((mastery) => (
+            <div
+              key={mastery}
+              style={{
+                background: "rgba(0,0,0,0.3)",
+                border: "1px solid rgba(201,168,76,0.15)",
+                borderRadius: "6px",
+                padding: "8px 12px",
+                marginBottom: "0",
+              }}
+            >
+              <div style={{ color: GOLD, fontWeight: "bold", fontSize: "13px", fontFamily: SERIF }}>
+                {mastery}
+              </div>
+              {WEAPON_MASTERY_DESCRIPTIONS[mastery] && (
+                <div style={{ color: GOLD_BRIGHT, fontSize: "12px", fontFamily: SERIF, fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                  {WEAPON_MASTERY_DESCRIPTIONS[mastery]}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+
       {/* Gradient divider */}
       <div
         style={{
@@ -451,9 +519,10 @@ function ItemDetailPanel({ item, isMobile, onBack }: { item: Item; isMobile?: bo
               margin: 0,
               whiteSpace: "pre-wrap",
             }}
-          >
-            {item.description}
-          </p>
+            dangerouslySetInnerHTML={{
+              __html: parseTaggedTextToHtml(item.description),
+            }}
+          />
         </div>
       )}
     </div>

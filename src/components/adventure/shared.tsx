@@ -735,6 +735,22 @@ export function InventoryItemDescription({
                   <span style={{ color: GOLD_BRIGHT }}>{displayItemData.range}</span>
                 </div>
               )}
+              {displayItemData.property && displayItemData.property.length > 0 && (
+                <div>
+                  <span style={{ color: GOLD, fontWeight: "bold" }}>Properties </span>
+                  <span style={{ color: GOLD_BRIGHT }}>
+                    {displayItemData.property.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(", ")}
+                  </span>
+                </div>
+              )}
+              {displayItemData.mastery && displayItemData.mastery.length > 0 && (
+                <div>
+                  <span style={{ color: GOLD, fontWeight: "bold" }}>Mastery </span>
+                  <span style={{ color: GOLD_BRIGHT }}>
+                    {displayItemData.mastery.join(", ")}
+                  </span>
+                </div>
+              )}
             </div>
           )}
 
