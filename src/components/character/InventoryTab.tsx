@@ -1,7 +1,9 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
 import { ITEMS, type Item } from "@/lib/itemsData";
-import { parseTaggedText } from "@/lib/dndTagParser";
+import { parseTaggedTextToHtml } from "@/lib/dndTagParser";
+import { WEAPON_PROPERTY_DESCRIPTIONS, WEAPON_MASTERY_DESCRIPTIONS } from "@/lib/equipmentData";
+import { EquipButton } from "@/components/adventure/EquipButton";
 import {
   getClassStartingEquipment,
   getBackgroundStartingEquipment,
@@ -189,6 +191,7 @@ function InventoryItemDescription({
                   <span style={{ color: "#e8d5a3" }}>
                     {displayItemData.dmg1}
                     {displayItemData.dmgType ? ` ${displayItemData.dmgType}` : ""}
+                    {displayItemData.dmg2 ? ` (2H: ${displayItemData.dmg2})` : ""}
                   </span>
                 </div>
               )}
@@ -196,6 +199,60 @@ function InventoryItemDescription({
                 <div>
                   <span style={{ color: "#c9a84c", fontWeight: "bold" }}>Range </span>
                   <span style={{ color: "#e8d5a3" }}>{displayItemData.range}</span>
+                </div>
+              )}
+              {displayItemData.property && displayItemData.property.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                  {displayItemData.property.map((prop) => {
+                    const displayName = prop
+                      .split("-")
+                      .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+                      .join("-");
+                    return (
+                      <div
+                        key={prop}
+                        style={{
+                          background: "rgba(0,0,0,0.3)",
+                          border: "1px solid rgba(201,168,76,0.15)",
+                          borderRadius: "6px",
+                          padding: "8px 12px",
+                        }}
+                      >
+                        <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                          {displayName}
+                        </div>
+                        {WEAPON_PROPERTY_DESCRIPTIONS[prop] && (
+                          <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                            {WEAPON_PROPERTY_DESCRIPTIONS[prop]}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+              {displayItemData.mastery && displayItemData.mastery.length > 0 && (
+                <div style={{ display: "flex", flexDirection: "column", gap: "4px", marginTop: "4px" }}>
+                  {displayItemData.mastery.map((mastery) => (
+                    <div
+                      key={mastery}
+                      style={{
+                        background: "rgba(0,0,0,0.3)",
+                        border: "1px solid rgba(201,168,76,0.15)",
+                        borderRadius: "6px",
+                        padding: "8px 12px",
+                      }}
+                    >
+                      <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                        {mastery}
+                      </div>
+                      {WEAPON_MASTERY_DESCRIPTIONS[mastery] && (
+                        <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                          {WEAPON_MASTERY_DESCRIPTIONS[mastery]}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               )}
             </div>
@@ -241,7 +298,7 @@ function InventoryItemDescription({
                   lineHeight: "1.6",
                 }}
                 dangerouslySetInnerHTML={{
-                  __html: parseTaggedText(displayItemData.description),
+                  __html: parseTaggedTextToHtml(displayItemData.description),
                 }}
               />
             </div>
@@ -565,6 +622,8 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
   const [searchText, setSearchText] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showStartingModal, setShowStartingModal] = useState(false);
+  const [splittingId, setSplittingId] = useState<string | null>(null);
+  const [splitAmount, setSplitAmount] = useState(1);
 
   const adventurePlayer = character.adventurePlayers?.find(
     (ap) => ap.status === "ACCEPTED",
@@ -572,11 +631,24 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
   const adventurePlayerId = adventurePlayer?.id ?? "";
   const adventureId = adventurePlayer?.adventure.id ?? "";
 
+  const utils = api.useUtils();
+
   const { data: inventoryItems = [], isLoading } =
     api.adventure.getInventory.useQuery(
       { adventureId, adventurePlayerId },
       { enabled: !!adventurePlayerId && !!adventureId },
     );
+
+  const splitItem = api.adventure.splitInventoryItem.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate({
+        adventureId,
+        adventurePlayerId,
+      });
+      setSplittingId(null);
+      setSplitAmount(1);
+    },
+  });
 
   type InventoryItem = {
     id: string;
@@ -869,6 +941,127 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                       itemData={itemData}
                       customDescription={item.customDescription}
                     />
+                    {adventurePlayerId && (
+                      <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                        <EquipButton
+                          itemName={item.itemName}
+                          itemSource={item.itemSource}
+                          adventurePlayerId={adventurePlayerId}
+                          itemData={itemData}
+                        />
+                        {item.quantity > 1 && splittingId !== item.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSplittingId(item.id);
+                              setSplitAmount(1);
+                            }}
+                            style={{
+                              background: "rgba(168,144,96,0.15)",
+                              border: "1px solid rgba(168,144,96,0.3)",
+                              color: "#a89060",
+                              borderRadius: "6px",
+                              padding: "6px 14px",
+                              fontSize: "12px",
+                              fontFamily: "'Georgia', serif",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Split Stack
+                          </button>
+                        )}
+                        {item.quantity > 1 && splittingId === item.id && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              background: "rgba(0,0,0,0.3)",
+                              border: "1px solid rgba(201,168,76,0.2)",
+                              borderRadius: "6px",
+                              padding: "6px 12px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "#a89060",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                              }}
+                            >
+                              Remove
+                            </span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={item.quantity - 1}
+                              value={splitAmount}
+                              onChange={(e) => setSplitAmount(Math.max(1, Math.min(item.quantity - 1, Number(e.target.value) || 1)))}
+                              style={{
+                                background: "rgba(30,15,5,0.9)",
+                                border: "1px solid rgba(201,168,76,0.4)",
+                                color: "#e8d5a3",
+                                fontFamily: "'Georgia', serif",
+                                borderRadius: "4px",
+                                padding: "4px 8px",
+                                width: "60px",
+                                fontSize: "13px",
+                                textAlign: "center",
+                                outline: "none",
+                              }}
+                            />
+                            <span
+                              style={{
+                                color: "#a89060",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                              }}
+                            >
+                              of {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                splitItem.mutate({
+                                  inventoryItemId: item.id,
+                                  splitQuantity: splitAmount,
+                                })
+                              }
+                              disabled={splitItem.isPending}
+                              style={{
+                                background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+                                color: "#1a1a2e",
+                                border: "none",
+                                borderRadius: "4px",
+                                padding: "4px 12px",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                                fontWeight: "bold",
+                                cursor: splitItem.isPending ? "default" : "pointer",
+                                opacity: splitItem.isPending ? 0.6 : 1,
+                              }}
+                            >
+                              {splitItem.isPending ? "..." : "Confirm"}
+                            </button>
+                            <button
+                              onClick={() => setSplittingId(null)}
+                              style={{
+                                background: "transparent",
+                                border: "1px solid rgba(201,168,76,0.3)",
+                                color: "#a89060",
+                                borderRadius: "4px",
+                                padding: "4px 10px",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </div>

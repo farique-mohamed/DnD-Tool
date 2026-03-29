@@ -192,7 +192,13 @@ export function findItemByName(
   items: Item[],
 ): Item | undefined {
   const lower = itemName.toLowerCase();
-  return items.find((i) => i.name.toLowerCase() === lower);
+  const matches = items.filter((i) => i.name.toLowerCase() === lower);
+  if (matches.length === 0) return undefined;
+  if (matches.length === 1) return matches[0];
+  // Prefer the version with mastery data (XPHB), then property data
+  return matches.find((i) => i.mastery && i.mastery.length > 0)
+    ?? matches.find((i) => i.property && i.property.length > 0)
+    ?? matches[0];
 }
 
 // ---------------------------------------------------------------------------
@@ -470,8 +476,6 @@ export function getEquipmentActions(
   for (const { item, slot } of weaponSlots) {
     if (!item.mastery) continue;
     for (const mastery of item.mastery) {
-      // Skip Nick since we handle it above in dual-wield context
-      if (mastery === "Nick") continue;
       const desc = WEAPON_MASTERY_DESCRIPTIONS[mastery];
       if (desc) {
         actions.push({
@@ -484,14 +488,21 @@ export function getEquipmentActions(
     }
   }
 
-  // Finesse note for weapon attacks
+  // Add weapon property notes for equipped weapons
   for (const { item, slot } of weaponSlots) {
-    if (item.property?.includes("finesse")) {
+    if (!item.property) continue;
+    for (const prop of item.property) {
+      const desc = WEAPON_PROPERTY_DESCRIPTIONS[prop];
+      if (!desc) continue;
+      const displayName = prop
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join("-");
       actions.push({
-        name: `Finesse (${item.name}, ${slot})`,
+        name: `${displayName} (${item.name}, ${slot})`,
         cost: "No Action",
-        description: `${item.name} has the finesse property: use STR or DEX for attack and damage rolls.`,
-        feature: "Weapon Property: Finesse",
+        description: `${item.name} has the ${prop} property: ${desc.charAt(0).toLowerCase()}${desc.slice(1)}`,
+        feature: `Weapon Property: ${displayName}`,
       });
     }
   }

@@ -13,8 +13,8 @@ function timeAgo(date: Date): string {
   return `${days}d ago`;
 }
 
-export function DiceHistoryWidget() {
-  const { data: rolls, isLoading } = api.dice.history.useQuery({ limit: 5 });
+export function DiceHistoryWidget({ adventureId }: { adventureId: string }) {
+  const { data: rolls, isLoading } = api.dice.history.useQuery({ adventureId, limit: 5 });
 
   return (
     <DashboardCard title="Recent Rolls" icon="🎲" isLoading={isLoading}>

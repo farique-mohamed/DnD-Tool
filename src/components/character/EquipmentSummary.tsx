@@ -2,6 +2,7 @@ import {
   type EquipmentSlot,
   type EquippedItems,
   WEAPON_MASTERY_DESCRIPTIONS,
+  WEAPON_PROPERTY_DESCRIPTIONS,
   getArmorProficiencyPenalties,
 } from "@/lib/equipmentData";
 import { ITEMS } from "@/lib/itemsData";
@@ -92,6 +93,44 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
               >
                 {name}
               </span>
+              {/* Damage for weapons */}
+              {itemData?.dmg1 && (
+                <span
+                  style={{
+                    color: "#e8d5a3",
+                    fontSize: "10px",
+                    fontFamily: "'Georgia', serif",
+                    background: "rgba(232,213,163,0.08)",
+                    border: "1px solid rgba(232,213,163,0.15)",
+                    borderRadius: "3px",
+                    padding: "1px 5px",
+                  }}
+                >
+                  {itemData.dmg1}
+                  {itemData.dmg2 ? ` / ${itemData.dmg2}` : ""}
+                  {itemData.dmgType ? ` ${itemData.dmgType}` : ""}
+                </span>
+              )}
+              {/* Property badge */}
+              {itemData?.property && itemData.property.length > 0 && (
+                <span
+                  title={itemData.property.map(p => {
+                    const name = p.charAt(0).toUpperCase() + p.slice(1);
+                    return `${name}: ${WEAPON_PROPERTY_DESCRIPTIONS[p] ?? p}`;
+                  }).join("\n")}
+                  style={{
+                    color: "#a89060",
+                    fontSize: "9px",
+                    fontFamily: "'Georgia', serif",
+                    background: "rgba(168,144,96,0.1)",
+                    border: "1px solid rgba(168,144,96,0.2)",
+                    borderRadius: "3px",
+                    padding: "1px 5px",
+                  }}
+                >
+                  {itemData.property.map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(", ")}
+                </span>
+              )}
               {/* Mastery badge */}
               {itemData?.mastery && itemData.mastery.length > 0 && (
                 <span

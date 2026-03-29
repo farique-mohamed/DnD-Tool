@@ -3,6 +3,7 @@ import { useRouter } from "next/router";
 import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { DiceRoller } from "@/components/DiceRoller";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
@@ -354,6 +355,7 @@ function AdventureDetailContent() {
           }
         />
       )}
+      {id && <DiceRoller adventureId={id} />}
     </>
   );
 }

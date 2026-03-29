@@ -94,3 +94,45 @@ export function parseTaggedText(text: string): string {
 
   return result;
 }
+
+/**
+ * parseTaggedTextToHtml — like parseTaggedText but converts {@item} and
+ * {@creature} tags into clickable HTML links before falling through to
+ * the generic tag stripping.
+ */
+export function parseTaggedTextToHtml(text: string): string {
+  let result = text;
+
+  // {@item Name|Source} → <a href="/items?search=Name">Name</a>
+  result = result.replace(
+    /\{@item\s+([^|}]+)\|[^}]*\}/g,
+    (_m, name: string) =>
+      `<a href="/items?search=${encodeURIComponent(name.trim())}" style="color:#c9a84c;text-decoration:underline">${name.trim()}</a>`,
+  );
+
+  // {@item Name} (no source)
+  result = result.replace(
+    /\{@item\s+([^|}]+)\}/g,
+    (_m, name: string) =>
+      `<a href="/items?search=${encodeURIComponent(name.trim())}" style="color:#c9a84c;text-decoration:underline">${name.trim()}</a>`,
+  );
+
+  // {@creature Name|Source} → styled text (no dedicated page yet)
+  result = result.replace(
+    /\{@creature\s+([^|}]+)\|[^}]*\}/g,
+    (_m, name: string) =>
+      `<span style="color:#c9a84c;font-style:italic">${name.trim()}</span>`,
+  );
+
+  // {@creature Name} (no source)
+  result = result.replace(
+    /\{@creature\s+([^|}]+)\}/g,
+    (_m, name: string) =>
+      `<span style="color:#c9a84c;font-style:italic">${name.trim()}</span>`,
+  );
+
+  // Now apply all the standard tag transformations
+  result = parseTaggedText(result);
+
+  return result;
+}

@@ -82,6 +82,45 @@ export function ActionsTab({ character }: { character: CharacterData }) {
     }
   }
 
+  // Deduplicate "No Action" entries with same feature (e.g., same weapon property on two weapons)
+  const noActions = grouped["No Action"] ?? [];
+  if (noActions.length > 0) {
+    const featureMap = new Map<string, { action: ActionEntry; weapons: string[]; count: number }>();
+    const deduped: ActionEntry[] = [];
+
+    for (const action of noActions) {
+      const feature = action.feature ?? "";
+      const isWeaponProp = feature.startsWith("Weapon Property:") || feature.startsWith("Weapon Mastery:");
+
+      if (isWeaponProp && featureMap.has(feature)) {
+        const existing = featureMap.get(feature)!;
+        existing.count += 1;
+        const match = action.name.match(/\((.+)\)$/);
+        if (match) existing.weapons.push(match[1]!);
+      } else if (isWeaponProp) {
+        const match = action.name.match(/^(.+?)\s*\((.+)\)$/);
+        const baseName = match ? match[1]! : action.name;
+        const weaponInfo = match ? match[2]! : "";
+        featureMap.set(feature, { action: { ...action, name: baseName }, weapons: [weaponInfo], count: 1 });
+      } else {
+        deduped.push(action);
+      }
+    }
+
+    for (const { action, weapons, count } of featureMap.values()) {
+      deduped.push({
+        ...action,
+        name: count > 1 ? action.name : `${action.name} (${weapons[0]})`,
+        description: count > 1
+          ? `${weapons.join(" & ")}: ${action.description.charAt(0).toLowerCase()}${action.description.slice(1)}`
+          : action.description,
+        feature: count > 1 ? `${action.feature} (\u00d7${count})` : action.feature,
+      });
+    }
+
+    grouped["No Action"] = deduped;
+  }
+
   const sectionTitle: React.CSSProperties = {
     color: "#c9a84c",
     fontSize: "12px",

@@ -13,6 +13,8 @@ import { OverviewTab } from "./OverviewTab";
 import { CharacterInventoryTab } from "./InventoryTab";
 import { NotesTab } from "./NotesTab";
 import { EquipmentSummary } from "./EquipmentSummary";
+import { type EquippedItems, calculateEquippedAC } from "@/lib/equipmentData";
+import { ITEMS } from "@/lib/itemsData";
 
 export function CharacterSheet({ character }: { character: CharacterData }) {
   const router = useRouter();
@@ -20,6 +22,31 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
   const prof = proficiencyBonus(character.level);
   const initiative = mod(character.dexterity);
   const passivePerception = 10 + mod(character.wisdom);
+
+  // Compute AC from equipment if available
+  const equippedItems: EquippedItems | null = (() => {
+    if (!character.equippedItems) return null;
+    try {
+      return JSON.parse(character.equippedItems) as EquippedItems;
+    } catch {
+      return null;
+    }
+  })();
+
+  const displayAC = (() => {
+    if (!equippedItems) return character.armorClass;
+    const hasAnyEquipped = equippedItems.mainHand || equippedItems.offHand || equippedItems.armor || equippedItems.shield;
+    if (!hasAnyEquipped) return character.armorClass;
+    const { ac } = calculateEquippedAC(
+      equippedItems,
+      mod(character.dexterity),
+      mod(character.constitution),
+      mod(character.wisdom),
+      character.characterClass,
+      ITEMS,
+    );
+    return ac;
+  })();
 
   const [activeTab, setActiveTab] = useState<TabId>("overview");
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -169,19 +196,25 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                   href={`/adventures/${ap.adventure.id}`}
                   style={{
                     display: "inline-block",
-                    marginTop: "8px",
-                    padding: "2px 10px",
-                    borderRadius: "12px",
-                    fontSize: "11px",
+                    marginTop: "10px",
+                    padding: "6px 16px",
+                    borderRadius: "6px",
+                    fontSize: "12px",
                     fontFamily: "'Georgia', serif",
-                    letterSpacing: "0.3px",
-                    background: ap.status === "ACCEPTED" ? "rgba(74,124,42,0.2)" : "rgba(201,168,76,0.15)",
-                    border: ap.status === "ACCEPTED" ? "1px solid rgba(74,124,42,0.4)" : "1px solid rgba(201,168,76,0.3)",
-                    color: ap.status === "ACCEPTED" ? "#4a7c2a" : "#a89060",
+                    fontWeight: "bold",
+                    letterSpacing: "0.5px",
+                    background: ap.status === "ACCEPTED"
+                      ? "linear-gradient(135deg, rgba(74,124,42,0.3), rgba(74,124,42,0.15))"
+                      : "rgba(201,168,76,0.15)",
+                    border: ap.status === "ACCEPTED"
+                      ? "1px solid rgba(74,124,42,0.5)"
+                      : "1px solid rgba(201,168,76,0.3)",
+                    color: ap.status === "ACCEPTED" ? "#6abf40" : "#a89060",
                     textDecoration: "none",
+                    cursor: "pointer",
                   }}
                 >
-                  {ap.status === "ACCEPTED" ? "In" : "Pending"}: {ap.adventure.name}
+                  {ap.status === "ACCEPTED" ? "⚔ Go to Adventure" : "⏳ Pending"}: {ap.adventure.name}
                 </Link>
               );
             })()}
@@ -189,7 +222,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
           {/* Combat quick stats */}
           <div style={{ display: "flex", gap: "20px", flexWrap: "wrap" }}>
             {[
-              { label: "AC", value: character.armorClass },
+              { label: "AC", value: displayAC },
               { label: "Speed", value: `${character.speed}ft` },
               {
                 label: "Initiative",

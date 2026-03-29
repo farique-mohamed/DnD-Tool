@@ -262,3 +262,55 @@ export const updateInventoryItem = protectedProcedure
       },
     });
   });
+
+export const splitInventoryItem = protectedProcedure
+  .input(
+    z.object({
+      inventoryItemId: z.string(),
+      splitQuantity: z.number().int().min(1),
+    }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    const item = await ctx.db.characterInventoryItem.findUnique({
+      where: { id: input.inventoryItemId },
+      include: {
+        adventurePlayer: {
+          include: { adventure: true },
+        },
+      },
+    });
+    if (!item) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Inventory item not found",
+      });
+    }
+
+    // Allow DM or the owning player
+    const isDm = item.adventurePlayer.adventure.userId === ctx.user.userId;
+    const isPlayer = item.adventurePlayer.userId === ctx.user.userId;
+    if (!isDm && !isPlayer) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Not authorized to split this item",
+      });
+    }
+
+    if (input.splitQuantity >= item.quantity) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Split quantity must be less than total quantity",
+      });
+    }
+
+    // Due to unique constraint on [adventurePlayerId, itemName, itemSource],
+    // we cannot create a second row for the same item. Instead, splitting
+    // reduces the stack quantity (the split-off items are narratively separated).
+    return ctx.db.characterInventoryItem.update({
+      where: { id: item.id },
+      data: { quantity: item.quantity - input.splitQuantity },
+      include: {
+        addedByUser: { select: { id: true, username: true } },
+      },
+    });
+  });
