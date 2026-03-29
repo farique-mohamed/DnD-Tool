@@ -1,45 +1,54 @@
 import Head from "next/head";
-import { useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { api } from "@/utils/api";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import type { UserRoleType } from "@/lib/constants";
 
-function getRoleGreeting(role: UserRoleType, username: string): string {
+import { WelcomeWidget } from "@/components/dashboard/WelcomeWidget";
+import { MyCharactersWidget } from "@/components/dashboard/MyCharactersWidget";
+import { QuickActionsWidget } from "@/components/dashboard/QuickActionsWidget";
+import { MyAdventuresWidget } from "@/components/dashboard/MyAdventuresWidget";
+import { MyCampaignsWidget } from "@/components/dashboard/MyCampaignsWidget";
+import { DiceHistoryWidget } from "@/components/dashboard/DiceHistoryWidget";
+import { AdminDmRequestsWidget } from "@/components/dashboard/AdminDmRequestsWidget";
+
+type WidgetConfig = {
+  key: string;
+  component: React.ReactNode;
+  colSpan: number;
+};
+
+function getWidgetsForRole(role: UserRoleType): WidgetConfig[] {
+  const welcome = { key: "welcome", component: <WelcomeWidget />, colSpan: 3 };
+  const campaigns = { key: "campaigns", component: <MyCampaignsWidget />, colSpan: 2 };
+  const characters = { key: "characters", component: <MyCharactersWidget />, colSpan: 2 };
+  const quickActions = { key: "quick-actions", component: <QuickActionsWidget />, colSpan: 1 };
+  const adventures = { key: "adventures", component: <MyAdventuresWidget />, colSpan: 2 };
+  const diceHistory = { key: "dice-history", component: <DiceHistoryWidget />, colSpan: 1 };
+  const dmRequests = { key: "dm-requests", component: <AdminDmRequestsWidget />, colSpan: 1 };
+
   switch (role) {
-    case "DUNGEON_MASTER":
-      return `Hail, Dungeon Master ${username}!`;
     case "ADMIN":
-      return `Hail, Admin ${username}!`;
+      // Row 1: Welcome(3) | Row 2: DmRequests(1)+Campaigns(2) | Row 3: Characters(2)+QuickActions(1) | Row 4: Adventures(2)+DiceHistory(1)
+      return [welcome, dmRequests, campaigns, characters, quickActions, adventures, diceHistory];
+    case "DUNGEON_MASTER":
+      // Row 1: Welcome(3) | Row 2: Campaigns(2)+QuickActions(1) | Row 3: Characters(2)+DiceHistory(1) | Row 4: Adventures(2)
+      return [welcome, campaigns, quickActions, characters, diceHistory, adventures];
     case "PLAYER":
     default:
-      return `Hail, Adventurer ${username}!`;
+      // Row 1: Welcome(3) | Row 2: Characters(2)+QuickActions(1) | Row 3: Adventures(2)+DiceHistory(1)
+      return [welcome, characters, quickActions, adventures, diceHistory];
   }
 }
 
 function DashboardContent() {
   const { user } = useAuth();
-  const [requestMessage, setRequestMessage] = useState<string | null>(null);
-  const [requestError, setRequestError] = useState<string | null>(null);
+  const isMobile = useIsMobile();
 
-  const greeting =
-    user !== null ? getRoleGreeting(user.role, user.username) : "";
+  if (!user) return null;
 
-  const requestDmMutation = api.user.requestDungeonMaster.useMutation({
-    onSuccess(data) {
-      setRequestMessage(data.message);
-      setRequestError(null);
-    },
-    onError(error) {
-      if (error.data?.code === "CONFLICT") {
-        setRequestError("You already have a pending petition.");
-      } else {
-        setRequestError(error.message ?? "Something went wrong. Try again.");
-      }
-      setRequestMessage(null);
-    },
-  });
+  const widgets = getWidgetsForRole(user.role);
 
   return (
     <>
@@ -48,98 +57,22 @@ function DashboardContent() {
       </Head>
       <div
         style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "calc(100vh - 80px)",
+          maxWidth: "1100px",
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)",
+          gap: isMobile ? "16px" : "20px",
         }}
       >
-        <div
-          style={{
-            textAlign: "center",
-            padding: "60px 40px",
-            background: "rgba(0,0,0,0.4)",
-            border: "1px solid rgba(201,168,76,0.2)",
-            borderRadius: "12px",
-            maxWidth: "500px",
-          }}
-        >
-          <div style={{ fontSize: "48px", marginBottom: "16px" }}>🎲</div>
-          <h2
+        {widgets.map((w) => (
+          <div
+            key={w.key}
             style={{
-              color: "#c9a84c",
-              fontSize: "22px",
-              marginBottom: "12px",
+              gridColumn: isMobile ? "span 1" : `span ${w.colSpan}`,
             }}
           >
-            {greeting}
-          </h2>
-          <p style={{ color: "#a89060", fontSize: "14px", lineHeight: "1.7" }}>
-            Your dashboard is being prepared by the Dungeon Master. Check back
-            soon for quests, campaigns, and epic adventures!
-          </p>
-
-          {user?.role === "PLAYER" && (
-            <div style={{ marginTop: "32px" }}>
-              {requestMessage ? (
-                <p
-                  style={{
-                    color: "#c9a84c",
-                    fontSize: "13px",
-                    padding: "10px 16px",
-                    background: "rgba(201,168,76,0.1)",
-                    border: "1px solid rgba(201,168,76,0.3)",
-                    borderRadius: "6px",
-                  }}
-                >
-                  {requestMessage}
-                </p>
-              ) : (
-                <>
-                  {requestError && (
-                    <p
-                      style={{
-                        color: "#e74c3c",
-                        fontSize: "13px",
-                        marginBottom: "12px",
-                        padding: "8px 12px",
-                        background: "rgba(139,42,30,0.2)",
-                        border: "1px solid #8b2a1e",
-                        borderRadius: "6px",
-                      }}
-                    >
-                      {requestError}
-                    </p>
-                  )}
-                  <button
-                    onClick={() => requestDmMutation.mutate()}
-                    disabled={requestDmMutation.isPending}
-                    style={{
-                      background: requestDmMutation.isPending
-                        ? "rgba(201,168,76,0.4)"
-                        : "linear-gradient(135deg, #8b6914, #c9a84c)",
-                      color: "#1a1a2e",
-                      border: "none",
-                      borderRadius: "6px",
-                      padding: "10px 24px",
-                      fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
-                      fontWeight: "bold",
-                      cursor: requestDmMutation.isPending
-                        ? "not-allowed"
-                        : "pointer",
-                      letterSpacing: "0.5px",
-                    }}
-                  >
-                    {requestDmMutation.isPending
-                      ? "Submitting your petition..."
-                      : "Seek the Dungeon Master's Mantle"}
-                  </button>
-                </>
-              )}
-            </div>
-          )}
-        </div>
+            {w.component}
+          </div>
+        ))}
       </div>
     </>
   );
