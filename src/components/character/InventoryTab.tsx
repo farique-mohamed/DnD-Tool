@@ -622,6 +622,8 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
   const [searchText, setSearchText] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showStartingModal, setShowStartingModal] = useState(false);
+  const [splittingId, setSplittingId] = useState<string | null>(null);
+  const [splitAmount, setSplitAmount] = useState(1);
 
   const adventurePlayer = character.adventurePlayers?.find(
     (ap) => ap.status === "ACCEPTED",
@@ -629,11 +631,24 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
   const adventurePlayerId = adventurePlayer?.id ?? "";
   const adventureId = adventurePlayer?.adventure.id ?? "";
 
+  const utils = api.useUtils();
+
   const { data: inventoryItems = [], isLoading } =
     api.adventure.getInventory.useQuery(
       { adventureId, adventurePlayerId },
       { enabled: !!adventurePlayerId && !!adventureId },
     );
+
+  const splitItem = api.adventure.splitInventoryItem.useMutation({
+    onSuccess: () => {
+      void utils.adventure.getInventory.invalidate({
+        adventureId,
+        adventurePlayerId,
+      });
+      setSplittingId(null);
+      setSplitAmount(1);
+    },
+  });
 
   type InventoryItem = {
     id: string;
@@ -927,13 +942,124 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                       customDescription={item.customDescription}
                     />
                     {adventurePlayerId && (
-                      <div style={{ marginTop: "10px" }}>
+                      <div style={{ marginTop: "10px", display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
                         <EquipButton
                           itemName={item.itemName}
                           itemSource={item.itemSource}
                           adventurePlayerId={adventurePlayerId}
                           itemData={itemData}
                         />
+                        {item.quantity > 1 && splittingId !== item.id && (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSplittingId(item.id);
+                              setSplitAmount(1);
+                            }}
+                            style={{
+                              background: "rgba(168,144,96,0.15)",
+                              border: "1px solid rgba(168,144,96,0.3)",
+                              color: "#a89060",
+                              borderRadius: "6px",
+                              padding: "6px 14px",
+                              fontSize: "12px",
+                              fontFamily: "'Georgia', serif",
+                              cursor: "pointer",
+                            }}
+                          >
+                            Split Stack
+                          </button>
+                        )}
+                        {item.quantity > 1 && splittingId === item.id && (
+                          <div
+                            onClick={(e) => e.stopPropagation()}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: "8px",
+                              background: "rgba(0,0,0,0.3)",
+                              border: "1px solid rgba(201,168,76,0.2)",
+                              borderRadius: "6px",
+                              padding: "6px 12px",
+                            }}
+                          >
+                            <span
+                              style={{
+                                color: "#a89060",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                              }}
+                            >
+                              Remove
+                            </span>
+                            <input
+                              type="number"
+                              min={1}
+                              max={item.quantity - 1}
+                              value={splitAmount}
+                              onChange={(e) => setSplitAmount(Math.max(1, Math.min(item.quantity - 1, Number(e.target.value) || 1)))}
+                              style={{
+                                background: "rgba(30,15,5,0.9)",
+                                border: "1px solid rgba(201,168,76,0.4)",
+                                color: "#e8d5a3",
+                                fontFamily: "'Georgia', serif",
+                                borderRadius: "4px",
+                                padding: "4px 8px",
+                                width: "60px",
+                                fontSize: "13px",
+                                textAlign: "center",
+                                outline: "none",
+                              }}
+                            />
+                            <span
+                              style={{
+                                color: "#a89060",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                              }}
+                            >
+                              of {item.quantity}
+                            </span>
+                            <button
+                              onClick={() =>
+                                splitItem.mutate({
+                                  inventoryItemId: item.id,
+                                  splitQuantity: splitAmount,
+                                })
+                              }
+                              disabled={splitItem.isPending}
+                              style={{
+                                background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+                                color: "#1a1a2e",
+                                border: "none",
+                                borderRadius: "4px",
+                                padding: "4px 12px",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                                fontWeight: "bold",
+                                cursor: splitItem.isPending ? "default" : "pointer",
+                                opacity: splitItem.isPending ? 0.6 : 1,
+                              }}
+                            >
+                              {splitItem.isPending ? "..." : "Confirm"}
+                            </button>
+                            <button
+                              onClick={() => setSplittingId(null)}
+                              style={{
+                                background: "transparent",
+                                border: "1px solid rgba(201,168,76,0.3)",
+                                color: "#a89060",
+                                borderRadius: "4px",
+                                padding: "4px 10px",
+                                fontSize: "12px",
+                                fontFamily: "'Georgia', serif",
+                                cursor: "pointer",
+                              }}
+                            >
+                              Cancel
+                            </button>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>

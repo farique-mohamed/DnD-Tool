@@ -32,7 +32,7 @@ function formatRelativeTime(date: Date): string {
   return `${diffDay}d ago`;
 }
 
-export function DiceRoller() {
+export function DiceRoller({ adventureId }: { adventureId: string }) {
   const [isOpen, setIsOpen] = useState(false);
   const [label, setLabel] = useState<RollLabel>("General");
   const [rollMode, setRollMode] = useState<RollMode>("NORMAL");
@@ -46,14 +46,14 @@ export function DiceRoller() {
   const utils = api.useUtils();
 
   const historyQuery = api.dice.globalHistory.useQuery(
-    { limit: 50 },
+    { adventureId, limit: 50 },
     { enabled: isOpen }
   );
 
   const rollMutation = api.dice.roll.useMutation({
     onSuccess: (data) => {
       setLatestRollId(data.id);
-      void utils.dice.globalHistory.invalidate();
+      void utils.dice.globalHistory.invalidate({ adventureId });
       setLabel("General");
       setRollMode("NORMAL");
       setDiceCounts({ ...DEFAULT_DICE_COUNTS });
@@ -86,6 +86,7 @@ export function DiceRoller() {
       label,
       rollMode,
       dice: diceArray,
+      adventureId,
     });
   };
 

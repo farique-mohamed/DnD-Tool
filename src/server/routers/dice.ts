@@ -18,7 +18,7 @@ export const diceRouter = createTRPCRouter({
           )
           .min(1)
           .max(10),
-        adventureId: z.string().optional(),
+        adventureId: z.string(),
       })
     )
     .mutation(async ({ ctx, input }) => {
@@ -71,7 +71,7 @@ export const diceRouter = createTRPCRouter({
           result,
           label,
           rollMode,
-          adventureId: adventureId ?? null,
+          adventureId,
         },
       });
 
@@ -81,12 +81,13 @@ export const diceRouter = createTRPCRouter({
   history: protectedProcedure
     .input(
       z.object({
+        adventureId: z.string(),
         limit: z.number().int().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
       const rolls = await ctx.db.diceRoll.findMany({
-        where: { userId: ctx.user.userId },
+        where: { userId: ctx.user.userId, adventureId: input.adventureId },
         orderBy: { rolledAt: "desc" },
         take: input.limit,
         select: {
@@ -106,11 +107,13 @@ export const diceRouter = createTRPCRouter({
   globalHistory: protectedProcedure
     .input(
       z.object({
+        adventureId: z.string(),
         limit: z.number().int().min(1).max(100).default(50),
       })
     )
     .query(async ({ ctx, input }) => {
       const rolls = await ctx.db.diceRoll.findMany({
+        where: { adventureId: input.adventureId },
         orderBy: { rolledAt: "desc" },
         take: input.limit,
         select: {

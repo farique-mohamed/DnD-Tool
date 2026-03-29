@@ -27,6 +27,7 @@ import {
   addStartingItems,
   removeInventoryItem,
   updateInventoryItem,
+  splitInventoryItem,
 } from "./inventory";
 import { equipItem, unequipItem, getEquipmentStatus } from "./equipment";
 import {
@@ -83,6 +84,7 @@ export const adventureRouter = createTRPCRouter({
   addStartingItems,
   removeInventoryItem,
   updateInventoryItem,
+  splitInventoryItem,
 
   // Equipment
   equipItem,

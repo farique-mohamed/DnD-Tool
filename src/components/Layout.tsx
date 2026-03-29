@@ -1,5 +1,4 @@
 import { NavBar } from "@/components/NavBar";
-import { DiceRoller } from "@/components/DiceRoller";
 import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface LayoutProps {
@@ -31,7 +30,6 @@ export function Layout({ children }: LayoutProps) {
       >
         {children}
       </main>
-      <DiceRoller />
     </div>
   );
 }

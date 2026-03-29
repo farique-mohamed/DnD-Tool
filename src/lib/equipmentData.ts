@@ -192,7 +192,13 @@ export function findItemByName(
   items: Item[],
 ): Item | undefined {
   const lower = itemName.toLowerCase();
-  return items.find((i) => i.name.toLowerCase() === lower);
+  const matches = items.filter((i) => i.name.toLowerCase() === lower);
+  if (matches.length === 0) return undefined;
+  if (matches.length === 1) return matches[0];
+  // Prefer the version with mastery data (XPHB), then property data
+  return matches.find((i) => i.mastery && i.mastery.length > 0)
+    ?? matches.find((i) => i.property && i.property.length > 0)
+    ?? matches[0];
 }
 
 // ---------------------------------------------------------------------------
@@ -470,8 +476,6 @@ export function getEquipmentActions(
   for (const { item, slot } of weaponSlots) {
     if (!item.mastery) continue;
     for (const mastery of item.mastery) {
-      // Skip Nick since we handle it above in dual-wield context
-      if (mastery === "Nick") continue;
       const desc = WEAPON_MASTERY_DESCRIPTIONS[mastery];
       if (desc) {
         actions.push({

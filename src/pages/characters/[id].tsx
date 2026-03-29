@@ -4,6 +4,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { api } from "@/utils/api";
 import { CharacterSheet, type CharacterData } from "@/components/character";
+import { DiceRoller } from "@/components/DiceRoller";
 
 // ---------------------------------------------------------------------------
 // Page-level data fetching
@@ -66,12 +67,18 @@ function CharacterDetailContent() {
     notes: (character as CharacterData).notes ?? "",
   };
 
+  const activeAdventure = normalized.adventurePlayers?.find(
+    (ap) => ap.status === "ACCEPTED"
+  );
+  const adventureId = activeAdventure?.adventure?.id;
+
   return (
     <>
       <Head>
         <title>{character.name} — DnD Tool</title>
       </Head>
       <CharacterSheet character={normalized} />
+      {adventureId && <DiceRoller adventureId={adventureId} />}
     </>
   );
 }
