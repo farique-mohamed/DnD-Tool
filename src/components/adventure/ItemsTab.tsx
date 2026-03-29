@@ -433,6 +433,7 @@ export function ItemsTab({
                               {itemData.dmgType
                                 ? ` ${itemData.dmgType}`
                                 : ""}
+                              {itemData.dmg2 ? ` (2H: ${itemData.dmg2})` : ""}
                             </span>
                           </div>
                         )}

@@ -725,6 +725,7 @@ export function InventoryItemDescription({
                   <span style={{ color: GOLD_BRIGHT }}>
                     {displayItemData.dmg1}
                     {displayItemData.dmgType ? ` ${displayItemData.dmgType}` : ""}
+                    {displayItemData.dmg2 ? ` (2H: ${displayItemData.dmg2})` : ""}
                   </span>
                 </div>
               )}

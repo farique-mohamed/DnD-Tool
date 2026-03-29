@@ -237,7 +237,8 @@ function ItemDetailPanel({ item, isMobile, onBack }: { item: Item; isMobile?: bo
     });
   }
   if (item.dmg1) {
-    const dmgText = item.dmgType ? `${item.dmg1} ${item.dmgType}` : item.dmg1;
+    let dmgText = item.dmgType ? `${item.dmg1} ${item.dmgType}` : item.dmg1;
+    if (item.dmg2) dmgText += ` (2H: ${item.dmg2})`;
     metaRows.push({ label: "Damage", value: dmgText });
   }
   if (item.range) {

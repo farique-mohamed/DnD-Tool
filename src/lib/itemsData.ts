@@ -21,6 +21,7 @@ export interface Item {
   reqAttune?: string;
   weaponCategory?: string;
   dmg1?: string;
+  dmg2?: string;
   dmgType?: string;
   range?: string;
   ac?: number;
@@ -202,6 +203,7 @@ interface RawBaseItem {
   mastery?: string[];
   range?: string;
   dmg1?: string;
+  dmg2?: string;
   dmgType?: string;
   ac?: number;
   stealth?: boolean;
@@ -224,6 +226,7 @@ interface RawItem {
   bonusSpellAttack?: string;
   weaponCategory?: string;
   dmg1?: string;
+  dmg2?: string;
   dmgType?: string;
   range?: string;
   ac?: number;
@@ -261,6 +264,7 @@ function convertBaseItem(raw: RawBaseItem): Item {
     description: parseEntries(raw.entries),
     weaponCategory: raw.weaponCategory,
     dmg1: raw.dmg1,
+    dmg2: raw.dmg2,
     dmgType: mapDmgType(raw.dmgType),
     range: raw.range,
     ac: raw.ac,
@@ -290,6 +294,7 @@ function convertItem(raw: RawItem): Item {
     reqAttune: attune,
     weaponCategory: raw.weaponCategory,
     dmg1: raw.dmg1,
+    dmg2: raw.dmg2,
     dmgType: mapDmgType(raw.dmgType),
     range: raw.range,
     ac: raw.ac,

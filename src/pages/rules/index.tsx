@@ -98,6 +98,23 @@ function renderEntries(
                 </li>
               );
             }
+            if (itemEntry.name && typeof (itemEntry as any).entry === "string") {
+              return (
+                <li key={j} style={{ marginBottom: "6px" }}>
+                  <strong style={{ color: "#c9a84c" }}>
+                    {parseTaggedText(itemEntry.name)}
+                  </strong>{" "}
+                  <span
+                    style={{
+                      color: "#e8d5a3",
+                      fontSize: "14px",
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                    }}
+                    dangerouslySetInnerHTML={{ __html: parseTaggedText((itemEntry as any).entry) }}
+                  />
+                </li>
+              );
+            }
             if (itemEntry.name) {
               return (
                 <li key={j}>
@@ -105,6 +122,19 @@ function renderEntries(
                     {parseTaggedText(itemEntry.name)}
                   </strong>
                 </li>
+              );
+            }
+            if (typeof (itemEntry as any).entry === "string") {
+              return (
+                <li
+                  key={j}
+                  style={{
+                    color: "#e8d5a3",
+                    fontSize: "14px",
+                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                  }}
+                  dangerouslySetInnerHTML={{ __html: parseTaggedText((itemEntry as any).entry) }}
+                />
               );
             }
             return null;

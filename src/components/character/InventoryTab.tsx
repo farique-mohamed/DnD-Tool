@@ -189,6 +189,7 @@ function InventoryItemDescription({
                   <span style={{ color: "#e8d5a3" }}>
                     {displayItemData.dmg1}
                     {displayItemData.dmgType ? ` ${displayItemData.dmgType}` : ""}
+                    {displayItemData.dmg2 ? ` (2H: ${displayItemData.dmg2})` : ""}
                   </span>
                 </div>
               )}

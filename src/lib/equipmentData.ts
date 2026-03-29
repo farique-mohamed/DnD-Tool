@@ -484,14 +484,21 @@ export function getEquipmentActions(
     }
   }
 
-  // Finesse note for weapon attacks
+  // Add weapon property notes for equipped weapons
   for (const { item, slot } of weaponSlots) {
-    if (item.property?.includes("finesse")) {
+    if (!item.property) continue;
+    for (const prop of item.property) {
+      const desc = WEAPON_PROPERTY_DESCRIPTIONS[prop];
+      if (!desc) continue;
+      const displayName = prop
+        .split("-")
+        .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
+        .join("-");
       actions.push({
-        name: `Finesse (${item.name}, ${slot})`,
+        name: `${displayName} (${item.name}, ${slot})`,
         cost: "No Action",
-        description: `${item.name} has the finesse property: use STR or DEX for attack and damage rolls.`,
-        feature: "Weapon Property: Finesse",
+        description: `${item.name} has the ${prop} property: ${desc.charAt(0).toLowerCase()}${desc.slice(1)}`,
+        feature: `Weapon Property: ${displayName}`,
       });
     }
   }
