@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { api } from "@/utils/api";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   DICE_TYPES,
   ROLL_LABELS,
@@ -40,6 +41,7 @@ export function DiceRoller() {
   });
   const [latestRollId, setLatestRollId] = useState<string | null>(null);
   const historyRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   const utils = api.useUtils();
 
@@ -118,6 +120,12 @@ export function DiceRoller() {
           .map((dt) => `${diceCounts[dt]}${dt}`)
           .join(" + ") || "";
 
+  // Mobile popup sizing
+  const popupWidth = isMobile ? "calc(100vw - 24px)" : "380px";
+  const popupRight = isMobile ? "12px" : "24px";
+  const popupBottom = isMobile ? "80px" : "96px";
+  const popupMaxHeight = isMobile ? "calc(100vh - 120px)" : "600px";
+
   return (
     <>
       {/* Trigger button */}
@@ -126,11 +134,11 @@ export function DiceRoller() {
         title="Roll the Bones"
         style={{
           position: "fixed",
-          bottom: "24px",
-          right: "24px",
+          bottom: isMobile ? "16px" : "24px",
+          right: isMobile ? "16px" : "24px",
           zIndex: 1000,
-          width: "56px",
-          height: "56px",
+          width: isMobile ? "48px" : "56px",
+          height: isMobile ? "48px" : "56px",
           borderRadius: "50%",
           background: "linear-gradient(135deg, #8b6914, #c9a84c)",
           border: "2px solid #c9a84c",
@@ -138,7 +146,7 @@ export function DiceRoller() {
             ? "0 0 24px rgba(201,168,76,0.8), 0 0 8px rgba(201,168,76,0.5)"
             : "0 0 16px rgba(201,168,76,0.5)",
           cursor: "pointer",
-          fontSize: "24px",
+          fontSize: isMobile ? "20px" : "24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -154,11 +162,11 @@ export function DiceRoller() {
           onKeyDown={handleContainerKeyDown}
           style={{
             position: "fixed",
-            bottom: "96px",
-            right: "24px",
+            bottom: popupBottom,
+            right: popupRight,
             zIndex: 999,
-            width: "380px",
-            maxHeight: "600px",
+            width: popupWidth,
+            maxHeight: popupMaxHeight,
             overflow: "hidden",
             background: "rgba(0,0,0,0.6)",
             border: "2px solid #c9a84c",
@@ -215,6 +223,7 @@ export function DiceRoller() {
                 lineHeight: 1,
                 padding: "0 0 0 8px",
                 fontFamily: "'Georgia', serif",
+                minHeight: "auto",
               }}
               title="Close"
             >
@@ -228,8 +237,8 @@ export function DiceRoller() {
             style={{
               flex: 1,
               overflowY: "auto",
-              padding: "10px 20px 14px",
-              maxHeight: "260px",
+              padding: isMobile ? "10px 16px 14px" : "10px 20px 14px",
+              maxHeight: isMobile ? "180px" : "260px",
             }}
           >
             {historyQuery.isLoading && (
@@ -426,7 +435,7 @@ export function DiceRoller() {
           {/* Input area */}
           <div
             style={{
-              padding: "14px 20px",
+              padding: isMobile ? "14px 16px" : "14px 20px",
               borderBottom: "1px solid rgba(201,168,76,0.2)",
               flexShrink: 0,
             }}
@@ -481,6 +490,7 @@ export function DiceRoller() {
                       cursor: "pointer",
                       textTransform: "uppercase",
                       letterSpacing: "0.3px",
+                      minHeight: "auto",
                     }}
                   >
                     {modeLabel}
@@ -589,6 +599,7 @@ export function DiceRoller() {
                         fontFamily: "'Georgia', serif",
                         opacity: disabled || count === 0 ? 0.4 : 1,
                         flexShrink: 0,
+                        minHeight: "auto",
                       }}
                     >
                       −
@@ -624,6 +635,7 @@ export function DiceRoller() {
                         fontFamily: "'Georgia', serif",
                         opacity: disabled || count === 10 ? 0.4 : 1,
                         flexShrink: 0,
+                        minHeight: "auto",
                       }}
                     >
                       +
@@ -690,7 +702,7 @@ export function DiceRoller() {
               ))}
             </select>
 
-            
+
 
             {/* Roll button */}
             <button

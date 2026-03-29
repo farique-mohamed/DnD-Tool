@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   GOLD,
   GOLD_MUTED,
@@ -35,6 +36,7 @@ export function CharacterSheetModal({
   playerNote?: string;
   onClose: () => void;
 }) {
+  const isMobile = useIsMobile();
   const [charSheetTab, setCharSheetTab] = useState<CharSheetTab>("sheet");
 
   const name = character.name as string | undefined;
@@ -111,7 +113,7 @@ export function CharacterSheetModal({
         justifyContent: "center",
         zIndex: 1000,
         overflowY: "auto",
-        padding: "40px 20px",
+        padding: isMobile ? "16px 8px" : "40px 20px",
       }}
       onClick={onClose}
     >
@@ -120,7 +122,7 @@ export function CharacterSheetModal({
           background: "linear-gradient(180deg, rgba(20,12,5,0.98) 0%, rgba(10,6,2,0.98) 100%)",
           border: "2px solid rgba(201,168,76,0.5)",
           borderRadius: "16px",
-          padding: "32px",
+          padding: isMobile ? "16px" : "32px",
           maxWidth: "800px",
           width: "100%",
           position: "relative",
@@ -195,6 +197,8 @@ export function CharacterSheetModal({
             gap: "0",
             borderBottom: "1px solid rgba(201,168,76,0.3)",
             marginBottom: "24px",
+            overflowX: isMobile ? "auto" : undefined,
+            whiteSpace: isMobile ? "nowrap" : undefined,
           }}
         >
           {charSheetTabs.map((tab) => {
@@ -204,17 +208,17 @@ export function CharacterSheetModal({
                 key={tab.key}
                 onClick={() => setCharSheetTab(tab.key)}
                 style={{
-                  padding: "10px 20px",
+                  padding: isMobile ? "8px 12px" : "10px 20px",
                   background: isActive ? "rgba(201,168,76,0.15)" : "transparent",
                   border: "none",
                   borderBottom: isActive
                     ? "2px solid #c9a84c"
                     : "2px solid transparent",
                   color: isActive ? GOLD : GOLD_MUTED,
-                  fontSize: "12px",
+                  fontSize: isMobile ? "11px" : "12px",
                   fontFamily: SERIF,
                   fontWeight: "bold",
-                  letterSpacing: "1px",
+                  letterSpacing: isMobile ? "0.5px" : "1px",
                   textTransform: "uppercase",
                   cursor: "pointer",
                 }}
@@ -242,7 +246,7 @@ export function CharacterSheetModal({
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "repeat(6, 1fr)",
+                  gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
                   gap: "12px",
                 }}
               >
@@ -349,7 +353,7 @@ export function CharacterSheetModal({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
                 gap: "16px",
                 marginBottom: "16px",
               }}

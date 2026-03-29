@@ -1,6 +1,7 @@
 import { AbilityScoreInput } from "./AbilityScoreInput";
 import { sectionTitleStyle, chipBaseStyle, ABILITY_NAMES, type AbilityName, type FormState } from "./shared";
 import type { RaceInfo } from "@/lib/raceData";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface AbilityScoreSectionProps {
   form: FormState;
@@ -27,6 +28,7 @@ export function AbilityScoreSection({
   onXphbAsiChoicesChange,
   onRacialAsiChoicesChange,
 }: AbilityScoreSectionProps) {
+  const isMobile = useIsMobile();
   return (
     <div>
       <p style={sectionTitleStyle}>Ability Scores</p>
@@ -281,7 +283,7 @@ export function AbilityScoreSection({
         );
       })()}
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "12px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)", gap: "12px" }}>
         {([
           { label: "STR", name: "strength" },
           { label: "DEX", name: "dexterity" },

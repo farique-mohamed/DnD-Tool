@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, TEXT_DIM, SERIF } from "./shared";
 
 export function MyCharacterTab({ adventure }: { adventure: { id: string; players: Array<{ userId: string; status: string; character: Record<string, unknown> }> } }) {
+  const isMobile = useIsMobile();
   const { user } = useAuth();
 
   const myPlayerRecord = (adventure.players as Array<{ userId: string; status: string; character: Record<string, unknown> }>).find(
@@ -67,7 +69,7 @@ export function MyCharacterTab({ adventure }: { adventure: { id: string; players
         background: "rgba(0,0,0,0.4)",
         border: "1px solid rgba(201,168,76,0.2)",
         borderRadius: "12px",
-        padding: "32px",
+        padding: isMobile ? "16px" : "32px",
         maxWidth: "700px",
       }}
     >
@@ -151,7 +153,7 @@ export function MyCharacterTab({ adventure }: { adventure: { id: string; players
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
+          gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
           gap: "8px",
           marginBottom: "24px",
         }}

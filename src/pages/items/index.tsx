@@ -3,6 +3,7 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   ITEMS,
   ITEM_SOURCES,
@@ -209,7 +210,7 @@ function ItemRow({
 // Item detail panel (right side)
 // ---------------------------------------------------------------------------
 
-function ItemDetailPanel({ item }: { item: Item }) {
+function ItemDetailPanel({ item, isMobile, onBack }: { item: Item; isMobile?: boolean; onBack?: () => void }) {
   const rColor = rarityColor(item.rarity);
 
   const metaRows: Array<{ label: string; value: string }> = [
@@ -266,7 +267,7 @@ function ItemDetailPanel({ item }: { item: Item }) {
         borderRadius: "12px",
         boxShadow:
           "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
-        padding: "32px 36px",
+        padding: isMobile ? "20px 16px" : "32px 36px",
         display: "flex",
         flexDirection: "column",
         gap: "20px",
@@ -277,6 +278,25 @@ function ItemDetailPanel({ item }: { item: Item }) {
         boxSizing: "border-box",
       }}
     >
+      {/* Back button on mobile */}
+      {isMobile && onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            alignSelf: "flex-start",
+            background: "transparent",
+            border: "none",
+            color: GOLD,
+            fontFamily: SERIF,
+            fontSize: "13px",
+            cursor: "pointer",
+            padding: 0,
+            marginBottom: "-10px",
+          }}
+        >
+          ← Back to list
+        </button>
+      )}
       {/* Header */}
       <div>
         <h2
@@ -443,7 +463,7 @@ function ItemDetailPanel({ item }: { item: Item }) {
 // Empty detail placeholder
 // ---------------------------------------------------------------------------
 
-function ItemDetailEmpty() {
+function ItemDetailEmpty({ isMobile }: { isMobile?: boolean }) {
   return (
     <div
       style={{
@@ -451,7 +471,7 @@ function ItemDetailEmpty() {
         background: "rgba(0,0,0,0.4)",
         border: `1px solid ${GOLD_BORDER}`,
         borderRadius: "12px",
-        display: "flex",
+        display: isMobile ? "none" : "flex",
         alignItems: "center",
         justifyContent: "center",
         minWidth: 0,
@@ -473,38 +493,12 @@ function ItemDetailEmpty() {
 }
 
 // ---------------------------------------------------------------------------
-// Filter chip helpers
-// ---------------------------------------------------------------------------
-
-function makeChipStyle(active: boolean): React.CSSProperties {
-  const base: React.CSSProperties = {
-    border: "1px solid rgba(201,168,76,0.4)",
-    borderRadius: "20px",
-    padding: "4px 12px",
-    fontSize: "11px",
-    fontFamily: SERIF,
-    cursor: "pointer",
-    transition: "background 0.15s, color 0.15s",
-    letterSpacing: "0.3px",
-  };
-  if (active) {
-    return {
-      ...base,
-      background: "linear-gradient(135deg, #8b6914, #c9a84c)",
-      color: "#1a1a2e",
-      fontWeight: "bold",
-      border: `1px solid ${GOLD}`,
-    };
-  }
-  return { ...base, background: "transparent", color: GOLD_MUTED };
-}
-
-// ---------------------------------------------------------------------------
 // Main page content
 // ---------------------------------------------------------------------------
 
 function ItemsContent() {
   const { user } = useAuth();
+  const isMobile = useIsMobile();
   const isPlayer = user?.role === "PLAYER";
 
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
@@ -561,8 +555,8 @@ function ItemsContent() {
         style={{
           display: "flex",
           flexDirection: "column",
-          height: "calc(100vh - 80px)",
-          overflow: "hidden",
+          height: isMobile ? "calc(100vh - 48px)" : "calc(100vh - 80px)",
+          overflow: isMobile ? "auto" : "hidden",
         }}
       >
         {/* Page header */}
@@ -570,7 +564,7 @@ function ItemsContent() {
           <h1
             style={{
               color: GOLD,
-              fontSize: "26px",
+              fontSize: isMobile ? "20px" : "26px",
               fontWeight: "bold",
               letterSpacing: "2px",
               textTransform: "uppercase",
@@ -604,9 +598,10 @@ function ItemsContent() {
         <div
           style={{
             display: "flex",
+            flexDirection: isMobile ? "column" : "row",
             gap: "24px",
             flex: 1,
-            overflow: "hidden",
+            overflow: isMobile ? "auto" : "hidden",
             minHeight: 0,
           }}
         >
@@ -615,11 +610,11 @@ function ItemsContent() {
             style={{
               flex: 3,
               minWidth: 0,
-              display: "flex",
+              display: isMobile && selectedItem ? "none" : "flex",
               flexDirection: "column",
               gap: "10px",
-              height: "100%",
-              overflow: "hidden",
+              height: isMobile ? "auto" : "100%",
+              overflow: isMobile ? "visible" : "hidden",
             }}
           >
             {/* Search */}
@@ -642,239 +637,150 @@ function ItemsContent() {
               }}
             />
 
-            {/* 2-column grid: filters (left) | item list (right) */}
+            {/* Filter dropdowns row */}
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "300px 1fr",
-                gridTemplateRows: "1fr 1fr 1fr",
+                display: "flex",
+                flexDirection: isMobile ? "column" : "row",
                 gap: "8px",
-                flex: 1,
-                minHeight: 0,
-                overflow: "hidden",
+                flexShrink: 0,
               }}
             >
-              {/* C1:R1 — Type filter */}
-              <div
+              {/* Type filter */}
+              <select
+                value={selectedType ?? ""}
+                onChange={(e) => handleTypeFilter(e.target.value || null)}
                 style={{
-                  background: "rgba(0,0,0,0.4)",
-                  border: `1px solid ${GOLD_BORDER}`,
-                  borderRadius: "8px",
-                  padding: "10px 12px",
-                  gridColumn: 1,
-                  gridRow: 1,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
+                  flex: 1,
+                  background: "rgba(30,15,5,0.9)",
+                  border: "1px solid rgba(201,168,76,0.4)",
+                  borderRadius: "6px",
+                  padding: "8px 10px",
+                  color: GOLD_BRIGHT,
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  outline: "none",
+                  cursor: "pointer",
                 }}
               >
-                <div
-                  style={{
-                    color: "#b8934a",
-                    fontSize: "9px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    fontFamily: SERIF,
-                    marginBottom: "7px",
-                    flexShrink: 0,
-                  }}
-                >
-                  Type
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", overflowY: "auto", flex: 1, minHeight: 0, alignContent: "flex-start" }}>
-                  <button
-                    onClick={() => handleTypeFilter(null)}
-                    style={makeChipStyle(selectedType === null)}
+                <option value="">All Types</option>
+                {ITEM_TYPES.map((type) => (
+                  <option key={type} value={type} style={{ background: "#1a0e05" }}>
+                    {type}
+                  </option>
+                ))}
+              </select>
+
+              {/* Rarity filter */}
+              <select
+                value={selectedRarity ?? ""}
+                onChange={(e) => handleRarityFilter(e.target.value || null)}
+                style={{
+                  flex: 1,
+                  background: "rgba(30,15,5,0.9)",
+                  border: "1px solid rgba(201,168,76,0.4)",
+                  borderRadius: "6px",
+                  padding: "8px 10px",
+                  color: GOLD_BRIGHT,
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="">All Rarities</option>
+                {ITEM_RARITIES.map((rarity) => (
+                  <option key={rarity} value={rarity} style={{ background: "#1a0e05" }}>
+                    {rarityLabel(rarity)}
+                  </option>
+                ))}
+              </select>
+
+              {/* Source filter */}
+              <select
+                value={selectedSource ?? ""}
+                onChange={(e) => handleSourceFilter(e.target.value || null)}
+                style={{
+                  flex: 1,
+                  background: "rgba(30,15,5,0.9)",
+                  border: "1px solid rgba(201,168,76,0.4)",
+                  borderRadius: "6px",
+                  padding: "8px 10px",
+                  color: GOLD_BRIGHT,
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  outline: "none",
+                  cursor: "pointer",
+                }}
+              >
+                <option value="">All Sources</option>
+                {availableSources.map((src) => (
+                  <option key={src} value={src} style={{ background: "#1a0e05" }}>
+                    {src}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Results count */}
+            <div
+              style={{
+                color: GOLD_MUTED,
+                fontSize: "11px",
+                fontFamily: SERIF,
+                textAlign: "right",
+                flexShrink: 0,
+              }}
+            >
+              {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""}
+            </div>
+
+            {/* Scrollable item list */}
+            <div
+              style={{
+                background: "rgba(0,0,0,0.5)",
+                border: `1px solid ${GOLD_BORDER}`,
+                borderRadius: "8px",
+                overflow: "hidden",
+                flex: 1,
+                overflowY: "auto",
+                minHeight: 0,
+                ...(isMobile ? { maxHeight: "50vh" } : {}),
+              }}
+            >
+              {filteredItems.length === 0 ? (
+                <div style={{ padding: "24px 16px", textAlign: "center" }}>
+                  <p
+                    style={{
+                      color: GOLD_MUTED,
+                      fontSize: "13px",
+                      fontFamily: SERIF,
+                    }}
                   >
-                    All
-                  </button>
-                  {ITEM_TYPES.map((type) => (
-                    <button
-                      key={type}
-                      onClick={() =>
-                        handleTypeFilter(selectedType === type ? null : type)
-                      }
-                      style={makeChipStyle(selectedType === type)}
-                    >
-                      {type}
-                    </button>
-                  ))}
+                    No items match your filters.
+                  </p>
                 </div>
-              </div>
-
-              {/* C1:R2 — Rarity filter */}
-              <div
-                style={{
-                  background: "rgba(0,0,0,0.4)",
-                  border: `1px solid ${GOLD_BORDER}`,
-                  borderRadius: "8px",
-                  padding: "10px 12px",
-                  gridColumn: 1,
-                  gridRow: 2,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                }}
-              >
-                <div
-                  style={{
-                    color: "#b8934a",
-                    fontSize: "9px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    fontFamily: SERIF,
-                    marginBottom: "7px",
-                    flexShrink: 0,
-                  }}
-                >
-                  Rarity
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", overflowY: "auto", flex: 1, minHeight: 0, alignContent: "flex-start" }}>
-                  <button
-                    onClick={() => handleRarityFilter(null)}
-                    style={makeChipStyle(selectedRarity === null)}
-                  >
-                    All
-                  </button>
-                  {ITEM_RARITIES.map((rarity) => (
-                    <button
-                      key={rarity}
-                      onClick={() =>
-                        handleRarityFilter(
-                          selectedRarity === rarity ? null : rarity
-                        )
-                      }
-                      style={makeChipStyle(selectedRarity === rarity)}
-                    >
-                      {rarityLabel(rarity)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* C1:R3 — Source filter (moved to bottom — 74 sources) */}
-              <div
-                style={{
-                  background: "rgba(0,0,0,0.4)",
-                  border: `1px solid ${GOLD_BORDER}`,
-                  borderRadius: "8px",
-                  padding: "10px 12px",
-                  gridColumn: 1,
-                  gridRow: 3,
-                  overflow: "hidden",
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                }}
-              >
-                <div
-                  style={{
-                    color: "#b8934a",
-                    fontSize: "9px",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.08em",
-                    fontFamily: SERIF,
-                    marginBottom: "7px",
-                    flexShrink: 0,
-                  }}
-                >
-                  Source
-                </div>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "5px", overflowY: "auto", flex: 1, minHeight: 0, alignContent: "flex-start" }}>
-                  <button
-                    onClick={() => handleSourceFilter(null)}
-                    style={makeChipStyle(selectedSource === null)}
-                  >
-                    All
-                  </button>
-                  {availableSources.map((src) => (
-                    <button
-                      key={src}
-                      onClick={() =>
-                        handleSourceFilter(selectedSource === src ? null : src)
-                      }
-                      style={makeChipStyle(selectedSource === src)}
-                    >
-                      {src}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* C2:R1-R3 — Item list (spans all 3 rows) */}
-              <div
-                style={{
-                  gridColumn: 2,
-                  gridRow: "1 / 4",
-                  display: "flex",
-                  flexDirection: "column",
-                  minHeight: 0,
-                  overflow: "hidden",
-                }}
-              >
-                {/* Results count */}
-                <div
-                  style={{
-                    color: GOLD_MUTED,
-                    fontSize: "11px",
-                    fontFamily: SERIF,
-                    textAlign: "right",
-                    flexShrink: 0,
-                    paddingBottom: "4px",
-                  }}
-                >
-                  {filteredItems.length} item{filteredItems.length !== 1 ? "s" : ""}
-                </div>
-
-                {/* Scrollable list */}
-                <div
-                  style={{
-                    background: "rgba(0,0,0,0.5)",
-                    border: `1px solid ${GOLD_BORDER}`,
-                    borderRadius: "8px",
-                    overflow: "hidden",
-                    flex: 1,
-                    overflowY: "auto",
-                    minHeight: 0,
-                  }}
-                >
-                  {filteredItems.length === 0 ? (
-                    <div style={{ padding: "24px 16px", textAlign: "center" }}>
-                      <p
-                        style={{
-                          color: GOLD_MUTED,
-                          fontSize: "13px",
-                          fontFamily: SERIF,
-                        }}
-                      >
-                        No items match your filters.
-                      </p>
-                    </div>
-                  ) : (
-                    filteredItems.map((item) => (
-                      <ItemRow
-                        key={`${item.name}|${item.source}`}
-                        item={item}
-                        isActive={
-                          selectedItem?.name === item.name &&
-                          selectedItem?.source === item.source
-                        }
-                        onClick={() => handleSelect(item)}
-                      />
-                    ))
-                  )}
-                </div>
-              </div>
+              ) : (
+                filteredItems.map((item) => (
+                  <ItemRow
+                    key={`${item.name}|${item.source}`}
+                    item={item}
+                    isActive={
+                      selectedItem?.name === item.name &&
+                      selectedItem?.source === item.source
+                    }
+                    onClick={() => handleSelect(item)}
+                  />
+                ))
+              )}
             </div>
           </div>
 
           {/* Right column: item detail */}
           {selectedItem ? (
-            <ItemDetailPanel item={selectedItem} />
+            <ItemDetailPanel item={selectedItem} isMobile={isMobile} onBack={() => setSelectedItem(null)} />
           ) : (
-            <ItemDetailEmpty />
+            <ItemDetailEmpty isMobile={isMobile} />
           )}
         </div>
       </div>

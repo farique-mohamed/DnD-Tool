@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
 import { GOLD, GOLD_MUTED, SERIF, PAGE_SIZE } from "@/components/monster-manual/theme";
 import { MonsterListSidebar } from "@/components/monster-manual/MonsterListSidebar";
@@ -12,10 +13,12 @@ import { MonsterDetailPanel } from "@/components/monster-manual/MonsterDetailPan
 // ---------------------------------------------------------------------------
 
 function MonsterManualContent() {
+  const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
   const [crFilter, setCrFilter] = useState("All");
   const [selected, setSelected] = useState<MonsterInfo>(MONSTER_LIST[0]!);
   const [page, setPage] = useState(0);
+  const [showDetail, setShowDetail] = useState(false);
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -45,6 +48,7 @@ function MonsterManualContent() {
 
   const handleSelect = (m: MonsterInfo) => {
     setSelected(m);
+    if (isMobile) setShowDetail(true);
   };
 
   return (
@@ -53,12 +57,12 @@ function MonsterManualContent() {
         <title>Monster Manual — DnD Tool</title>
       </Head>
 
-      {/* Outer wrapper: fills viewport height minus the main padding (40px top + 40px bottom) */}
+      {/* Outer wrapper: fills viewport height minus the main padding */}
       <div
         style={{
           display: "flex",
           flexDirection: "column",
-          height: "calc(100vh - 80px)",
+          height: isMobile ? "calc(100vh - 48px)" : "calc(100vh - 80px)",
           overflow: "hidden",
         }}
       >
@@ -67,7 +71,7 @@ function MonsterManualContent() {
         <h1
           style={{
             color: GOLD,
-            fontSize: "26px",
+            fontSize: isMobile ? "20px" : "26px",
             fontWeight: "bold",
             letterSpacing: "2px",
             textTransform: "uppercase",
@@ -91,24 +95,33 @@ function MonsterManualContent() {
       </div>
 
       {/* Two-column layout: list | detail — fills remaining height */}
-      <div style={{ display: "flex", gap: "24px", flex: 1, overflow: "hidden", minHeight: 0 }}>
+      <div style={{ display: "flex", gap: isMobile ? "0" : "24px", flex: 1, overflow: "hidden", minHeight: 0 }}>
         {/* Left: search + filters + list */}
-        <MonsterListSidebar
-          query={query}
-          onQueryChange={handleQueryChange}
-          crFilter={crFilter}
-          onCrFilterChange={handleCrFilter}
-          filteredCount={filtered.length}
-          visibleMonsters={visibleMonsters}
-          selected={selected}
-          onSelect={handleSelect}
-          page={page}
-          totalPages={totalPages}
-          onPageChange={setPage}
-        />
+        {(!isMobile || !showDetail) && (
+          <MonsterListSidebar
+            query={query}
+            onQueryChange={handleQueryChange}
+            crFilter={crFilter}
+            onCrFilterChange={handleCrFilter}
+            filteredCount={filtered.length}
+            visibleMonsters={visibleMonsters}
+            selected={selected}
+            onSelect={handleSelect}
+            page={page}
+            totalPages={totalPages}
+            onPageChange={setPage}
+            isMobile={isMobile}
+          />
+        )}
 
         {/* Right: monster detail */}
-        <MonsterDetailPanel monster={selected} />
+        {(!isMobile || showDetail) && (
+          <MonsterDetailPanel
+            monster={selected}
+            isMobile={isMobile}
+            onBack={() => setShowDetail(false)}
+          />
+        )}
       </div>
       </div>
     </>

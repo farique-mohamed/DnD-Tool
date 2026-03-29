@@ -22,9 +22,11 @@ import { SpellcastingSection } from "./SpellcastingSection";
 
 export interface MonsterDetailPanelProps {
   monster: MonsterInfo;
+  isMobile?: boolean;
+  onBack?: () => void;
 }
 
-export function MonsterDetailPanel({ monster }: MonsterDetailPanelProps) {
+export function MonsterDetailPanel({ monster, isMobile, onBack }: MonsterDetailPanelProps) {
   const statRows: Array<{ label: string; value: string }> = [];
 
   if (monster.ac !== null) {
@@ -52,7 +54,7 @@ export function MonsterDetailPanel({ monster }: MonsterDetailPanelProps) {
         borderRadius: "12px",
         boxShadow:
           "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
-        padding: "32px 36px",
+        padding: isMobile ? "20px 16px" : "32px 36px",
         display: "flex",
         flexDirection: "column",
         gap: "20px",
@@ -63,6 +65,26 @@ export function MonsterDetailPanel({ monster }: MonsterDetailPanelProps) {
         boxSizing: "border-box",
       }}
     >
+      {/* Back button (mobile only) */}
+      {isMobile && onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            background: "transparent",
+            border: `1px solid rgba(201,168,76,0.4)`,
+            color: GOLD,
+            borderRadius: "4px",
+            padding: "6px 14px",
+            fontSize: "13px",
+            fontFamily: SERIF,
+            cursor: "pointer",
+            alignSelf: "flex-start",
+          }}
+        >
+          &#8249; Back to list
+        </button>
+      )}
+
       {/* Header */}
       <div>
         <h2
