@@ -4,11 +4,13 @@ import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { BOOK_LIST } from "@/lib/bookData";
 
 function RuleBooksContent() {
   const { user } = useAuth();
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [hoveredSource, setHoveredSource] = useState<string | null>(null);
 
   useEffect(() => {
@@ -30,7 +32,7 @@ function RuleBooksContent() {
         <h1
           style={{
             color: "#c9a84c",
-            fontSize: "26px",
+            fontSize: isMobile ? "20px" : "26px",
             fontWeight: "bold",
             letterSpacing: "2px",
             textTransform: "uppercase",
@@ -63,7 +65,7 @@ function RuleBooksContent() {
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(3, 1fr)",
+            gridTemplateColumns: isMobile ? "repeat(1, 1fr)" : "repeat(3, 1fr)",
             gap: "16px",
           }}
         >
@@ -84,7 +86,7 @@ function RuleBooksContent() {
                     ? "1px solid #c9a84c"
                     : "1px solid rgba(201,168,76,0.25)",
                   borderRadius: "8px",
-                  padding: "20px",
+                  padding: isMobile ? "16px" : "20px",
                   transition: "border-color 0.15s, background 0.15s",
                   fontFamily: "'Georgia', 'Times New Roman', serif",
                 }}

@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
 
 function abilityModifier(score: number): string {
@@ -9,7 +10,7 @@ function abilityModifier(score: number): string {
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
 
-function CharacterCard({ character, onClick }: { character: {
+function CharacterCard({ character, onClick, isMobile }: { character: {
   id: string;
   name: string;
   race: string;
@@ -31,7 +32,7 @@ function CharacterCard({ character, onClick }: { character: {
     status: string;
     adventure: { id: string; name: string; source: string };
   }>;
-}; onClick?: () => void }) {
+}; onClick?: () => void; isMobile?: boolean }) {
   const abilities = [
     { label: "STR", value: character.strength },
     { label: "DEX", value: character.dexterity },
@@ -101,7 +102,7 @@ function CharacterCard({ character, onClick }: { character: {
       {/* Ability Scores */}
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(6, 1fr)",
+        gridTemplateColumns: isMobile ? "repeat(3, 1fr)" : "repeat(6, 1fr)",
         gap: "8px",
         paddingTop: "16px",
         borderTop: "1px solid rgba(201,168,76,0.15)",
@@ -126,6 +127,7 @@ function CharacterCard({ character, onClick }: { character: {
 
 function CharactersContent() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const { data: characters, isLoading } = api.character.list.useQuery();
 
   return (
@@ -134,9 +136,9 @@ function CharactersContent() {
         <title>My Characters — DnD Tool</title>
       </Head>
       <div style={{ maxWidth: "900px" }}>
-        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "8px" }}>
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "flex-start", justifyContent: "space-between", marginBottom: "8px", gap: isMobile ? "12px" : "0" }}>
           <div>
-            <h1 style={{ color: "#c9a84c", fontSize: "26px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "8px" }}>
+            <h1 style={{ color: "#c9a84c", fontSize: isMobile ? "20px" : "26px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "8px" }}>
               My Characters
             </h1>
             <p style={{ color: "#a89060", fontSize: "14px", marginBottom: "32px" }}>
@@ -157,7 +159,7 @@ function CharactersContent() {
             Summoning your adventurers...
           </p>
         ) : !characters || characters.length === 0 ? (
-          <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "12px", padding: "60px 40px", textAlign: "center" }}>
+          <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "12px", padding: isMobile ? "32px 16px" : "60px 40px", textAlign: "center" }}>
             <div style={{ fontSize: "40px", marginBottom: "16px" }}>🛡️</div>
             <p style={{ color: "#e8d5a3", fontSize: "15px", marginBottom: "8px" }}>No characters yet.</p>
             <p style={{ color: "#a89060", fontSize: "13px", marginBottom: "24px" }}>Every legend begins with a single character sheet.</p>
@@ -170,7 +172,7 @@ function CharactersContent() {
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-            {characters.map((c) => <CharacterCard key={c.id} character={c} onClick={() => void router.push(`/characters/${c.id}`)} />)}
+            {characters.map((c) => <CharacterCard key={c.id} character={c} onClick={() => void router.push(`/characters/${c.id}`)} isMobile={isMobile} />)}
           </div>
         )}
       </div>

@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { isSpellcaster } from "@/lib/spellSlotData";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { type CharacterData, type TabId, proficiencyBonus, mod } from "./shared";
 import { HpManager } from "./HpManager";
 import { LevelUpPanel } from "./LevelUpPanel";
@@ -15,6 +16,7 @@ import { EquipmentSummary } from "./EquipmentSummary";
 
 export function CharacterSheet({ character }: { character: CharacterData }) {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const prof = proficiencyBonus(character.level);
   const initiative = mod(character.dexterity);
   const passivePerception = 10 + mod(character.wisdom);
@@ -65,7 +67,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
           borderRadius: "12px",
           boxShadow:
             "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
-          padding: "28px 32px",
+          padding: isMobile ? "16px" : "28px 32px",
           marginBottom: "20px",
         }}
       >
@@ -90,7 +92,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
               <h1
                 style={{
                   color: "#c9a84c",
-                  fontSize: "28px",
+                  fontSize: isMobile ? "22px" : "28px",
                   fontWeight: "bold",
                   letterSpacing: "2px",
                   textTransform: "uppercase",
@@ -236,7 +238,8 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
           display: "flex",
           gap: "8px",
           marginBottom: "20px",
-          flexWrap: "wrap",
+          flexWrap: isMobile ? "nowrap" : "wrap",
+          ...(isMobile ? { overflowX: "auto", WebkitOverflowScrolling: "touch", msOverflowStyle: "none", scrollbarWidth: "none" } : {}),
         }}
       >
         {tabs.map((tab) => (
@@ -244,7 +247,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
-              padding: "8px 20px",
+              padding: isMobile ? "8px 12px" : "8px 20px",
               borderRadius: "6px",
               border:
                 activeTab === tab.id
@@ -256,10 +259,11 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                   : "transparent",
               color: activeTab === tab.id ? "#1a1a2e" : "#c9a84c",
               fontFamily: "'Georgia', serif",
-              fontSize: "13px",
+              fontSize: isMobile ? "11px" : "13px",
               fontWeight: activeTab === tab.id ? "bold" : "normal",
               cursor: "pointer",
               letterSpacing: "0.5px",
+              ...(isMobile ? { flexShrink: 0, whiteSpace: "nowrap" } : {}),
             }}
           >
             {tab.label}
@@ -268,7 +272,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
       </div>
 
       {/* Tab content */}
-      {activeTab === "overview" && <OverviewTab character={character} />}
+      {activeTab === "overview" && <OverviewTab character={character} isMobile={isMobile} />}
       {activeTab === "features" && <ClassFeaturesTab character={character} />}
       {activeTab === "actions" && <ActionsTab character={character} />}
       {activeTab === "spells" && spellcaster && (

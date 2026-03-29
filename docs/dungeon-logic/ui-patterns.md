@@ -285,3 +285,171 @@ const isLoading = login.isPending || register.isPending;
 // Button text becomes: "Rolling the dice..."
 // Inputs and button disabled
 ```
+
+---
+
+## Responsive / Mobile
+
+The site is mobile-friendly using a combination of the `useIsMobile` hook (`src/hooks/useIsMobile.ts`) and CSS media queries in `globals.css`. The breakpoint is **768px**.
+
+### `useIsMobile` Hook
+
+Returns `true` when the viewport width is at or below 768px. Uses `window.matchMedia` for efficiency and SSR safety (defaults to `false` on the server).
+
+```tsx
+import { useIsMobile } from "@/hooks/useIsMobile";
+
+const isMobile = useIsMobile();
+```
+
+### NavBar (Mobile)
+
+- The 220px sidebar is replaced by a **hamburger menu button** fixed at top-left (`12px` inset, `44px` square, `z-index: 1100`).
+- The hamburger uses three gold (`#c9a84c`) bars that animate into an X when open.
+- Tapping the hamburger opens a **full-screen overlay** (`z-index: 1050`) with the same dark gradient background and gold-themed nav items.
+- Nav items are larger on mobile (`16px` font, `14px` vertical padding) for easier tap targets.
+- The overlay closes on nav item click, route change, or tapping the X/hamburger again.
+- Body scroll is locked while the overlay is open via `body.nav-open { overflow: hidden }` in `globals.css`.
+
+### Layout (Mobile)
+
+- Flex direction changes from `row` to `column`.
+- Main content padding reduces from `40px` to `16px`.
+
+### DiceRoller (Mobile)
+
+- The trigger button stays at bottom-right but is slightly smaller (`48px` vs `56px`) and offset `16px` from the edge.
+- The popup expands to **full viewport width** minus `24px` margin (`calc(100vw - 24px)`).
+- History section max-height is reduced to `180px` to keep the input area visible.
+- Popup max-height uses `calc(100vh - 120px)` to fit the screen.
+
+### CSS (`globals.css`)
+
+- `overflow-x: hidden` on `html, body` to prevent horizontal scroll.
+- `body.nav-open` class locks scroll when mobile nav is open.
+- Media query at `768px` sets `min-height: 44px` on `button`, `a`, and `select` elements for accessible tap targets.
+
+### Conventions
+
+- All responsive logic uses **inline styles** conditioned on `useIsMobile()` — no CSS framework.
+- The medieval D&D theme (colors, fonts, shadows) is fully preserved on mobile.
+- New components should import `useIsMobile` and adapt layout/sizing accordingly.
+
+### Classes Page (Mobile)
+
+- The sidebar `ClassListPanel` switches from a 200px vertical column to a **horizontal scrollable row** of class buttons.
+- The main flex container (sidebar + detail panel) stacks vertically (`flexDirection: "column"`).
+- `ClassDetailPanel` padding reduces from `36px 40px` to `20px 16px`.
+- The `OverviewTab` mechanical-details grid changes from two columns (`1fr 1fr`) to a single column (`1fr`).
+- Source toggle buttons (PHB/XPHB) get smaller padding (`6px 10px`) and font size (`11px`).
+- `isMobile` is passed as a prop to `ClassListPanel`, `ClassDetailPanel`, and `OverviewTab`.
+
+### Spells Page (Mobile)
+
+- The outer two-column layout (filters+list | detail) stacks vertically.
+- The inner filter grid switches from `300px 1fr` to single-column `1fr`, with explicit `gridColumn`/`gridRow` removed so items flow naturally.
+- The spell list gets a `maxHeight: "50vh"` on mobile to prevent it from pushing the detail panel off-screen.
+- When a spell is selected on mobile, the filter/list column is hidden (`display: "none"`) and only the `SpellDetailPanel` is shown with a "Back to list" button. Tapping back clears the selection and restores the list view.
+- `SpellDetailPanel` padding reduces from `32px 36px` to `20px 16px`.
+- `SpellDetailEmpty` is hidden on mobile (no empty right panel needed in stacked layout).
+- `isMobile` and `onBack` are passed as props to `SpellDetailPanel`; `isMobile` to `SpellDetailEmpty`.
+
+### Adventure Detail Page (Mobile)
+
+- The tab bar becomes horizontally scrollable (`overflowX: "auto"`, `whiteSpace: "nowrap"`) with hidden scrollbar, so tabs don't wrap or overflow.
+- Tab button padding reduces from `12px 24px` to `8px 12px`, font size from `14px` to `11px`.
+- The page heading reduces from `26px` to `20px`.
+- The "not found" card padding reduces from `60px 40px` to `32px 16px`.
+
+### Monster Manual Page (Mobile)
+
+- Uses the same list/detail toggle pattern as the Spells page: on mobile, only one panel is visible at a time.
+- When no monster is being viewed, the full-width `MonsterListSidebar` is shown (width changes from `280px` to `100%`).
+- Selecting a monster hides the list and shows `MonsterDetailPanel` with a "Back to list" button at the top.
+- The outer wrapper height uses `calc(100vh - 48px)` on mobile (vs `calc(100vh - 80px)` on desktop) to account for reduced Layout padding.
+- The page heading reduces from `26px` to `20px`.
+- `MonsterDetailPanel` padding reduces from `32px 36px` to `20px 16px`.
+- `isMobile` is passed as a prop to `MonsterListSidebar` and `MonsterDetailPanel`; `onBack` is passed to `MonsterDetailPanel`.
+
+### StoryTab (Mobile)
+
+- The two-column TOC + content layout stacks vertically on mobile.
+- The TOC sidebar is replaced by a `<select>` dropdown for chapter selection, saving vertical space.
+- The dropdown uses the same dark input styling (`rgba(30,15,5,0.9)` background, gold border).
+- Content panel padding reduces from `28px 32px` to `16px`.
+
+### Adventure Books Detail Page (Mobile)
+
+- Same TOC + content pattern as `StoryTab`: the sidebar TOC becomes a `<select>` dropdown on mobile.
+- Content panel padding reduces from `28px 32px` to `16px`.
+- The page heading reduces from `26px` to `20px`.
+
+### CharacterSheetModal (Mobile)
+
+- Modal outer padding reduces from `40px 20px` to `16px 8px`.
+- Modal inner padding reduces from `32px` to `16px`.
+- The tab bar becomes horizontally scrollable with smaller padding (`8px 12px`) and font size (`11px`).
+- Ability scores grid changes from `repeat(6, 1fr)` to `repeat(3, 1fr)` (2 rows of 3).
+- Saving Throws + Skills grid changes from `1fr 1fr` to `1fr` (stacked vertically).
+
+### MyCharacterTab (Mobile)
+
+- Outer padding reduces from `32px` to `16px`.
+- Ability scores grid changes from `repeat(6, 1fr)` to `repeat(3, 1fr)` (2 rows of 3).
+
+### Items Page (Mobile)
+
+- Same list/detail toggle pattern as the Spells page: on mobile, only one panel is visible at a time (filters+list or detail).
+- The outer two-column layout (filters+list | detail) stacks vertically (`flexDirection: "column"`).
+- The inner filter grid changes from `300px 1fr` to `1fr` (single column); explicit `gridColumn`/`gridRow` are removed on mobile.
+- The item list gets `maxHeight: "50vh"` on mobile to prevent it from consuming the entire viewport.
+- When an item is selected on mobile, the filters and list are hidden and only the detail panel is shown, with a back button to return.
+- `ItemDetailPanel` padding reduces from `32px 36px` to `20px 16px`.
+- `ItemDetailEmpty` is hidden on mobile (`display: "none"`).
+- The page heading reduces from `26px` to `20px`.
+- Height calc changes from `calc(100vh - 80px)` to `calc(100vh - 48px)` on mobile (Layout padding is 16px on mobile).
+
+### Rule Books Listing (Mobile)
+
+- The 3-column grid changes to a single column (`repeat(1, 1fr)`).
+- The page heading reduces from `26px` to `20px`.
+- Card padding reduces from `20px` to `16px`.
+
+### Rule Books Detail (Mobile)
+
+- Same TOC + content pattern as Adventure Books: the sidebar TOC becomes a `<select>` dropdown on mobile.
+- Content padding reduces from `28px 32px` to `16px`.
+- The page heading reduces from `26px` to `20px`.
+- "Not found" card padding reduces from `60px 40px` to `32px 16px`.
+
+### DM Rules / Player Rules (Mobile)
+
+- Both pages share the same `BookViewer` component pattern.
+- The `BookViewer` accepts an `isMobile` prop. On mobile, the TOC sidebar becomes a `<select>` dropdown.
+- Content padding reduces from `28px 32px` to `16px`.
+- The page heading reduces from `26px` to `20px`.
+
+### Characters List (Mobile)
+
+- The header stacks vertically (title above "Create Character" button) instead of side-by-side.
+- The page heading reduces from `26px` to `20px`.
+- `CharacterCard` ability scores grid changes from `repeat(6, 1fr)` to `repeat(3, 1fr)` (2 rows of 3).
+- Empty state card padding reduces from `60px 40px` to `32px 16px`.
+- `isMobile` is passed as a prop to `CharacterCard`.
+
+### Create Character (Mobile)
+
+- Form card padding reduces from `36px 32px` to `20px 16px`.
+- The page heading reduces from `26px` to `20px`.
+- Submit button row stacks vertically on mobile.
+- `AbilityScoreSection` ability scores grid changes from `repeat(6, 1fr)` to `repeat(3, 1fr)`.
+- `IdentitySection` race/class grid changes from `1fr 1fr` to `1fr` (stacked).
+- `CombatSection` grid changes from `1fr 1fr 1fr` to `1fr` (stacked).
+
+### Character Sheet (Mobile)
+
+- Header card padding reduces from `28px 32px` to `16px`.
+- Character name font size reduces from `28px` to `22px`.
+- Tab bar becomes horizontally scrollable (`overflowX: "auto"`, `flexWrap: "nowrap"`) with hidden scrollbar; tab buttons get smaller padding (`8px 12px`) and font size (`11px`).
+- `OverviewTab` saving throws + skills grid changes from `1fr 1fr` to `1fr` (stacked vertically).
+- `isMobile` is passed as a prop to `OverviewTab`.

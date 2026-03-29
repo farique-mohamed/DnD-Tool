@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import {
   getClassesBySource,
   type ClassInfo,
@@ -50,14 +51,24 @@ function ClassListPanel({
   classes,
   selected,
   onSelect,
+  isMobile,
 }: {
   classes: ClassInfo[];
   selected: ClassInfo;
   onSelect: (c: ClassInfo) => void;
+  isMobile: boolean;
 }) {
   return (
     <div
-      style={{
+      style={isMobile ? {
+        width: "100%",
+        display: "flex",
+        flexDirection: "row",
+        gap: "6px",
+        overflowX: "auto",
+        paddingBottom: "8px",
+        WebkitOverflowScrolling: "touch",
+      } : {
         width: "200px",
         flexShrink: 0,
         display: "flex",
@@ -73,7 +84,8 @@ function ClassListPanel({
             onClick={() => onSelect(cls)}
             style={{
               textAlign: "left",
-              padding: "10px 14px",
+              padding: isMobile ? "8px 14px" : "10px 14px",
+              ...(isMobile ? { flexShrink: 0, whiteSpace: "nowrap" as const } : {}),
               background: isActive
                 ? "rgba(201,168,76,0.15)"
                 : "rgba(0,0,0,0.3)",
@@ -151,14 +163,14 @@ function TabButton({
 
 /* ---------- Overview tab ---------- */
 
-function OverviewTab({ cls }: { cls: ClassInfo }) {
+function OverviewTab({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
       {/* Mechanical details grid */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "1fr 1fr",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
           gap: "20px",
         }}
       >
@@ -737,7 +749,7 @@ function ProgressionTab({
 
 /* ---------- Detail panel (tabs) ---------- */
 
-function ClassDetailPanel({ cls }: { cls: ClassInfo }) {
+function ClassDetailPanel({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean }) {
   const [activeTab, setActiveTab] = useState<ActiveTab>("overview");
   const [selectedSubclass, setSelectedSubclass] = useState<SubclassInfo | null>(null);
 
@@ -750,7 +762,7 @@ function ClassDetailPanel({ cls }: { cls: ClassInfo }) {
         borderRadius: "12px",
         boxShadow:
           "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
-        padding: "36px 40px",
+        padding: isMobile ? "20px 16px" : "36px 40px",
         display: "flex",
         flexDirection: "column",
         gap: "24px",
@@ -811,7 +823,7 @@ function ClassDetailPanel({ cls }: { cls: ClassInfo }) {
       </div>
 
       {/* Tab content */}
-      {activeTab === "overview" && <OverviewTab cls={cls} />}
+      {activeTab === "overview" && <OverviewTab cls={cls} isMobile={isMobile} />}
       {activeTab === "progression" && (
         <ProgressionTab
           cls={cls}
@@ -826,6 +838,7 @@ function ClassDetailPanel({ cls }: { cls: ClassInfo }) {
 /* ---------- Page ---------- */
 
 function ClassCompendiumContent() {
+  const isMobile = useIsMobile();
   const [selectedSource, setSelectedSource] = useState<"PHB" | "XPHB">("PHB");
   const filteredClasses = getClassesBySource(selectedSource);
   const [selected, setSelected] = useState<ClassInfo>(filteredClasses[0]!);
@@ -887,8 +900,8 @@ function ClassCompendiumContent() {
                   : "1px solid rgba(201,168,76,0.3)",
                 color: selectedSource === opt.value ? "#1a1a2e" : "#a89060",
                 fontWeight: selectedSource === opt.value ? "bold" : "normal",
-                padding: "8px 18px",
-                fontSize: "12px",
+                padding: isMobile ? "6px 10px" : "8px 18px",
+                fontSize: isMobile ? "11px" : "12px",
                 fontFamily: "'Georgia', serif",
                 cursor: "pointer",
                 letterSpacing: "0.3px",
@@ -909,9 +922,9 @@ function ClassCompendiumContent() {
           }}
         />
 
-        <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
-          <ClassListPanel classes={filteredClasses} selected={selected} onSelect={handleSelect} />
-          <ClassDetailPanel key={`${selected.name}-${selected.source}`} cls={selected} />
+        <div style={{ display: "flex", gap: isMobile ? "16px" : "24px", alignItems: "flex-start", flexDirection: isMobile ? "column" : "row" }}>
+          <ClassListPanel classes={filteredClasses} selected={selected} onSelect={handleSelect} isMobile={isMobile} />
+          <ClassDetailPanel key={`${selected.name}-${selected.source}`} cls={selected} isMobile={isMobile} />
         </div>
       </div>
     </>

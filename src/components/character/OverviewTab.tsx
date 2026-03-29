@@ -176,7 +176,7 @@ function RaceFeaturesSection({
   );
 }
 
-export function OverviewTab({ character }: { character: CharacterData }) {
+export function OverviewTab({ character, isMobile }: { character: CharacterData; isMobile?: boolean }) {
   const prof = proficiencyBonus(character.level);
   const savingProfs =
     SAVING_THROW_PROFICIENCIES[character.characterClass] ?? [];
@@ -223,7 +223,7 @@ export function OverviewTab({ character }: { character: CharacterData }) {
   return (
     <div>
       <div
-        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}
+        style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "20px" }}
       >
         {/* Left column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>

@@ -4,6 +4,7 @@ import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
 import { ADVENTURE_LIST } from "@/lib/adventureData";
 import {
@@ -27,6 +28,7 @@ import {
 // ---------------------------------------------------------------------------
 
 function AdventureDetailContent() {
+  const isMobile = useIsMobile();
   const { user } = useAuth();
   const router = useRouter();
   const id = typeof router.query.id === "string" ? router.query.id : "";
@@ -99,7 +101,7 @@ function AdventureDetailContent() {
           background: "rgba(0,0,0,0.4)",
           border: "1px solid rgba(201,168,76,0.2)",
           borderRadius: "12px",
-          padding: "60px 40px",
+          padding: isMobile ? "32px 16px" : "60px 40px",
           textAlign: "center",
         }}
       >
@@ -157,7 +159,7 @@ function AdventureDetailContent() {
       <h1
         style={{
           color: "#c9a84c",
-          fontSize: "26px",
+          fontSize: isMobile ? "20px" : "26px",
           fontWeight: "bold",
           letterSpacing: "2px",
           textTransform: "uppercase",
@@ -200,6 +202,13 @@ function AdventureDetailContent() {
           gap: "0",
           borderBottom: "1px solid rgba(201,168,76,0.3)",
           marginBottom: "24px",
+          ...(isMobile ? {
+            overflowX: "auto" as const,
+            whiteSpace: "nowrap" as const,
+            WebkitOverflowScrolling: "touch" as const,
+            msOverflowStyle: "none" as const,
+            scrollbarWidth: "none" as const,
+          } : {}),
         }}
       >
         {tabs.map((tab) => {
@@ -209,14 +218,14 @@ function AdventureDetailContent() {
               key={tab.key}
               onClick={() => setActiveTab(tab.key as TabKey)}
               style={{
-                padding: "12px 24px",
+                padding: isMobile ? "8px 12px" : "12px 24px",
                 background: isActive ? "rgba(201,168,76,0.15)" : "transparent",
                 border: "none",
                 borderBottom: isActive
                   ? "2px solid #c9a84c"
                   : "2px solid transparent",
                 color: isActive ? "#c9a84c" : "#a89060",
-                fontSize: "14px",
+                fontSize: isMobile ? "11px" : "14px",
                 fontFamily: "'Georgia', 'Times New Roman', serif",
                 fontWeight: "bold",
                 letterSpacing: "1px",
@@ -225,6 +234,7 @@ function AdventureDetailContent() {
                 display: "flex",
                 alignItems: "center",
                 gap: "8px",
+                flexShrink: 0,
               }}
             >
               {tab.label}

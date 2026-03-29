@@ -25,6 +25,7 @@ export interface MonsterListSidebarProps {
   page: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  isMobile?: boolean;
 }
 
 export function MonsterListSidebar({
@@ -39,11 +40,12 @@ export function MonsterListSidebar({
   page,
   totalPages,
   onPageChange,
+  isMobile,
 }: MonsterListSidebarProps) {
   return (
     <div
       style={{
-        width: "280px",
+        width: isMobile ? "100%" : "280px",
         flexShrink: 0,
         display: "flex",
         flexDirection: "column",

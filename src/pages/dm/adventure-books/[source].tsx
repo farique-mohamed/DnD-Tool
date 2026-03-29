@@ -5,6 +5,7 @@ import Link from "next/link";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
 import {
   ADVENTURE_LIST,
@@ -281,6 +282,7 @@ function renderEntries(
 // ---------------------------------------------------------------------------
 
 function AdventureDetailContent() {
+  const isMobile = useIsMobile();
   const { user } = useAuth();
   const router = useRouter();
   const source =
@@ -351,7 +353,7 @@ function AdventureDetailContent() {
       <h1
         style={{
           color: "#c9a84c",
-          fontSize: "26px",
+          fontSize: isMobile ? "20px" : "26px",
           fontWeight: "bold",
           letterSpacing: "2px",
           textTransform: "uppercase",
@@ -590,78 +592,104 @@ function AdventureDetailContent() {
           </p>
         </div>
       ) : (
-        <div style={{ display: "flex", gap: "24px", alignItems: "flex-start" }}>
-          {/* Table of Contents — Left Panel */}
-          <div
-            style={{
-              flex: "0 0 240px",
-              minWidth: "200px",
-              maxWidth: "280px",
-              position: "sticky",
-              top: "24px",
-              maxHeight: "calc(100vh - 120px)",
-              overflowY: "auto",
-              background: "rgba(0,0,0,0.4)",
-              border: "1px solid rgba(201,168,76,0.2)",
-              borderRadius: "8px",
-              padding: "12px 0",
-            }}
-          >
-            <p
+        <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: isMobile ? "16px" : "24px", alignItems: "flex-start" }}>
+          {/* Table of Contents */}
+          {isMobile ? (
+            <select
+              value={selectedSectionIndex}
+              onChange={(e) => setSelectedSectionIndex(Number(e.target.value))}
               style={{
-                color: "#c9a84c",
-                fontSize: "11px",
-                letterSpacing: "1.2px",
-                textTransform: "uppercase",
-                padding: "0 14px 10px",
-                borderBottom: "1px solid rgba(201,168,76,0.15)",
-                marginBottom: "8px",
+                width: "100%",
+                padding: "10px 14px",
+                background: "rgba(30,15,5,0.9)",
+                border: "1px solid rgba(201,168,76,0.4)",
+                borderRadius: "6px",
+                color: "#e8d5a3",
+                fontSize: "13px",
                 fontFamily: "'Georgia', 'Times New Roman', serif",
+                outline: "none",
+                cursor: "pointer",
+                boxSizing: "border-box",
               }}
             >
-              Contents
-            </p>
-            {adventureData.map((section, i) => {
-              const isActive = i === selectedSectionIndex;
-              return (
-                <button
-                  key={i}
-                  onClick={() => setSelectedSectionIndex(i)}
-                  style={{
-                    display: "block",
-                    width: "100%",
-                    textAlign: "left",
-                    padding: "8px 14px",
-                    background: isActive
-                      ? "rgba(201,168,76,0.15)"
-                      : "transparent",
-                    border: "none",
-                    borderLeft: isActive
-                      ? "2px solid #c9a84c"
-                      : "2px solid transparent",
-                    color: isActive ? "#c9a84c" : "#e8d5a3",
-                    fontSize: "13px",
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
-                    cursor: "pointer",
-                    lineHeight: "1.4",
-                    transition: "background 0.1s, color 0.1s",
-                  }}
-                >
+              {adventureData.map((section, i) => (
+                <option key={i} value={i}>
                   {section.name ?? `Section ${i + 1}`}
-                </button>
-              );
-            })}
-          </div>
+                </option>
+              ))}
+            </select>
+          ) : (
+            <div
+              style={{
+                flex: "0 0 240px",
+                minWidth: "200px",
+                maxWidth: "280px",
+                position: "sticky",
+                top: "24px",
+                maxHeight: "calc(100vh - 120px)",
+                overflowY: "auto",
+                background: "rgba(0,0,0,0.4)",
+                border: "1px solid rgba(201,168,76,0.2)",
+                borderRadius: "8px",
+                padding: "12px 0",
+              }}
+            >
+              <p
+                style={{
+                  color: "#c9a84c",
+                  fontSize: "11px",
+                  letterSpacing: "1.2px",
+                  textTransform: "uppercase",
+                  padding: "0 14px 10px",
+                  borderBottom: "1px solid rgba(201,168,76,0.15)",
+                  marginBottom: "8px",
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                }}
+              >
+                Contents
+              </p>
+              {adventureData.map((section, i) => {
+                const isActive = i === selectedSectionIndex;
+                return (
+                  <button
+                    key={i}
+                    onClick={() => setSelectedSectionIndex(i)}
+                    style={{
+                      display: "block",
+                      width: "100%",
+                      textAlign: "left",
+                      padding: "8px 14px",
+                      background: isActive
+                        ? "rgba(201,168,76,0.15)"
+                        : "transparent",
+                      border: "none",
+                      borderLeft: isActive
+                        ? "2px solid #c9a84c"
+                        : "2px solid transparent",
+                      color: isActive ? "#c9a84c" : "#e8d5a3",
+                      fontSize: "13px",
+                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      cursor: "pointer",
+                      lineHeight: "1.4",
+                      transition: "background 0.1s, color 0.1s",
+                    }}
+                  >
+                    {section.name ?? `Section ${i + 1}`}
+                  </button>
+                );
+              })}
+            </div>
+          )}
 
           {/* Content — Right Panel */}
-          <div style={{ flex: 3, minWidth: 0 }}>
+          <div style={{ flex: 3, minWidth: 0, width: isMobile ? "100%" : undefined }}>
             {selectedSection && (
               <div
                 style={{
                   background: "rgba(0,0,0,0.4)",
                   border: "1px solid rgba(201,168,76,0.2)",
                   borderRadius: "8px",
-                  padding: "28px 32px",
+                  padding: isMobile ? "16px" : "28px 32px",
                 }}
               >
                 <h2

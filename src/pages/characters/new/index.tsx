@@ -3,6 +3,7 @@ import { useState, useCallback, useMemo, useEffect } from "react";
 import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { ThisIsYourLifeGenerator } from "@/components/ThisIsYourLifeGenerator";
 import { api } from "@/utils/api";
 import { getClassByNameAndSource } from "@/lib/classData";
@@ -24,6 +25,7 @@ import {
 
 function CreateCharacterContent() {
   const router = useRouter();
+  const isMobile = useIsMobile();
   const [form, setForm] = useState<FormState>({
     name: "",
     rulesSource: "PHB",
@@ -287,7 +289,7 @@ function CreateCharacterContent() {
         <title>Create Character — DnD Tool</title>
       </Head>
       <div style={{ maxWidth: "700px" }}>
-        <h1 style={{ color: "#c9a84c", fontSize: "26px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "8px" }}>
+        <h1 style={{ color: "#c9a84c", fontSize: isMobile ? "20px" : "26px", fontWeight: "bold", letterSpacing: "2px", textTransform: "uppercase", marginBottom: "8px" }}>
           Create New Character
         </h1>
         <p style={{ color: "#a89060", fontSize: "14px", marginBottom: "32px" }}>
@@ -301,7 +303,7 @@ function CreateCharacterContent() {
             border: "2px solid #c9a84c",
             borderRadius: "12px",
             boxShadow: "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
-            padding: "36px 32px",
+            padding: isMobile ? "20px 16px" : "36px 32px",
             display: "flex",
             flexDirection: "column",
             gap: "28px",
@@ -379,7 +381,7 @@ function CreateCharacterContent() {
               </div>
             )}
 
-            <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end", paddingTop: "8px" }}>
+            <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "12px", justifyContent: "flex-end", paddingTop: "8px" }}>
               <button type="button" onClick={() => void router.push("/characters")} disabled={isLoading} style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.5)", color: "#c9a84c", borderRadius: "4px", padding: "10px 20px", fontFamily: "'Georgia', serif", fontSize: "13px", cursor: "pointer" }}>
                 Cancel
               </button>

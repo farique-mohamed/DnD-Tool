@@ -9,6 +9,7 @@ import {
   type FormState,
 } from "./shared";
 import { useMemo } from "react";
+import { useIsMobile } from "@/hooks/useIsMobile";
 
 interface IdentitySectionProps {
   form: FormState;
@@ -23,6 +24,7 @@ export function IdentitySection({
   onFormChange,
   onRulesSourceChange,
 }: IdentitySectionProps) {
+  const isMobile = useIsMobile();
   const filteredClasses = useMemo(
     () => getClassesBySource(form.rulesSource),
     [form.rulesSource],
@@ -74,7 +76,7 @@ export function IdentitySection({
           <label htmlFor="name" style={labelStyle}>Character Name</label>
           <input id="name" name="name" type="text" placeholder="Enter a name worthy of legend..." value={form.name} onChange={onFormChange} style={inputStyle} required disabled={isLoading} />
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: "16px" }}>
           <div>
             <label htmlFor="race" style={labelStyle}>Race</label>
             <select id="race" name="race" value={form.race} onChange={onFormChange} style={{ ...inputStyle, cursor: "pointer" }} required disabled={isLoading}>

@@ -2,6 +2,7 @@ import Head from "next/head";
 import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { useIsMobile } from "@/hooks/useIsMobile";
 import { SPELLS, SPELL_SOURCES, type Spell } from "@/lib/spellsData";
 import { SPELL_CLASSES, type SpellClass } from "@/lib/spellClassMap";
 
@@ -233,7 +234,7 @@ function SpellRow({
 // Spell detail panel (right side)
 // ---------------------------------------------------------------------------
 
-function SpellDetailPanel({ spell }: { spell: Spell }) {
+function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?: boolean; onBack?: () => void }) {
   const color = schoolColor(spell.school);
 
   const metaRows: Array<{ label: string; value: string }> = [
@@ -253,7 +254,7 @@ function SpellDetailPanel({ spell }: { spell: Spell }) {
         borderRadius: "12px",
         boxShadow:
           "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
-        padding: "32px 36px",
+        padding: isMobile ? "20px 16px" : "32px 36px",
         display: "flex",
         flexDirection: "column",
         gap: "20px",
@@ -264,6 +265,26 @@ function SpellDetailPanel({ spell }: { spell: Spell }) {
         boxSizing: "border-box",
       }}
     >
+      {/* Back button (mobile only) */}
+      {isMobile && onBack && (
+        <button
+          onClick={onBack}
+          style={{
+            background: "none",
+            border: `1px solid ${GOLD_BORDER}`,
+            borderRadius: "6px",
+            padding: "6px 14px",
+            color: GOLD,
+            fontSize: "12px",
+            fontFamily: SERIF,
+            cursor: "pointer",
+            alignSelf: "flex-start",
+            letterSpacing: "0.5px",
+          }}
+        >
+          &larr; Back to list
+        </button>
+      )}
       {/* Header */}
       <div>
         <h2
@@ -503,7 +524,7 @@ function SpellDetailPanel({ spell }: { spell: Spell }) {
 // Empty detail placeholder
 // ---------------------------------------------------------------------------
 
-function SpellDetailEmpty() {
+function SpellDetailEmpty({ isMobile }: { isMobile?: boolean }) {
   return (
     <div
       style={{
@@ -511,7 +532,7 @@ function SpellDetailEmpty() {
         background: "rgba(0,0,0,0.4)",
         border: `1px solid ${GOLD_BORDER}`,
         borderRadius: "12px",
-        display: "flex",
+        display: isMobile ? "none" : "flex",
         alignItems: "center",
         justifyContent: "center",
         minWidth: 0,
@@ -564,6 +585,7 @@ function makeChipStyle(active: boolean): React.CSSProperties {
 // ---------------------------------------------------------------------------
 
 function SpellsContent() {
+  const isMobile = useIsMobile();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [selectedClass, setSelectedClass] = useState<SpellClass | null>(null);
@@ -655,9 +677,10 @@ function SpellsContent() {
         <div
           style={{
             display: "flex",
+            flexDirection: isMobile ? "column" : "row",
             gap: "24px",
             flex: 1,
-            overflow: "hidden",
+            overflow: isMobile ? "auto" : "hidden",
             minHeight: 0,
           }}
         >
@@ -666,11 +689,11 @@ function SpellsContent() {
             style={{
               flex: 3,
               minWidth: 0,
-              display: "flex",
+              display: isMobile && selectedSpell ? "none" : "flex",
               flexDirection: "column",
               gap: "10px",
-              height: "100%",
-              overflow: "hidden",
+              height: isMobile ? "auto" : "100%",
+              overflow: isMobile ? "visible" : "hidden",
             }}
           >
             {/* Search */}
@@ -697,12 +720,12 @@ function SpellsContent() {
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "300px 1fr",
-                gridTemplateRows: "auto auto 1fr",
+                gridTemplateColumns: isMobile ? "1fr" : "300px 1fr",
+                gridTemplateRows: isMobile ? "auto auto auto auto" : "auto auto 1fr",
                 gap: "8px",
                 flex: 1,
                 minHeight: 0,
-                overflow: "hidden",
+                overflow: isMobile ? "visible" : "hidden",
               }}
             >
               {/* C1:R1 — Source filter */}
@@ -712,8 +735,7 @@ function SpellsContent() {
                   border: `1px solid ${GOLD_BORDER}`,
                   borderRadius: "8px",
                   padding: "10px 12px",
-                  gridColumn: 1,
-                  gridRow: 1,
+                  ...(isMobile ? {} : { gridColumn: 1, gridRow: 1 }),
                   overflow: "hidden",
                 }}
               >
@@ -757,8 +779,7 @@ function SpellsContent() {
                   border: `1px solid ${GOLD_BORDER}`,
                   borderRadius: "8px",
                   padding: "10px 12px",
-                  gridColumn: 1,
-                  gridRow: 2,
+                  ...(isMobile ? {} : { gridColumn: 1, gridRow: 2 }),
                   overflow: "hidden",
                 }}
               >
@@ -802,8 +823,7 @@ function SpellsContent() {
                   border: `1px solid ${GOLD_BORDER}`,
                   borderRadius: "8px",
                   padding: "10px 12px",
-                  gridColumn: 1,
-                  gridRow: 3,
+                  ...(isMobile ? {} : { gridColumn: 1, gridRow: 3 }),
                   overflow: "hidden",
                 }}
               >
@@ -843,12 +863,12 @@ function SpellsContent() {
               {/* C2:R1-R3 — Spell list (spans all 3 rows) */}
               <div
                 style={{
-                  gridColumn: 2,
-                  gridRow: "1 / 4",
+                  ...(isMobile ? {} : { gridColumn: 2, gridRow: "1 / 4" }),
                   display: "flex",
                   flexDirection: "column",
                   minHeight: 0,
                   overflow: "hidden",
+                  ...(isMobile ? { maxHeight: "50vh" } : {}),
                 }}
               >
                 {/* Results count */}
@@ -909,9 +929,9 @@ function SpellsContent() {
 
           {/* Right column: spell detail — smaller */}
           {selectedSpell ? (
-            <SpellDetailPanel spell={selectedSpell} />
+            <SpellDetailPanel spell={selectedSpell} isMobile={isMobile} onBack={() => setSelectedSpell(null)} />
           ) : (
-            <SpellDetailEmpty />
+            <SpellDetailEmpty isMobile={isMobile} />
           )}
         </div>
       </div>
