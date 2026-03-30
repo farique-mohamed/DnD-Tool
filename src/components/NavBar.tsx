@@ -12,6 +12,9 @@ function getNavItems(role: string): NavItem[] {
   switch (role) {
     case "ADMIN":
       return [
+        { label: "Admin Dashboard", href: "/admin" },
+        { label: "User Management", href: "/admin/users" },
+        { label: "Adventure Oversight", href: "/admin/adventures" },
         { label: "DM Requests", href: "/admin/dm-requests" },
         { label: "Global Settings", href: "/admin/settings" },
       ];

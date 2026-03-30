@@ -140,8 +140,136 @@ function ApproveDialog({
   );
 }
 
+interface RejectDialogProps {
+  request: PendingRequest;
+  onConfirm: () => void;
+  onCancel: () => void;
+  isLoading: boolean;
+}
+
+function RejectDialog({
+  request,
+  onConfirm,
+  onCancel,
+  isLoading,
+}: RejectDialogProps) {
+  return (
+    <div
+      style={{
+        position: "fixed",
+        inset: 0,
+        background: "rgba(0,0,0,0.75)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 1000,
+      }}
+      onClick={onCancel}
+    >
+      <div
+        style={{
+          background: "rgba(13,13,26,0.98)",
+          border: "2px solid #c9a84c",
+          borderRadius: "12px",
+          boxShadow:
+            "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
+          padding: "40px 36px",
+          maxWidth: "420px",
+          width: "100%",
+          fontFamily: "'Georgia', 'Times New Roman', serif",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h2
+          style={{
+            color: "#e74c3c",
+            fontSize: "18px",
+            letterSpacing: "1px",
+            textTransform: "uppercase",
+            marginBottom: "16px",
+          }}
+        >
+          Deny Request
+        </h2>
+        <div
+          style={{
+            width: "60px",
+            height: "2px",
+            background: "linear-gradient(90deg, transparent, #e74c3c, transparent)",
+            marginBottom: "24px",
+          }}
+        />
+        <p style={{ color: "#e8d5a3", fontSize: "14px", lineHeight: "1.7", marginBottom: "8px" }}>
+          Are you sure you want to deny{" "}
+          <span style={{ color: "#c9a84c", fontWeight: "bold" }}>
+            {request.user.username}
+          </span>
+          &apos;s request to become a Dungeon Master?
+        </p>
+        <p
+          style={{
+            color: "#c9a84c",
+            fontSize: "16px",
+            fontWeight: "bold",
+            letterSpacing: "0.5px",
+            marginBottom: "24px",
+            padding: "10px 16px",
+            background: "rgba(201,168,76,0.1)",
+            border: "1px solid rgba(201,168,76,0.3)",
+            borderRadius: "6px",
+          }}
+        >
+          {request.user.username}
+        </p>
+        <p style={{ color: "#a89060", fontSize: "13px", marginBottom: "28px" }}>
+          This adventurer will remain without the authority to lead campaigns.
+        </p>
+        <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onCancel}
+            disabled={isLoading}
+            style={{
+              background: "transparent",
+              border: "1px solid rgba(201,168,76,0.5)",
+              color: "#c9a84c",
+              borderRadius: "4px",
+              padding: "10px 20px",
+              fontFamily: "'Georgia', serif",
+              fontSize: "13px",
+              cursor: "pointer",
+              opacity: isLoading ? 0.5 : 1,
+            }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={isLoading}
+            style={{
+              background: "linear-gradient(135deg, #8b2a1e, #e74c3c)",
+              color: "#fff",
+              border: "none",
+              borderRadius: "6px",
+              padding: "10px 24px",
+              fontSize: "13px",
+              fontFamily: "'Georgia', serif",
+              fontWeight: "bold",
+              cursor: isLoading ? "not-allowed" : "pointer",
+              letterSpacing: "0.5px",
+              opacity: isLoading ? 0.7 : 1,
+            }}
+          >
+            {isLoading ? "Denying..." : "Deny Request"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function DmRequestsContent() {
   const [pendingApproval, setPendingApproval] = useState<PendingRequest | null>(null);
+  const [pendingRejection, setPendingRejection] = useState<PendingRequest | null>(null);
   const utils = api.useUtils();
 
   const { data: requests, isLoading, error } = api.admin.getDmRequests.useQuery();
@@ -153,13 +281,30 @@ function DmRequestsContent() {
     },
   });
 
+  const rejectMutation = api.admin.rejectDmRequest.useMutation({
+    onSuccess: async () => {
+      await utils.admin.getDmRequests.invalidate();
+      setPendingRejection(null);
+    },
+  });
+
   const handleApproveClick = (request: PendingRequest) => {
     setPendingApproval(request);
+  };
+
+  const handleRejectClick = (request: PendingRequest) => {
+    setPendingRejection(request);
   };
 
   const handleConfirmApprove = () => {
     if (pendingApproval) {
       approveMutation.mutate({ requestId: pendingApproval.id });
+    }
+  };
+
+  const handleConfirmReject = () => {
+    if (pendingRejection) {
+      rejectMutation.mutate({ requestId: pendingRejection.id });
     }
   };
 
@@ -175,6 +320,15 @@ function DmRequestsContent() {
           onConfirm={handleConfirmApprove}
           onCancel={() => setPendingApproval(null)}
           isLoading={approveMutation.isPending}
+        />
+      )}
+
+      {pendingRejection && (
+        <RejectDialog
+          request={pendingRejection}
+          onConfirm={handleConfirmReject}
+          onCancel={() => setPendingRejection(null)}
+          isLoading={rejectMutation.isPending}
         />
       )}
 
@@ -217,6 +371,22 @@ function DmRequestsContent() {
             }}
           >
             Failed to approve request. Please try again.
+          </div>
+        )}
+
+        {rejectMutation.isError && (
+          <div
+            style={{
+              background: "rgba(139,42,30,0.2)",
+              border: "1px solid #8b2a1e",
+              borderRadius: "8px",
+              padding: "12px 16px",
+              color: "#e74c3c",
+              fontSize: "13px",
+              marginBottom: "20px",
+            }}
+          >
+            Failed to reject request. Please try again.
           </div>
         )}
 
@@ -293,23 +463,41 @@ function DmRequestsContent() {
                     })}
                   </div>
                 </div>
-                <button
-                  onClick={() => handleApproveClick(request)}
-                  style={{
-                    background: "linear-gradient(135deg, #8b6914, #c9a84c)",
-                    color: "#1a1a2e",
-                    border: "none",
-                    borderRadius: "6px",
-                    padding: "8px 20px",
-                    fontSize: "13px",
-                    fontFamily: "'Georgia', serif",
-                    fontWeight: "bold",
-                    cursor: "pointer",
-                    letterSpacing: "0.5px",
-                  }}
-                >
-                  Approve
-                </button>
+                <div style={{ display: "flex", gap: "8px" }}>
+                  <button
+                    onClick={() => handleRejectClick(request)}
+                    style={{
+                      background: "transparent",
+                      border: "1px solid rgba(231,76,60,0.5)",
+                      color: "#e74c3c",
+                      borderRadius: "6px",
+                      padding: "8px 16px",
+                      fontSize: "13px",
+                      fontFamily: "'Georgia', serif",
+                      cursor: "pointer",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    onClick={() => handleApproveClick(request)}
+                    style={{
+                      background: "linear-gradient(135deg, #8b6914, #c9a84c)",
+                      color: "#1a1a2e",
+                      border: "none",
+                      borderRadius: "6px",
+                      padding: "8px 20px",
+                      fontSize: "13px",
+                      fontFamily: "'Georgia', serif",
+                      fontWeight: "bold",
+                      cursor: "pointer",
+                      letterSpacing: "0.5px",
+                    }}
+                  >
+                    Approve
+                  </button>
+                </div>
               </div>
             ))}
           </div>

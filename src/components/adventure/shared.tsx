@@ -6,14 +6,22 @@ import {
 import { ITEMS, type Item } from "@/lib/itemsData";
 
 // ---------------------------------------------------------------------------
-// Styling constants
+// Styling constants (re-exported from the shared UI theme)
 // ---------------------------------------------------------------------------
 
-export const GOLD = "#c9a84c";
-export const GOLD_MUTED = "#a89060";
-export const GOLD_BRIGHT = "#e8d5a3";
-export const TEXT_DIM = "rgba(232,213,163,0.6)";
-export const SERIF = "'Georgia', 'Times New Roman', serif";
+import {
+  GOLD as _GOLD,
+  GOLD_MUTED as _GOLD_MUTED,
+  GOLD_BRIGHT as _GOLD_BRIGHT,
+  TEXT_DIM as _TEXT_DIM,
+  SERIF as _SERIF,
+} from "@/components/ui/theme";
+
+export const GOLD = _GOLD;
+export const GOLD_MUTED = _GOLD_MUTED;
+export const GOLD_BRIGHT = _GOLD_BRIGHT;
+export const TEXT_DIM = _TEXT_DIM;
+export const SERIF = _SERIF;
 
 // ---------------------------------------------------------------------------
 // Tab definitions

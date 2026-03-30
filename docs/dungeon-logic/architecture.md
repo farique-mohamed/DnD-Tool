@@ -11,6 +11,7 @@ src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── auth              — authRouter (auth.login, auth.register)
        └── user              — userRouter (user.requestDungeonMaster)
        └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
+       └── admin             — adminRouter (admin.getDmRequests, admin.approveDmRequest, admin.rejectDmRequest, admin.getStats, admin.getUsers, admin.updateUserRole, admin.deleteUser, admin.getAdventures)
        └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.getUnreadReactionCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote, adventure.equipItem, adventure.unequipItem, adventure.getEquipmentStatus, adventure.createEncounter, adventure.getEncounter, adventure.endEncounter, adventure.addEncounterPlayer, adventure.addEncounterMonster, adventure.removeParticipant, adventure.nextTurn, adventure.updateParticipantHp, adventure.updateParticipantConditions, adventure.updateDeathSaves, adventure.togglePrivateDeathSaves, adventure.updateInitiative)
        └── (future routers)  — add here and re-export AppRouter type
 
@@ -147,6 +148,21 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.updateDeathSaves`   | mutation | Set death save successes (0–3) and failures (0–3); DM or owning player |
 | `adventure.togglePrivateDeathSaves` | mutation | Toggle privateDeathSaves flag on the encounter; DM-only |
 | `adventure.updateInitiative`   | mutation | Change a participant's initiative roll; DM-only |
+
+### Admin tRPC procedures
+
+All admin procedures use `protectedProcedure` and reject non-ADMIN callers with `FORBIDDEN`. See `admin-dashboard.md` for full details.
+
+| Procedure                | Type     | Description                                                                                                     |
+| ------------------------ | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `admin.getDmRequests`    | query    | List pending DM requests with user info, ordered by requestedAt desc                                            |
+| `admin.approveDmRequest` | mutation | Approve a pending DM request; sets status to APPROVED, resolvedAt, resolvedBy; promotes user role to DUNGEON_MASTER |
+| `admin.rejectDmRequest`  | mutation | Reject a pending DM request; sets status to REJECTED, resolvedAt, resolvedBy                                     |
+| `admin.getStats`         | query    | System-wide statistics: total users, users by role, total characters, total adventures, active encounters, total dice rolls, recent signups (7 days), pending DM requests |
+| `admin.getUsers`         | query    | Paginated user list with optional search (username) and role filter; returns user info with character/adventure/dice roll counts |
+| `admin.updateUserRole`   | mutation | Change a user's role (PLAYER, DUNGEON_MASTER, ADMIN); rejects self-role-change with BAD_REQUEST                  |
+| `admin.deleteUser`       | mutation | Delete a user and all related data (characters, adventures, dice rolls, notes, inventory, encounters, DM requests) in a transaction; rejects self-deletion with BAD_REQUEST |
+| `admin.getAdventures`    | query    | Paginated adventure list with optional search (name); returns adventure info with owner, player/monster/item counts, and active encounter status |
 
 ---
 
