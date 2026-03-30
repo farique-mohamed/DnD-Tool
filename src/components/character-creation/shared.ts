@@ -2,10 +2,12 @@
 // Shared constants, types, and styles for character-creation components
 // ---------------------------------------------------------------------------
 
-export const CHARACTER_RACES = [
-  "Human", "Elf", "Dwarf", "Halfling", "Gnome",
-  "Half-Elf", "Half-Orc", "Tiefling", "Dragonborn",
-];
+// Unique race names sorted alphabetically — used by the character creation race dropdown.
+// Dynamically derived from RACES so new races are automatically included.
+import { RACES } from "@/lib/raceData";
+export const CHARACTER_RACES: string[] = Array.from(
+  new Set(RACES.map((r) => r.name)),
+).sort();
 
 export const ALIGNMENTS = [
   "Lawful Good", "Neutral Good", "Chaotic Good",
@@ -33,6 +35,7 @@ export interface FormState {
   maxHp: number;
   armorClass: number;
   speed: number;
+  languages: string[];
 }
 
 export const ALL_SKILLS = [

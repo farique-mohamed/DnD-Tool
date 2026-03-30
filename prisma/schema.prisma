@@ -106,6 +106,7 @@ model Character {
   alignment    String   @default("True Neutral")
   background   String?
   backstory    String?
+  languages    String  @default("[]")               // JSON: string[] of known language names
 
   // Ability scores (standard D&D 5e: 1–20)
   strength     Int      @default(10)

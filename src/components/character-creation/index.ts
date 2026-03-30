@@ -6,4 +6,5 @@ export { SkillExpertiseSection } from "./SkillExpertiseSection";
 export { AbilityScoreSection } from "./AbilityScoreSection";
 export { CombatSection } from "./CombatSection";
 export { BackstorySection } from "./BackstorySection";
+export { LanguageSection } from "./LanguageSection";
 export * from "./shared";

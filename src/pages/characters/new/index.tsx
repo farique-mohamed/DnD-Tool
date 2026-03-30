@@ -10,9 +10,10 @@ import { getClassByNameAndSource } from "@/lib/classData";
 import { BACKGROUNDS } from "@/lib/backgroundData";
 import type { Background } from "@/lib/backgroundData";
 import { classHasExpertise, getExpertiseCountAtLevel } from "@/lib/expertiseData";
-import { getRaceByNameAndSource } from "@/lib/raceData";
+import { getRaceByNameAndSource, getRaceByName } from "@/lib/raceData";
 import {
   IdentitySection,
+  LanguageSection,
   SkillProficiencySection,
   SkillExpertiseSection,
   AbilityScoreSection,
@@ -43,6 +44,7 @@ function CreateCharacterContent() {
     maxHp: 10,
     armorClass: 10,
     speed: 30,
+    languages: [],
   });
   const [error, setError] = useState<string | null>(null);
   const [selectedBgChoiceSkills, setSelectedBgChoiceSkills] = useState<string[]>([]);
@@ -78,7 +80,14 @@ function CreateCharacterContent() {
 
   // Look up the selected race's structured data
   const raceInfo = useMemo(
-    () => (form.race ? getRaceByNameAndSource(form.race, form.rulesSource) : undefined),
+    () => {
+      if (!form.race) return undefined;
+      // Try exact match with selected rules source first (for races that exist in both PHB and XPHB)
+      const exactMatch = getRaceByNameAndSource(form.race, form.rulesSource);
+      if (exactMatch) return exactMatch;
+      // Fall back to any source (for races from VGM, MPMM, VRGR, etc.)
+      return getRaceByName(form.race);
+    },
     [form.race, form.rulesSource],
   );
 
@@ -127,6 +136,20 @@ function CreateCharacterContent() {
     setRacialAsiChoices([]);
     setXphbAsiChoices({});
   }, [prevRaceRef]);
+
+  // Auto-populate fixed languages when race changes
+  useEffect(() => {
+    if (!raceInfo) {
+      setForm((prev) => ({ ...prev, languages: [] }));
+      return;
+    }
+    const fixed = raceInfo.languages.filter(
+      (l) =>
+        !l.toLowerCase().includes("extra language") &&
+        !l.toLowerCase().includes("other languages"),
+    );
+    setForm((prev) => ({ ...prev, languages: [...fixed] }));
+  }, [raceInfo]);
 
   // Fixed skills from background (auto-selected, locked)
   const bgFixedSkills = backgroundInfo?.skillProficiencies ?? [];
@@ -204,6 +227,10 @@ function CreateCharacterContent() {
     setXphbAsiChoices({});
   };
 
+  const handleLanguagesChange = useCallback((languages: string[]) => {
+    setForm((prev) => ({ ...prev, languages }));
+  }, []);
+
   const handleUseBackstory = useCallback((text: string) => {
     setForm((prev) => ({
       ...prev,
@@ -264,6 +291,7 @@ function CreateCharacterContent() {
       alignment: form.alignment as Parameters<typeof createCharacter.mutate>[0]["alignment"],
       background: form.background || undefined,
       backstory: form.backstory || undefined,
+      languages: form.languages.length > 0 ? JSON.stringify(form.languages) : undefined,
       skillProficiencies: allSelectedSkills.length > 0 ? JSON.stringify(allSelectedSkills) : undefined,
       skillExpertise: selectedExpertiseSkills.length > 0 ? JSON.stringify(selectedExpertiseSkills) : undefined,
       strength: form.strength + racialBonuses.strength,
@@ -315,6 +343,13 @@ function CreateCharacterContent() {
               isLoading={isLoading}
               onFormChange={handleChange}
               onRulesSourceChange={handleRulesSourceChange}
+            />
+
+            {/* Languages */}
+            <LanguageSection
+              raceInfo={raceInfo}
+              selectedLanguages={form.languages}
+              onLanguagesChange={handleLanguagesChange}
             />
 
             {/* Skill Proficiencies */}
