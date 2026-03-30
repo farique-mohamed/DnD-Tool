@@ -3,8 +3,7 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { SPELLS, SPELL_SOURCES, type Spell } from "@/lib/spellsData";
-import { SPELL_CLASSES, type SpellClass } from "@/lib/spellClassMap";
+import { RACES, RACE_SOURCES, type RaceInfo } from "@/lib/raceData";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -18,53 +17,45 @@ const GOLD_BORDER = "rgba(201,168,76,0.25)";
 const TEXT_DIM = "rgba(232,213,163,0.6)";
 const SERIF = "'Georgia', 'Times New Roman', serif";
 
-const SCHOOL_COLORS: Record<string, string> = {
-  Abjuration: "#4a90d9",
-  Conjuration: "#9b59b6",
-  Divination: "#27ae60",
-  Enchantment: "#e91e8c",
-  Evocation: "#e74c3c",
-  Illusion: "#8e44ad",
-  Necromancy: "#7f8c8d",
-  Transmutation: "#e67e22",
+
+// ---------------------------------------------------------------------------
+// Source badge color helper
+// ---------------------------------------------------------------------------
+
+const SOURCE_COLORS: Record<string, { bg: string; border: string; text: string }> = {
+  PHB: { bg: "rgba(74,144,217,0.1)", border: "rgba(74,144,217,0.35)", text: "#7ab4e0" },
+  XPHB: { bg: "rgba(46,204,113,0.1)", border: "rgba(46,204,113,0.35)", text: "#6dd5a0" },
+  VGM: { bg: "rgba(155,89,182,0.1)", border: "rgba(155,89,182,0.35)", text: "#bb8fd9" },
+  MPMM: { bg: "rgba(231,76,60,0.1)", border: "rgba(231,76,60,0.35)", text: "#e8887d" },
+  ERLW: { bg: "rgba(230,126,34,0.1)", border: "rgba(230,126,34,0.35)", text: "#e8a76d" },
+  EGW: { bg: "rgba(52,152,219,0.1)", border: "rgba(52,152,219,0.35)", text: "#7cbde8" },
+  VRGR: { bg: "rgba(225,29,72,0.1)", border: "rgba(225,29,72,0.35)", text: "#e8637e" },
+  GGR: { bg: "rgba(245,158,11,0.1)", border: "rgba(245,158,11,0.35)", text: "#f5b84d" },
+  MOT: { bg: "rgba(14,165,233,0.1)", border: "rgba(14,165,233,0.35)", text: "#5dc4f0" },
+  AI: { bg: "rgba(132,204,22,0.1)", border: "rgba(132,204,22,0.35)", text: "#a3d95c" },
+  AAG: { bg: "rgba(99,102,241,0.1)", border: "rgba(99,102,241,0.35)", text: "#9597f5" },
+  SCC: { bg: "rgba(217,70,239,0.1)", border: "rgba(217,70,239,0.35)", text: "#e08ef0" },
+  TOB: { bg: "rgba(139,101,8,0.1)", border: "rgba(139,101,8,0.35)", text: "#b8934a" },
 };
 
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
-
-function levelLabel(level: number): string {
-  if (level === 0) return "Cantrip";
-  const suffixes = ["st", "nd", "rd"];
-  const suffix = suffixes[level - 1] ?? "th";
-  return `${level}${suffix}`;
-}
-
-function levelLabelFull(level: number): string {
-  if (level === 0) return "Cantrip";
-  const suffixes = ["st", "nd", "rd"];
-  const suffix = suffixes[level - 1] ?? "th";
-  return `${level}${suffix} Level`;
-}
-
-function schoolColor(school: string): string {
-  return SCHOOL_COLORS[school] ?? GOLD;
+function sourceColor(source: string) {
+  return SOURCE_COLORS[source] ?? { bg: GOLD_DIM, border: GOLD_BORDER, text: GOLD_MUTED };
 }
 
 // ---------------------------------------------------------------------------
-// Spell list row
+// Race list row
 // ---------------------------------------------------------------------------
 
-function SpellRow({
-  spell,
+function RaceRow({
+  race,
   isActive,
   onClick,
 }: {
-  spell: Spell;
+  race: RaceInfo;
   isActive: boolean;
   onClick: () => void;
 }) {
-  const color = schoolColor(spell.school);
+  const sc = sourceColor(race.source);
 
   return (
     <button
@@ -95,17 +86,8 @@ function SpellRow({
             "transparent";
       }}
     >
-      {/* Name + school dot + level badge + source badge */}
+      {/* Name + source badge */}
       <div style={{ display: "flex", alignItems: "center", gap: "8px", minWidth: 0 }}>
-        <span
-          style={{
-            width: "7px",
-            height: "7px",
-            borderRadius: "50%",
-            background: color,
-            flexShrink: 0,
-          }}
-        />
         <span
           style={{
             color: isActive ? GOLD : GOLD_BRIGHT,
@@ -119,131 +101,77 @@ function SpellRow({
             minWidth: 0,
           }}
         >
-          {spell.name}
+          {race.name}
         </span>
-        {/* Source badge */}
         <span
           style={{
             flexShrink: 0,
-            background: "rgba(74,144,217,0.1)",
-            border: "1px solid rgba(74,144,217,0.35)",
+            background: sc.bg,
+            border: `1px solid ${sc.border}`,
             borderRadius: "3px",
             padding: "0px 5px",
-            color: "#7ab4e0",
+            color: sc.text,
             fontSize: "10px",
             fontFamily: SERIF,
             letterSpacing: "0.3px",
           }}
         >
-          {spell.source}
-        </span>
-        {/* Level badge */}
-        <span
-          style={{
-            flexShrink: 0,
-            background: "rgba(201,168,76,0.1)",
-            border: `1px solid rgba(201,168,76,0.3)`,
-            borderRadius: "3px",
-            padding: "0px 5px",
-            color: GOLD_MUTED,
-            fontSize: "10px",
-            fontFamily: SERIF,
-            letterSpacing: "0.3px",
-          }}
-        >
-          {levelLabel(spell.level)}
+          {race.source}
         </span>
       </div>
 
-      {/* School · Cast · Range */}
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          flexWrap: "nowrap",
-          overflow: "hidden",
-        }}
-      >
-        <span
-          style={{
-            color: color,
-            fontSize: "10px",
-            fontFamily: SERIF,
-            flexShrink: 0,
-            opacity: 0.85,
-          }}
-        >
-          {spell.school}
+      {/* Size + Speed */}
+      <div style={{ display: "flex", gap: "10px", flexWrap: "nowrap", overflow: "hidden" }}>
+        <span style={{ color: TEXT_DIM, fontSize: "10px", fontFamily: SERIF, flexShrink: 0 }}>
+          {race.size.includes("or") ? "Med/Small" : race.size}
         </span>
         <span style={{ color: TEXT_DIM, fontSize: "10px", fontFamily: SERIF, flexShrink: 0 }}>
-          {spell.castingTime}
+          {race.speed} ft.
         </span>
-        <span
-          style={{
-            color: TEXT_DIM,
-            fontSize: "10px",
-            fontFamily: SERIF,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {spell.range}
-        </span>
-      </div>
-
-      {/* Duration · Components */}
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          flexWrap: "nowrap",
-          overflow: "hidden",
-        }}
-      >
-        <span
-          style={{
-            color: TEXT_DIM,
-            fontSize: "10px",
-            fontFamily: SERIF,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            flex: 1,
-            minWidth: 0,
-          }}
-        >
-          {spell.duration}
-        </span>
-        <span
-          style={{
-            color: GOLD_MUTED,
-            fontSize: "10px",
-            fontFamily: SERIF,
-            flexShrink: 0,
-          }}
-        >
-          {spell.components}
-        </span>
+        {race.abilityScoreIncrease && (
+          <span
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "10px",
+              fontFamily: SERIF,
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {race.abilityScoreIncrease}
+          </span>
+        )}
       </div>
     </button>
   );
 }
 
 // ---------------------------------------------------------------------------
-// Spell detail panel (right side)
+// Race detail panel
 // ---------------------------------------------------------------------------
 
-function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?: boolean; onBack?: () => void }) {
-  const color = schoolColor(spell.school);
+function RaceDetailPanel({
+  race,
+  isMobile,
+  onBack,
+}: {
+  race: RaceInfo;
+  isMobile?: boolean;
+  onBack?: () => void;
+}) {
+  const sc = sourceColor(race.source);
 
   const metaRows: Array<{ label: string; value: string }> = [
-    { label: "Casting Time", value: spell.castingTime },
-    { label: "Range", value: spell.range },
-    { label: "Duration", value: spell.duration },
-    { label: "Components", value: spell.components },
-    { label: "Source", value: spell.source },
+    { label: "Size", value: race.size },
+    { label: "Speed", value: `${race.speed} ft.` },
+    { label: "Languages", value: race.languages.join(", ") },
+    { label: "Source", value: race.source },
   ];
+
+  if (race.abilityScoreIncrease) {
+    metaRows.splice(2, 0, { label: "Ability Scores", value: race.abilityScoreIncrease });
+  }
 
   return (
     <div
@@ -285,6 +213,7 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
           &larr; Back to list
         </button>
       )}
+
       {/* Header */}
       <div>
         <h2
@@ -299,7 +228,7 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
             marginBottom: "6px",
           }}
         >
-          {spell.name}
+          {race.name}
         </h2>
         <p
           style={{
@@ -310,27 +239,25 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
             margin: 0,
           }}
         >
-          {levelLabelFull(spell.level)}
-          {spell.level > 0 && " · "}
-          <span style={{ color: color }}>{spell.school}</span>
+          {race.size} &middot; {race.speed} ft.
         </p>
       </div>
 
-      {/* School badge + level badge + source badge */}
+      {/* Badges */}
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
         <span
           style={{
-            background: "rgba(0,0,0,0.4)",
-            border: `1px solid ${color}`,
+            background: sc.bg,
+            border: `1px solid ${sc.border}`,
             borderRadius: "6px",
             padding: "4px 12px",
-            color: color,
+            color: sc.text,
             fontSize: "12px",
             fontFamily: SERIF,
             fontWeight: "bold",
           }}
         >
-          {spell.school}
+          {race.source}
         </span>
         <span
           style={{
@@ -343,20 +270,20 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
             fontFamily: SERIF,
           }}
         >
-          {levelLabelFull(spell.level)}
+          {race.size.includes("or") ? "Medium / Small" : race.size}
         </span>
         <span
           style={{
-            background: "rgba(74,144,217,0.1)",
-            border: "1px solid rgba(74,144,217,0.35)",
+            background: GOLD_DIM,
+            border: `1px solid ${GOLD_BORDER}`,
             borderRadius: "6px",
             padding: "4px 12px",
-            color: "#7ab4e0",
+            color: GOLD_MUTED,
             fontSize: "12px",
             fontFamily: SERIF,
           }}
         >
-          {spell.source}
+          {race.speed} ft.
         </span>
       </div>
 
@@ -403,53 +330,6 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
         ))}
       </div>
 
-      {/* Classes */}
-      <div>
-        <div
-          style={{
-            color: GOLD,
-            fontSize: "10px",
-            textTransform: "uppercase",
-            letterSpacing: "1.2px",
-            fontFamily: SERIF,
-            marginBottom: "8px",
-          }}
-        >
-          Classes
-        </div>
-        {spell.classes.length > 0 ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
-            {spell.classes.map((cls) => (
-              <span
-                key={cls}
-                style={{
-                  background: "rgba(201,168,76,0.1)",
-                  border: "1px solid rgba(201,168,76,0.35)",
-                  borderRadius: "6px",
-                  padding: "3px 10px",
-                  color: GOLD_BRIGHT,
-                  fontSize: "11px",
-                  fontFamily: SERIF,
-                }}
-              >
-                {cls}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <span
-            style={{
-              color: TEXT_DIM,
-              fontSize: "12px",
-              fontFamily: SERIF,
-              fontStyle: "italic",
-            }}
-          >
-            Unknown / Non-class spell
-          </span>
-        )}
-      </div>
-
       {/* Gradient divider */}
       <div
         style={{
@@ -459,7 +339,7 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
         }}
       />
 
-      {/* Description */}
+      {/* Racial Traits */}
       <div>
         <div
           style={{
@@ -468,54 +348,56 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
             textTransform: "uppercase",
             letterSpacing: "1.2px",
             fontFamily: SERIF,
-            marginBottom: "10px",
+            marginBottom: "12px",
           }}
         >
-          Description
+          Racial Traits
         </div>
-        <p
-          style={{
-            color: TEXT_DIM,
-            fontSize: "13px",
-            fontFamily: SERIF,
-            lineHeight: "1.7",
-            margin: 0,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-          {spell.description}
-        </p>
-      </div>
-
-      {/* At Higher Levels */}
-      {spell.higherLevel && (
-        <div>
-          <div
-            style={{
-              color: GOLD,
-              fontSize: "10px",
-              textTransform: "uppercase",
-              letterSpacing: "1.2px",
-              fontFamily: SERIF,
-              marginBottom: "8px",
-            }}
-          >
-            At Higher Levels
-          </div>
+        {race.traits.length === 0 ? (
           <p
             style={{
               color: TEXT_DIM,
               fontSize: "13px",
               fontFamily: SERIF,
-              lineHeight: "1.7",
+              fontStyle: "italic",
               margin: 0,
-              whiteSpace: "pre-wrap",
             }}
           >
-            {spell.higherLevel}
+            No special traits.
           </p>
-        </div>
-      )}
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+            {race.traits.map((trait) => (
+              <div key={trait.name}>
+                <h4
+                  style={{
+                    color: GOLD_BRIGHT,
+                    fontSize: "14px",
+                    fontWeight: "bold",
+                    fontFamily: SERIF,
+                    margin: 0,
+                    marginBottom: "4px",
+                  }}
+                >
+                  {trait.name}
+                </h4>
+                <p
+                  style={{
+                    color: TEXT_DIM,
+                    fontSize: "13px",
+                    fontFamily: SERIF,
+                    lineHeight: "1.7",
+                    margin: 0,
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {trait.description}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -524,7 +406,7 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
 // Empty detail placeholder
 // ---------------------------------------------------------------------------
 
-function SpellDetailEmpty({ isMobile }: { isMobile?: boolean }) {
+function RaceDetailEmpty({ isMobile }: { isMobile?: boolean }) {
   return (
     <div
       style={{
@@ -547,60 +429,35 @@ function SpellDetailEmpty({ isMobile }: { isMobile?: boolean }) {
           fontStyle: "italic",
         }}
       >
-        Select a spell to view its details.
+        Select a race to view its details.
       </p>
     </div>
   );
 }
 
-
 // ---------------------------------------------------------------------------
 // Main page content
 // ---------------------------------------------------------------------------
 
-function SpellsContent() {
+function RacesContent() {
   const isMobile = useIsMobile();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
-  const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
-  const [selectedClass, setSelectedClass] = useState<SpellClass | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
+  const [selectedRace, setSelectedRace] = useState<RaceInfo | null>(null);
 
-  const availableLevels = useMemo(() => {
-    return Array.from(new Set(SPELLS.map((s) => s.level))).sort((a, b) => a - b);
-  }, []);
-
-  const filteredSpells = useMemo(() => {
-    return SPELLS.filter((spell) => {
-      if (selectedSource && spell.source !== selectedSource) return false;
-      if (selectedLevel !== null && spell.level !== selectedLevel) return false;
-      if (selectedClass && !spell.classes.includes(selectedClass)) return false;
-      if (searchQuery && !spell.name.toLowerCase().includes(searchQuery.toLowerCase()))
+  const filteredRaces = useMemo(() => {
+    return RACES.filter((race) => {
+      if (selectedSource && race.source !== selectedSource) return false;
+      if (searchQuery && !race.name.toLowerCase().includes(searchQuery.toLowerCase()))
         return false;
       return true;
     });
-  }, [selectedSource, selectedLevel, selectedClass, searchQuery]);
-
-  const handleSelect = (spell: Spell) => {
-    setSelectedSpell(spell);
-  };
-
-  const handleSourceFilter = (src: string | null) => {
-    setSelectedSource(src);
-  };
-
-  const handleLevelFilter = (level: number | null) => {
-    setSelectedLevel(level);
-  };
-
-  const handleClassFilter = (cls: SpellClass | null) => {
-    setSelectedClass(cls);
-  };
+  }, [selectedSource, searchQuery]);
 
   return (
     <>
       <Head>
-        <title>Spell Compendium — DnD Tool</title>
+        <title>Race Compendium — DnD Tool</title>
       </Head>
 
       {/* Outer wrapper fills viewport height minus Layout padding */}
@@ -608,7 +465,7 @@ function SpellsContent() {
         style={{
           display: "flex",
           flexDirection: "column",
-          height: "calc(100vh - 80px)",
+          height: isMobile ? "calc(100vh - 48px)" : "calc(100vh - 80px)",
           overflow: "hidden",
         }}
       >
@@ -617,7 +474,7 @@ function SpellsContent() {
           <h1
             style={{
               color: GOLD,
-              fontSize: "26px",
+              fontSize: isMobile ? "20px" : "26px",
               fontWeight: "bold",
               letterSpacing: "2px",
               textTransform: "uppercase",
@@ -625,7 +482,7 @@ function SpellsContent() {
               fontFamily: SERIF,
             }}
           >
-            Spell Compendium
+            Race Compendium
           </h1>
           <p
             style={{
@@ -635,7 +492,7 @@ function SpellsContent() {
               fontFamily: SERIF,
             }}
           >
-            Browse and filter the arcane arts.
+            Browse and discover the peoples of the realms.
           </p>
           <div
             style={{
@@ -647,7 +504,7 @@ function SpellsContent() {
           />
         </div>
 
-        {/* Two-column layout: list (flex:3) | detail (flex:2) */}
+        {/* Two-column layout: list | detail */}
         <div
           style={{
             display: "flex",
@@ -658,12 +515,12 @@ function SpellsContent() {
             minHeight: 0,
           }}
         >
-          {/* Left column: filters + spell list — takes more horizontal space */}
+          {/* Left column: filters + race list */}
           <div
             style={{
               flex: 3,
               minWidth: 0,
-              display: isMobile && selectedSpell ? "none" : "flex",
+              display: isMobile && selectedRace ? "none" : "flex",
               flexDirection: "column",
               gap: "10px",
               height: isMobile ? "auto" : "100%",
@@ -673,7 +530,7 @@ function SpellsContent() {
             {/* Search */}
             <input
               type="text"
-              placeholder="Search spells..."
+              placeholder="Search races..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               style={{
@@ -702,7 +559,7 @@ function SpellsContent() {
               {/* Source filter */}
               <select
                 value={selectedSource ?? ""}
-                onChange={(e) => handleSourceFilter(e.target.value || null)}
+                onChange={(e) => setSelectedSource(e.target.value || null)}
                 style={{
                   flex: 1,
                   background: "rgba(30,15,5,0.9)",
@@ -717,59 +574,9 @@ function SpellsContent() {
                 }}
               >
                 <option value="">All Sources</option>
-                {SPELL_SOURCES.map((src) => (
+                {RACE_SOURCES.map((src) => (
                   <option key={src} value={src} style={{ background: "#1a0e05" }}>
                     {src}
-                  </option>
-                ))}
-              </select>
-
-              {/* Class filter */}
-              <select
-                value={selectedClass ?? ""}
-                onChange={(e) => handleClassFilter((e.target.value || null) as SpellClass | null)}
-                style={{
-                  flex: 1,
-                  background: "rgba(30,15,5,0.9)",
-                  border: "1px solid rgba(201,168,76,0.4)",
-                  borderRadius: "6px",
-                  padding: "8px 10px",
-                  color: GOLD_BRIGHT,
-                  fontSize: "12px",
-                  fontFamily: SERIF,
-                  outline: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="">All Classes</option>
-                {SPELL_CLASSES.map((cls) => (
-                  <option key={cls} value={cls} style={{ background: "#1a0e05" }}>
-                    {cls}
-                  </option>
-                ))}
-              </select>
-
-              {/* Level filter */}
-              <select
-                value={selectedLevel === null ? "" : String(selectedLevel)}
-                onChange={(e) => handleLevelFilter(e.target.value === "" ? null : Number(e.target.value))}
-                style={{
-                  flex: 1,
-                  background: "rgba(30,15,5,0.9)",
-                  border: "1px solid rgba(201,168,76,0.4)",
-                  borderRadius: "6px",
-                  padding: "8px 10px",
-                  color: GOLD_BRIGHT,
-                  fontSize: "12px",
-                  fontFamily: SERIF,
-                  outline: "none",
-                  cursor: "pointer",
-                }}
-              >
-                <option value="">All Levels</option>
-                {availableLevels.map((level) => (
-                  <option key={level} value={String(level)} style={{ background: "#1a0e05" }}>
-                    {levelLabelFull(level)}
                   </option>
                 ))}
               </select>
@@ -785,10 +592,10 @@ function SpellsContent() {
                 flexShrink: 0,
               }}
             >
-              {filteredSpells.length} spell{filteredSpells.length !== 1 ? "s" : ""}
+              {filteredRaces.length} race{filteredRaces.length !== 1 ? "s" : ""}
             </div>
 
-            {/* Scrollable spell list */}
+            {/* Scrollable race list */}
             <div
               style={{
                 background: "rgba(0,0,0,0.5)",
@@ -801,7 +608,7 @@ function SpellsContent() {
                 ...(isMobile ? { maxHeight: "50vh" } : {}),
               }}
             >
-              {filteredSpells.length === 0 ? (
+              {filteredRaces.length === 0 ? (
                 <div style={{ padding: "24px 16px", textAlign: "center" }}>
                   <p
                     style={{
@@ -810,30 +617,34 @@ function SpellsContent() {
                       fontFamily: SERIF,
                     }}
                   >
-                    No spells match your filters.
+                    No races match your filters.
                   </p>
                 </div>
               ) : (
-                filteredSpells.map((spell) => (
-                  <SpellRow
-                    key={`${spell.name}|${spell.source}`}
-                    spell={spell}
+                filteredRaces.map((race) => (
+                  <RaceRow
+                    key={`${race.name}|${race.source}`}
+                    race={race}
                     isActive={
-                      selectedSpell?.name === spell.name &&
-                      selectedSpell?.source === spell.source
+                      selectedRace?.name === race.name &&
+                      selectedRace?.source === race.source
                     }
-                    onClick={() => handleSelect(spell)}
+                    onClick={() => setSelectedRace(race)}
                   />
                 ))
               )}
             </div>
           </div>
 
-          {/* Right column: spell detail — smaller */}
-          {selectedSpell ? (
-            <SpellDetailPanel spell={selectedSpell} isMobile={isMobile} onBack={() => setSelectedSpell(null)} />
+          {/* Right column: race detail */}
+          {selectedRace ? (
+            <RaceDetailPanel
+              race={selectedRace}
+              isMobile={isMobile}
+              onBack={() => setSelectedRace(null)}
+            />
           ) : (
-            <SpellDetailEmpty isMobile={isMobile} />
+            <RaceDetailEmpty isMobile={isMobile} />
           )}
         </div>
       </div>
@@ -841,11 +652,11 @@ function SpellsContent() {
   );
 }
 
-export default function SpellsPage() {
+export default function RacesPage() {
   return (
     <ProtectedRoute>
       <Layout>
-        <SpellsContent />
+        <RacesContent />
       </Layout>
     </ProtectedRoute>
   );

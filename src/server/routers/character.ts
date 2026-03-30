@@ -28,6 +28,7 @@ export const characterRouter = createTRPCRouter({
         alignment: z.enum(ALIGNMENTS).default("True Neutral"),
         background: z.string().optional(),
         backstory: z.string().optional(),
+        languages: z.string().optional(),
         skillProficiencies: z.string().optional(),
         skillExpertise: z.string().optional(),
         strength: abilityScore.default(10),

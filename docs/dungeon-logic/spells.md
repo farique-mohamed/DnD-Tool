@@ -72,7 +72,7 @@ All three filters are applied together (AND logic).
 
 - **School colors**: each school has a distinct dot color (e.g., Evocation = red, Conjuration = purple, Divination = green). Defined in the `SCHOOL_COLORS` record in the page component.
 - **Level labels**: `levelLabel(0)` returns `"Cantrip"`, `levelLabel(1)` returns `"1st Level"`, etc.
-- **Filter chips**: pill-shaped buttons. Active chip uses the primary gold gradient; inactive chips are ghost style. Chips toggle — clicking an already-selected filter deselects it (returns to "all").
+- **Filter dropdowns**: Source, Class, and Level filters use `<select>` dropdowns styled to match the D&D theme (dark background `rgba(30,15,5,0.9)`, gold border, serif font). Each dropdown has an "All" default option that resets the filter to null.
 - **Spell card description** is clamped to 3 lines using `-webkit-line-clamp`.
 - **Result count** shown above the grid: "Showing X spells".
 - **Empty state** shown when no spells match the current filters.

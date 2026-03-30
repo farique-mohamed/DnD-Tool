@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
-import { GOLD, GOLD_MUTED, GOLD_BRIGHT, SERIF } from "./shared";
+import { GOLD, GOLD_MUTED, GOLD_BRIGHT, SERIF, parseJsonArray } from "./shared";
+import { getRaceByName } from "@/lib/raceData";
 import { CharacterSheetModal } from "./CharacterSheetModal";
 
 export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharacter }: { adventureId: string; adventureItems: { id: string; name: string; source: string }[]; unreadReactionByCharacter?: Record<string, number> }) {
@@ -108,6 +109,43 @@ export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharac
             <span style={{ color: GOLD_BRIGHT }}>{alignmentVal}</span>
           </div>
         )}
+        {(() => {
+          const languages = parseJsonArray(character.languages as string | undefined);
+          if (languages.length === 0) return null;
+          const raceName = character.race as string | undefined;
+          const raceInfo = raceName ? getRaceByName(raceName) : undefined;
+          const defaultLanguages = new Set(raceInfo?.languages ?? []);
+          return (
+            <div style={{ fontSize: "13px", fontFamily: SERIF, marginBottom: "8px" }}>
+              <span style={{ color: GOLD, fontWeight: "bold" }}>Languages </span>
+              {languages.map((lang, i) => {
+                const isDefault = defaultLanguages.has(lang);
+                return (
+                  <span key={lang}>
+                    {i > 0 && <span style={{ color: GOLD_MUTED }}>, </span>}
+                    {isDefault ? (
+                      <span style={{ color: GOLD_BRIGHT }}>{lang}</span>
+                    ) : (
+                      <span
+                        style={{
+                          color: "#e8d5a3",
+                          background: "rgba(230,126,34,0.15)",
+                          border: "1px solid rgba(230,126,34,0.35)",
+                          borderRadius: "3px",
+                          padding: "0 4px",
+                          fontSize: "12px",
+                          fontFamily: SERIF,
+                        }}
+                      >
+                        {lang} (added)
+                      </span>
+                    )}
+                  </span>
+                );
+              })}
+            </div>
+          );
+        })()}
       </div>
     );
   };
