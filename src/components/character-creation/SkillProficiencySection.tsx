@@ -9,6 +9,8 @@ interface ClassInfo {
 }
 
 interface SkillProficiencySectionProps {
+  raceName: string | undefined;
+  racialFixedSkills: string[];
   backgroundInfo: Background | undefined;
   classInfo: ClassInfo | undefined;
   selectedBgChoiceSkills: string[];
@@ -25,6 +27,8 @@ interface SkillProficiencySectionProps {
 }
 
 export function SkillProficiencySection({
+  raceName,
+  racialFixedSkills,
   backgroundInfo,
   classInfo,
   selectedBgChoiceSkills,
@@ -47,6 +51,21 @@ export function SkillProficiencySection({
     <div>
       <p style={sectionTitleStyle}>Skill Proficiencies</p>
       <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+
+        {/* Racial fixed skills */}
+        {racialFixedSkills.length > 0 && (
+          <div>
+            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+              <span style={{ color: "#c9a84c" }}>From Race</span>{" "}
+              ({raceName}) — granted automatically
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+              {racialFixedSkills.map((skill) => (
+                <SkillChip key={`race-fixed-${skill}`} skill={skill} selected={false} locked onClick={() => {}} disabled={false} />
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Background fixed skills */}
         {bgFixedSkills.length > 0 && (

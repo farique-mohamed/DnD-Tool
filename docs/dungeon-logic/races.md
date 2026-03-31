@@ -32,6 +32,7 @@ export interface RaceInfo {
   traits: RacialTrait[];
   abilityScoreIncrease?: string;  // human-readable ASI text
   abilityBonuses?: AbilityScoreBonus[];  // structured ASI data
+  skillProficiencies?: string[];  // skill names granted by racial traits (e.g., ["Athletics", "Perception"])
 }
 ```
 
@@ -51,11 +52,11 @@ export interface RaceInfo {
 | AI | Acquisitions Incorporated | 1 |
 | AAG | Astral Adventurer's Guide (Spelljammer) | 6 |
 | SCC | Strixhaven: A Curriculum of Chaos | 1 |
-| TOB | Tome of Beasts / Midgard (Kobold Press) | 1 |
+| TOB | Tome of Beasts / Midgard (Kobold Press) | 2 |
 
 ### Exports
 
-- `RACES: RaceInfo[]` — all races from all sources (88 total entries)
+- `RACES: RaceInfo[]` — all races from all sources (89 total entries)
 - `RACE_SOURCES: string[]` — sorted unique list of source codes
 - `getRaceByNameAndSource(name, source)` — source-aware lookup
 - `getRaceByName(name)` — backward-compatible lookup (prefers PHB)
@@ -95,6 +96,23 @@ Both filters are applied together (AND logic).
 The character creation form (`src/components/character-creation/shared.ts`) derives its `CHARACTER_RACES` array dynamically from the `RACES` export, so new races added to `raceData.ts` are automatically available in the race dropdown when creating a character. The array contains unique race names sorted alphabetically.
 
 The `IdentitySection` component renders the race dropdown and the `AbilityScoreSection` uses `getRaceByNameAndSource()` to look up structured ability bonus data for the selected race.
+
+### Racial skill proficiencies
+
+When a race has `skillProficiencies` defined, those skills are automatically included in the character's proficiency list during creation. They appear as locked chips in the `SkillProficiencySection` under a "From Race" heading (similar to background fixed skills). Racial skills also lock out class skill choices to prevent duplicates.
+
+Races with fixed skill proficiencies include: Elf (Perception), Half-Orc (Intimidation), Goliath VGM/MPMM (Athletics), Tabaxi VGM/MPMM (Perception, Stealth), Tortle EGW (Survival), Satyr MOT (Performance, Persuasion), Verdan AI (Persuasion), Astral Elf AAG (Perception), Harengon MPMM (Perception), Sea Elf MPMM (Perception), Owlin SCC (Stealth), Bearfolk TOB (Athletics, Perception), and Bearfolk (Shadowborn) TOB (Athletics, Perception).
+
+### Natural Armor AC auto-calculation
+
+Races with a "Natural Armor" trait that specifies "12 + your Constitution modifier" (currently Bearfolk and Bearfolk Shadowborn) trigger automatic AC calculation in the character creation form. The computed AC (`12 + CON modifier`) is auto-set into the Armor Class field when the race is selected or Constitution changes. A hint is shown below the AC input indicating the Natural Armor formula and calculated value. The user can still manually override the auto-calculated value.
+
+### Bearfolk variants
+
+| Variant | ASI | Unique Traits |
+|---------|-----|---------------|
+| Bearfolk | +2 STR, +1 CON | Bite, Bear Hug, Powerful Build, Ursine Talent, Natural Armor |
+| Bearfolk (Shadowborn) | +2 STR, +1 WIS | Bite, Ursine Talent, Powerful Build, Natural Armor, Shadow Stealth, Darkvision |
 
 ---
 

@@ -8,6 +8,7 @@ import {
   getPendingPlayers,
   resolvePlayer,
   getAcceptedPlayers,
+  updatePlayerConditions,
 } from "./players";
 import {
   sendNote,
@@ -65,6 +66,7 @@ export const adventureRouter = createTRPCRouter({
   getPendingPlayers,
   resolvePlayer,
   getAcceptedPlayers,
+  updatePlayerConditions,
 
   // Notes
   sendNote,

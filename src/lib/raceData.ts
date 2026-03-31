@@ -23,6 +23,7 @@ export interface RaceInfo {
   traits: RacialTrait[];
   abilityScoreIncrease?: string;
   abilityBonuses?: AbilityScoreBonus[];
+  skillProficiencies?: string[];  // skill names granted by racial traits
 }
 
 // ---------------------------------------------------------------------------
@@ -48,6 +49,7 @@ const ELF_PHB: RaceInfo = {
   languages: ["Common", "Elvish"],
   abilityScoreIncrease: "+2 Dexterity",
   abilityBonuses: [{ ability: "dexterity", amount: 2 }],
+  skillProficiencies: ["Perception"],
   traits: [
     { name: "Darkvision", description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
     { name: "Keen Senses", description: "You have proficiency in the Perception skill." },
@@ -130,6 +132,7 @@ const HALF_ORC_PHB: RaceInfo = {
     { ability: "strength", amount: 2 },
     { ability: "constitution", amount: 1 },
   ],
+  skillProficiencies: ["Intimidation"],
   traits: [
     { name: "Darkvision", description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
     { name: "Menacing", description: "You gain proficiency in the Intimidation skill." },
@@ -381,6 +384,7 @@ const GOLIATH_VGM: RaceInfo = {
     { ability: "strength", amount: 2 },
     { ability: "constitution", amount: 1 },
   ],
+  skillProficiencies: ["Athletics"],
   traits: [
     { name: "Natural Athlete", description: "You have proficiency in the Athletics skill." },
     { name: "Stone's Endurance", description: "You can focus yourself to occasionally shrug off injury. When you take damage, you can use your reaction to roll a d12. Add your Constitution modifier to the number rolled, and reduce the damage by that total. After you use this trait, you can't use it again until you finish a short or long rest." },
@@ -439,6 +443,7 @@ const TABAXI_VGM: RaceInfo = {
     { ability: "dexterity", amount: 2 },
     { ability: "charisma", amount: 1 },
   ],
+  skillProficiencies: ["Perception", "Stealth"],
   traits: [
     { name: "Darkvision", description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
     { name: "Feline Agility", description: "Your reflexes and agility allow you to move with a burst of speed. When you move on your turn in combat, you can double your speed until the end of the turn. Once you use this trait, you can't use it again until you move 0 feet on one of your turns." },
@@ -771,6 +776,7 @@ const GOLIATH_MPMM: RaceInfo = {
     { ability: "choice", amount: 2, choiceCount: 1 },
     { ability: "choice", amount: 1, choiceCount: 1 },
   ],
+  skillProficiencies: ["Athletics"],
   traits: [
     { name: "Little Giant", description: "You have proficiency in the Athletics skill, and you count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift." },
     { name: "Mountain Born", description: "You have resistance to cold damage. You also naturally acclimate to high altitudes." },
@@ -884,6 +890,7 @@ const TABAXI_MPMM: RaceInfo = {
     { ability: "choice", amount: 2, choiceCount: 1 },
     { ability: "choice", amount: 1, choiceCount: 1 },
   ],
+  skillProficiencies: ["Perception", "Stealth"],
   traits: [
     { name: "Cat's Claws", description: "You can use your claws to make unarmed strikes. When you hit with them, the strike deals 1d6 + your Strength modifier slashing damage, instead of the bludgeoning damage normal for an unarmed strike. You also have a climbing speed equal to your walking speed." },
     { name: "Cat's Talent", description: "You have proficiency in the Perception and Stealth skills." },
@@ -963,6 +970,7 @@ const TORTLE_EGW: RaceInfo = {
     { ability: "strength", amount: 2 },
     { ability: "wisdom", amount: 1 },
   ],
+  skillProficiencies: ["Survival"],
   traits: [
     { name: "Claws", description: "Your claws are natural weapons, which you can use to make unarmed strikes. If you hit with them, you deal slashing damage equal to 1d4 + your Strength modifier, instead of the bludgeoning damage normal for an unarmed strike." },
     { name: "Hold Breath", description: "You can hold your breath for up to 1 hour at a time." },
@@ -1166,6 +1174,7 @@ const SATYR_MOT: RaceInfo = {
     { ability: "charisma", amount: 2 },
     { ability: "dexterity", amount: 1 },
   ],
+  skillProficiencies: ["Performance", "Persuasion"],
   traits: [
     { name: "Fey", description: "Your creature type is fey, rather than humanoid." },
     { name: "Ram", description: "You can use your head and horns to make unarmed strikes. If you hit with them, you deal bludgeoning damage equal to 1d4 + your Strength modifier." },
@@ -1190,6 +1199,7 @@ const VERDAN_AI: RaceInfo = {
     { ability: "charisma", amount: 2 },
     { ability: "constitution", amount: 1 },
   ],
+  skillProficiencies: ["Persuasion"],
   traits: [
     { name: "Black Blood Healing", description: "When you roll a 1 or 2 on any Hit Die you spend at the end of a short rest, you can reroll the die and must use the new roll." },
     { name: "Limited Telepathy", description: "You can speak telepathically to any creature you can see within 30 feet of you. You don't need to share a language with the creature for it to understand your telepathic messages, but the creature must be able to understand at least one language or be telepathic itself." },
@@ -1213,6 +1223,7 @@ const ASTRAL_ELF_AAG: RaceInfo = {
     { ability: "choice", amount: 2, choiceCount: 1 },
     { ability: "choice", amount: 1, choiceCount: 1 },
   ],
+  skillProficiencies: ["Perception"],
   traits: [
     { name: "Darkvision", description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
     { name: "Fey Ancestry", description: "You have advantage on saving throws you make to avoid or end the charmed condition on yourself." },
@@ -1518,6 +1529,7 @@ const HARENGON_MPMM: RaceInfo = {
     { ability: "choice", amount: 2, choiceCount: 1 },
     { ability: "choice", amount: 1, choiceCount: 1 },
   ],
+  skillProficiencies: ["Perception"],
   traits: [
     { name: "Hare-Trigger", description: "You can add your proficiency bonus to your initiative rolls." },
     { name: "Leporine Senses", description: "You have proficiency in the Perception skill." },
@@ -1556,6 +1568,7 @@ const SEA_ELF_MPMM: RaceInfo = {
     { ability: "choice", amount: 2, choiceCount: 1 },
     { ability: "choice", amount: 1, choiceCount: 1 },
   ],
+  skillProficiencies: ["Perception"],
   traits: [
     { name: "Child of the Sea", description: "You have a swimming speed equal to your walking speed, and you can breathe air and water." },
     { name: "Darkvision", description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
@@ -1639,6 +1652,7 @@ const OWLIN_SCC: RaceInfo = {
     { ability: "choice", amount: 2, choiceCount: 1 },
     { ability: "choice", amount: 1, choiceCount: 1 },
   ],
+  skillProficiencies: ["Stealth"],
   traits: [
     { name: "Darkvision", description: "You can see in dim light within 120 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
     { name: "Flight", description: "Thanks to your wings, you have a flying speed equal to your walking speed. You can't use this flying speed if you're wearing medium or heavy armor." },
@@ -1661,11 +1675,35 @@ const BEARFOLK_TOB: RaceInfo = {
     { ability: "strength", amount: 2 },
     { ability: "constitution", amount: 1 },
   ],
+  skillProficiencies: ["Athletics", "Perception"],
   traits: [
     { name: "Bite", description: "Your powerful jaws are a natural weapon, which you can use to make unarmed strikes. When you hit with it, the strike deals 1d6 + your Strength modifier piercing damage, instead of the bludgeoning damage normal for an unarmed strike." },
     { name: "Bear Hug", description: "When you take the Attack action, you can use a bonus action to attempt to grapple a creature. You have advantage on the Athletics check to grapple." },
     { name: "Powerful Build", description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift." },
-    { name: "Natural Athlete", description: "You have proficiency in the Athletics skill." },
+    { name: "Ursine Talent", description: "You have proficiency in the Athletics and Perception skills." },
+    { name: "Natural Armor", description: "You have thick, bear-like hide. When you aren't wearing armor, your AC equals 12 + your Constitution modifier. You can use a shield and still gain this benefit." },
+  ],
+};
+
+const BEARFOLK_SHADOWBORN_TOB: RaceInfo = {
+  name: "Bearfolk (Shadowborn)",
+  source: "TOB",
+  speed: 30,
+  size: "Medium",
+  languages: ["Common", "One extra language of your choice"],
+  abilityScoreIncrease: "+2 Strength, +1 Wisdom",
+  abilityBonuses: [
+    { ability: "strength", amount: 2 },
+    { ability: "wisdom", amount: 1 },
+  ],
+  skillProficiencies: ["Athletics", "Perception"],
+  traits: [
+    { name: "Bite", description: "Your powerful jaws are a natural weapon, which you can use to make unarmed strikes. When you hit with it, the strike deals 1d6 + your Strength modifier piercing damage, instead of the bludgeoning damage normal for an unarmed strike." },
+    { name: "Ursine Talent", description: "You have proficiency in the Athletics and Perception skills." },
+    { name: "Powerful Build", description: "You count as one size larger when determining your carrying capacity and the weight you can push, drag, or lift." },
+    { name: "Natural Armor", description: "You have thick, bear-like hide. When you aren't wearing armor, your AC equals 12 + your Constitution modifier. You can use a shield and still gain this benefit." },
+    { name: "Shadow Stealth", description: "While in dim light or darkness, you can take the Hide action as a bonus action." },
+    { name: "Darkvision", description: "You can see in dim light within 60 feet of you as if it were bright light, and in darkness as if it were dim light. You can't discern color in darkness, only shades of gray." },
   ],
 };
 
@@ -1776,6 +1814,7 @@ export const RACES: RaceInfo[] = [
   OWLIN_SCC,
   // TOB — Tome of Beasts / Midgard
   BEARFOLK_TOB,
+  BEARFOLK_SHADOWBORN_TOB,
 ];
 
 /** Sorted unique list of all source codes across all races. */

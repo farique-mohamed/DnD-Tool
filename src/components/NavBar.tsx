@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { useTheme } from "@/hooks/useTheme";
+import { darkPalette, lightPalette } from "@/components/ui/theme";
 
 interface NavItem {
   label: string;
@@ -12,8 +14,12 @@ function getNavItems(role: string): NavItem[] {
   switch (role) {
     case "ADMIN":
       return [
+        { label: "Admin Dashboard", href: "/admin" },
+        { label: "User Management", href: "/admin/users" },
+        { label: "Adventure Oversight", href: "/admin/adventures" },
         { label: "DM Requests", href: "/admin/dm-requests" },
         { label: "Global Settings", href: "/admin/settings" },
+        { label: "NPC Generator", href: "/npc-generator" },
       ];
     case "DUNGEON_MASTER":
       return [
@@ -27,6 +33,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Rule Books", href: "/dm/rule-books" },
         { label: "Rules For DM", href: "/dm/rules" },
         { label: "Rules For Players", href: "/rules" },
+        { label: "NPC Generator", href: "/npc-generator" },
         { label: "My Characters", href: "/characters" },
         { label: "Create New Character", href: "/characters/new" },
       ];
@@ -45,11 +52,48 @@ function getNavItems(role: string): NavItem[] {
   }
 }
 
+function ThemeToggleButton({ isMobile }: { isMobile: boolean }) {
+  const { theme, toggleTheme } = useTheme();
+  const palette = theme === "dark" ? darkPalette : lightPalette;
+  const isDark = theme === "dark";
+
+  return (
+    <button
+      onClick={toggleTheme}
+      aria-label={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      title={isDark ? "Switch to light theme" : "Switch to dark theme"}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "8px",
+        width: "100%",
+        background: "transparent",
+        border: `1px solid ${palette.borderAccent}`,
+        color: palette.gold,
+        borderRadius: "4px",
+        padding: isMobile ? "12px 16px" : "8px 16px",
+        fontFamily: "'Georgia', serif",
+        fontSize: isMobile ? "15px" : "13px",
+        cursor: "pointer",
+        letterSpacing: "0.3px",
+      }}
+    >
+      <span style={{ fontSize: isMobile ? "18px" : "16px" }}>
+        {isDark ? "\u2600\uFE0F" : "\uD83C\uDF19"}
+      </span>
+      {isDark ? "Light Theme" : "Dark Theme"}
+    </button>
+  );
+}
+
 export function NavBar() {
   const { user, logout } = useAuth();
   const router = useRouter();
   const isMobile = useIsMobile();
   const [isOpen, setIsOpen] = useState(false);
+  const { theme } = useTheme();
+  const palette = theme === "dark" ? darkPalette : lightPalette;
 
   const navItems = user ? getNavItems(user.role) : [];
 
@@ -85,7 +129,7 @@ export function NavBar() {
   if (isMobile) {
     return (
       <>
-        {/* Hamburger button */}
+        {/* Hamburger button — position: fixed so it stays in place */}
         <button
           onClick={() => setIsOpen((prev) => !prev)}
           aria-label={isOpen ? "Close navigation" : "Open navigation"}
@@ -97,9 +141,9 @@ export function NavBar() {
             width: "44px",
             height: "44px",
             background: isOpen
-              ? "rgba(201,168,76,0.2)"
-              : "rgba(0,0,0,0.7)",
-            border: "1px solid rgba(201,168,76,0.5)",
+              ? `${palette.gold}33`
+              : palette.navBg,
+            border: `1px solid ${palette.borderAccent}`,
             borderRadius: "8px",
             cursor: "pointer",
             display: "flex",
@@ -115,7 +159,7 @@ export function NavBar() {
               display: "block",
               width: "22px",
               height: "2px",
-              background: "#c9a84c",
+              background: palette.gold,
               borderRadius: "1px",
               transition: "transform 0.2s, opacity 0.2s",
               transform: isOpen
@@ -128,7 +172,7 @@ export function NavBar() {
               display: "block",
               width: "22px",
               height: "2px",
-              background: "#c9a84c",
+              background: palette.gold,
               borderRadius: "1px",
               transition: "opacity 0.2s",
               opacity: isOpen ? 0 : 1,
@@ -139,7 +183,7 @@ export function NavBar() {
               display: "block",
               width: "22px",
               height: "2px",
-              background: "#c9a84c",
+              background: palette.gold,
               borderRadius: "1px",
               transition: "transform 0.2s, opacity 0.2s",
               transform: isOpen
@@ -156,8 +200,7 @@ export function NavBar() {
               position: "fixed",
               inset: 0,
               zIndex: 1050,
-              background:
-                "linear-gradient(135deg, rgba(13,13,26,0.97) 0%, rgba(26,26,46,0.97) 50%, rgba(22,33,62,0.97) 100%)",
+              background: palette.overlayBg,
               display: "flex",
               flexDirection: "column",
               fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -168,12 +211,12 @@ export function NavBar() {
             <div
               style={{
                 padding: "16px 20px 16px 68px",
-                borderBottom: "1px solid rgba(201,168,76,0.2)",
+                borderBottom: `1px solid ${palette.borderColor}`,
               }}
             >
               <div
                 style={{
-                  color: "#c9a84c",
+                  color: palette.gold,
                   fontSize: "18px",
                   fontWeight: "bold",
                   letterSpacing: "1px",
@@ -186,7 +229,7 @@ export function NavBar() {
               {user && (
                 <div
                   style={{
-                    color: "#a89060",
+                    color: palette.textSecondary,
                     fontSize: "11px",
                     marginTop: "6px",
                     letterSpacing: "0.5px",
@@ -211,13 +254,13 @@ export function NavBar() {
                       textAlign: "left",
                       padding: "14px 24px",
                       background: isActive
-                        ? "rgba(201,168,76,0.15)"
+                        ? `${palette.gold}26`
                         : "transparent",
                       border: "none",
                       borderLeft: isActive
-                        ? "3px solid #c9a84c"
+                        ? `3px solid ${palette.gold}`
                         : "3px solid transparent",
-                      color: isActive ? "#c9a84c" : "#e8d5a3",
+                      color: isActive ? palette.gold : palette.textPrimary,
                       fontSize: "16px",
                       fontFamily: "'Georgia', 'Times New Roman', serif",
                       cursor: "pointer",
@@ -230,20 +273,24 @@ export function NavBar() {
               })}
             </div>
 
-            {/* Logout */}
+            {/* Theme toggle + Logout */}
             <div
               style={{
                 padding: "16px 24px 32px",
-                borderTop: "1px solid rgba(201,168,76,0.2)",
+                borderTop: `1px solid ${palette.borderColor}`,
+                display: "flex",
+                flexDirection: "column",
+                gap: "12px",
               }}
             >
+              <ThemeToggleButton isMobile={true} />
               <button
                 onClick={handleLogout}
                 style={{
                   width: "100%",
                   background: "transparent",
-                  border: "1px solid rgba(201,168,76,0.5)",
-                  color: "#c9a84c",
+                  border: `1px solid ${palette.borderAccent}`,
+                  color: palette.gold,
                   borderRadius: "4px",
                   padding: "12px 16px",
                   fontFamily: "'Georgia', serif",
@@ -267,8 +314,8 @@ export function NavBar() {
       style={{
         width: "220px",
         height: "100vh",
-        background: "rgba(0,0,0,0.7)",
-        borderRight: "1px solid rgba(201,168,76,0.3)",
+        background: palette.navBg,
+        borderRight: `1px solid ${palette.borderColor}`,
         display: "flex",
         flexDirection: "column",
         fontFamily: "'Georgia', 'Times New Roman', serif",
@@ -281,12 +328,12 @@ export function NavBar() {
       <div
         style={{
           padding: "24px 20px 20px",
-          borderBottom: "1px solid rgba(201,168,76,0.2)",
+          borderBottom: `1px solid ${palette.borderColor}`,
         }}
       >
         <div
           style={{
-            color: "#c9a84c",
+            color: palette.gold,
             fontSize: "18px",
             fontWeight: "bold",
             letterSpacing: "1px",
@@ -299,7 +346,7 @@ export function NavBar() {
         {user && (
           <div
             style={{
-              color: "#a89060",
+              color: palette.textSecondary,
               fontSize: "11px",
               marginTop: "6px",
               letterSpacing: "0.5px",
@@ -324,13 +371,13 @@ export function NavBar() {
                 textAlign: "left",
                 padding: "10px 20px",
                 background: isActive
-                  ? "rgba(201,168,76,0.15)"
+                  ? `${palette.gold}26`
                   : "transparent",
                 border: "none",
                 borderLeft: isActive
-                  ? "3px solid #c9a84c"
+                  ? `3px solid ${palette.gold}`
                   : "3px solid transparent",
-                color: isActive ? "#c9a84c" : "#e8d5a3",
+                color: isActive ? palette.gold : palette.textPrimary,
                 fontSize: "13px",
                 fontFamily: "'Georgia', 'Times New Roman', serif",
                 cursor: "pointer",
@@ -340,9 +387,9 @@ export function NavBar() {
               onMouseEnter={(e) => {
                 if (!isActive) {
                   (e.currentTarget as HTMLButtonElement).style.background =
-                    "rgba(201,168,76,0.08)";
+                    `${palette.gold}14`;
                   (e.currentTarget as HTMLButtonElement).style.color =
-                    "#c9a84c";
+                    palette.gold;
                 }
               }}
               onMouseLeave={(e) => {
@@ -350,7 +397,7 @@ export function NavBar() {
                   (e.currentTarget as HTMLButtonElement).style.background =
                     "transparent";
                   (e.currentTarget as HTMLButtonElement).style.color =
-                    "#e8d5a3";
+                    palette.textPrimary;
                 }
               }}
             >
@@ -360,20 +407,24 @@ export function NavBar() {
         })}
       </div>
 
-      {/* Logout */}
+      {/* Theme toggle + Logout */}
       <div
         style={{
           padding: "16px 20px",
-          borderTop: "1px solid rgba(201,168,76,0.2)",
+          borderTop: `1px solid ${palette.borderColor}`,
+          display: "flex",
+          flexDirection: "column",
+          gap: "8px",
         }}
       >
+        <ThemeToggleButton isMobile={false} />
         <button
           onClick={handleLogout}
           style={{
             width: "100%",
             background: "transparent",
-            border: "1px solid rgba(201,168,76,0.5)",
-            color: "#c9a84c",
+            border: `1px solid ${palette.borderAccent}`,
+            color: palette.gold,
             borderRadius: "4px",
             padding: "8px 16px",
             fontFamily: "'Georgia', serif",

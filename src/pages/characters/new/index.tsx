@@ -151,6 +151,28 @@ function CreateCharacterContent() {
     setForm((prev) => ({ ...prev, languages: [...fixed] }));
   }, [raceInfo]);
 
+  // Racial fixed skill proficiencies
+  const racialFixedSkills = useMemo(() => raceInfo?.skillProficiencies ?? [], [raceInfo]);
+
+  // Natural Armor AC auto-calculation (Bearfolk-style: 12 + CON modifier)
+  const hasNaturalArmor = useMemo(
+    () => raceInfo?.traits.some((t) => t.name === "Natural Armor" && t.description.includes("12 + your Constitution modifier")) ?? false,
+    [raceInfo],
+  );
+  const naturalArmorAC = useMemo(() => {
+    if (!hasNaturalArmor) return null;
+    const totalCon = form.constitution + racialBonuses.constitution;
+    const conMod = Math.floor((totalCon - 10) / 2);
+    return 12 + conMod;
+  }, [hasNaturalArmor, form.constitution, racialBonuses.constitution]);
+
+  // Auto-set AC when Natural Armor is active and race/CON changes
+  useEffect(() => {
+    if (naturalArmorAC !== null) {
+      setForm((prev) => ({ ...prev, armorClass: naturalArmorAC }));
+    }
+  }, [naturalArmorAC]);
+
   // Fixed skills from background (auto-selected, locked)
   const bgFixedSkills = backgroundInfo?.skillProficiencies ?? [];
 
@@ -166,19 +188,21 @@ function CreateCharacterContent() {
   // Combine all selected skills for submission
   const allSelectedSkills = useMemo(() => {
     const skills = new Set<string>();
+    racialFixedSkills.forEach((s) => skills.add(s));
     bgFixedSkills.forEach((s) => skills.add(s));
     selectedBgChoiceSkills.forEach((s) => skills.add(s));
     selectedClassSkills.forEach((s) => skills.add(s));
     return Array.from(skills).sort();
-  }, [bgFixedSkills, selectedBgChoiceSkills, selectedClassSkills]);
+  }, [racialFixedSkills, bgFixedSkills, selectedBgChoiceSkills, selectedClassSkills]);
 
-  // Skills already locked (from bg fixed + bg choices) — class choices cannot pick these
+  // Skills already locked (from race + bg fixed + bg choices) — class choices cannot pick these
   const lockedByBackground = useMemo(() => {
     const set = new Set<string>();
+    racialFixedSkills.forEach((s) => set.add(s));
     bgFixedSkills.forEach((s) => set.add(s));
     selectedBgChoiceSkills.forEach((s) => set.add(s));
     return set;
-  }, [bgFixedSkills, selectedBgChoiceSkills]);
+  }, [racialFixedSkills, bgFixedSkills, selectedBgChoiceSkills]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -353,8 +377,10 @@ function CreateCharacterContent() {
             />
 
             {/* Skill Proficiencies */}
-            {showSkillSection && (
+            {(showSkillSection || racialFixedSkills.length > 0) && (
               <SkillProficiencySection
+                raceName={raceInfo?.name}
+                racialFixedSkills={racialFixedSkills}
                 backgroundInfo={backgroundInfo}
                 classInfo={classInfo}
                 selectedBgChoiceSkills={selectedBgChoiceSkills}
@@ -401,6 +427,7 @@ function CreateCharacterContent() {
               form={form}
               isLoading={isLoading}
               onFormChange={handleChange}
+              naturalArmorAC={naturalArmorAC}
             />
 
             {/* Backstory */}

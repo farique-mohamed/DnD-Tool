@@ -2,7 +2,7 @@
 
 ## What is DnD Tool?
 
-A full-stack web companion tool for Dungeons & Dragons. Currently in early development — authentication, character creation, and dice rolling are complete. The dashboard is a placeholder for future features (campaigns, etc.).
+A full-stack web companion tool for Dungeons & Dragons. Features include authentication, character creation, dice rolling, adventure management with encounter tracking, a reusable component library, and an admin dashboard for user and adventure oversight.
 
 ## Tech Stack
 
@@ -28,6 +28,14 @@ src/
 │   ├── dashboard/
 │   │   └── index.tsx         # Main dashboard (protected, role-aware greeting)
 │   ├── unauthorized.tsx       # Auth guard fallback with D&D countdown
+│   ├── admin/
+│   │   ├── index.tsx          # Admin Dashboard home — stats grid (ADMIN only)
+│   │   ├── users/
+│   │   │   └── index.tsx      # User Management — search, role filter, role change, delete (ADMIN only)
+│   │   ├── adventures/
+│   │   │   └── index.tsx      # Adventure Oversight — search, pagination (ADMIN only)
+│   │   └── dm-requests/
+│   │       └── index.tsx      # DM request list with approve/reject (ADMIN only)
 │   ├── dm/
 │   │   ├── adventure-books/
 │   │   │   ├── index.tsx     # Adventure books listing (DM-only)
@@ -39,6 +47,17 @@ src/
 │   ├── NavBar.tsx            # Vertical sidebar navigation (role-aware)
 │   ├── Layout.tsx            # Flex wrapper: NavBar + main content + DiceRoller
 │   ├── DiceRoller.tsx        # Floating dice roller popup (fixed bottom-right, all auth pages)
+│   ├── ui/
+│   │   ├── index.ts          # Barrel export for all UI components and theme tokens
+│   │   ├── theme.ts          # Design tokens — color constants, font, common style objects
+│   │   ├── Card.tsx          # Card with default (gold border + glow) and light variants
+│   │   ├── Button.tsx        # Button with primary/ghost/danger variants and sm/md/lg sizes
+│   │   ├── PageHeader.tsx    # Responsive page header with title, subtitle, gold divider
+│   │   ├── Input.tsx         # Styled text input
+│   │   ├── Select.tsx        # Styled select dropdown
+│   │   ├── Badge.tsx         # Small badge/tag component
+│   │   ├── Modal.tsx         # Reusable modal overlay
+│   │   └── Alert.tsx         # Status message with error/success/info variants
 │   └── adventure/
 │       └── EncounterTab.tsx  # Encounter combat tracker tab (initiative, HP, conditions, death saves)
 ├── hooks/
@@ -56,6 +75,7 @@ src/
 │       ├── _app.ts           # Root router (aggregates all sub-routers)
 │       ├── auth.ts           # auth.login, auth.register mutations
 │       ├── user.ts           # user.requestDungeonMaster mutation (stub)
+│       ├── admin.ts          # Admin procedures — stats, user management, adventures, DM requests (ADMIN only)
 │       ├── dice.ts           # dice.roll mutation, dice.history / dice.globalHistory queries
 │       └── adventure/
 │           ├── index.ts      # Adventure router aggregating all adventure procedures
@@ -68,6 +88,7 @@ src/
 docs/
 └── dungeon-logic/
     ├── overview.md           # ← this file
+    ├── admin-dashboard.md    # Admin dashboard pages, tRPC procedures, role-based access
     ├── authentication.md     # JWT flow, login/register, token storage, role in payload
     ├── architecture.md       # tRPC setup, conventions, how to add features
     ├── ui-patterns.md        # D&D theme, colors, component conventions
