@@ -62,6 +62,7 @@ export interface BookEntry {
   name?: string;
   page?: number;
   id?: string;
+  entry?: string;
   entries?: BookEntry[];
   items?: BookEntry[] | string[];
   // list fields

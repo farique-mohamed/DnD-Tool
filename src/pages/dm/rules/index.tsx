@@ -98,6 +98,16 @@ function renderEntries(
                 </li>
               );
             }
+            if (itemEntry.name && (itemEntry as BookEntry & { entry?: string }).entry) {
+              return (
+                <li key={j} style={{ marginBottom: "6px" }}>
+                  <strong style={{ color: "#c9a84c" }}>
+                    {parseTaggedText(itemEntry.name)}
+                  </strong>{" "}
+                  <span dangerouslySetInnerHTML={{ __html: parseTaggedText((itemEntry as BookEntry & { entry?: string }).entry!) }} />
+                </li>
+              );
+            }
             if (itemEntry.name) {
               return (
                 <li key={j}>
