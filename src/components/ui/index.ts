@@ -34,4 +34,8 @@ export {
   headingStyle,
   cardStyle,
   inputStyle,
+  // Theme palettes
+  darkPalette,
+  lightPalette,
 } from "./theme";
+export type { ThemePalette } from "./theme";

@@ -32,6 +32,7 @@ export type CharacterData = {
   feats?: string; // JSON string[]
   notes?: string;
   background?: string | null;
+  languages?: string; // JSON string[]
   equippedItems?: string; // JSON EquippedItems
   adventurePlayers?: Array<{
     id: string;

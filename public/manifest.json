@@ -1,0 +1,24 @@
+{
+  "name": "DnD Tool",
+  "short_name": "DnD Tool",
+  "description": "A medieval D&D companion for Dungeon Masters and Players",
+  "start_url": "/dashboard",
+  "display": "standalone",
+  "background_color": "#0d0d1a",
+  "theme_color": "#0d0d1a",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "/images/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

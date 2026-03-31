@@ -76,11 +76,20 @@ function RaceFeaturesSection({
       >
         <span style={badgeStyle}>Speed: {raceInfo.speed} ft.</span>
         <span style={badgeStyle}>Size: {raceInfo.size}</span>
-        {raceInfo.languages.map((lang) => (
-          <span key={lang} style={badgeStyle}>
-            {lang}
-          </span>
-        ))}
+        {(() => {
+          // Show the character's actual saved languages instead of the race template
+          let langs: string[] = [];
+          try {
+            langs = character.languages ? JSON.parse(character.languages) : [];
+          } catch { /* fallback to empty */ }
+          // Fall back to race template if character has no saved languages
+          const displayLangs = langs.length > 0 ? langs : raceInfo.languages;
+          return displayLangs.map((lang) => (
+            <span key={lang} style={badgeStyle}>
+              {lang}
+            </span>
+          ));
+        })()}
       </div>
 
       {/* Ability Score Increase (PHB 2014 races) */}

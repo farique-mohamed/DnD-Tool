@@ -565,49 +565,82 @@ export function HpManager({ character }: { character: CharacterData }) {
         >
           Conditions
         </p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-          {allConditions.map((cond) => {
-            const isActive = activeConditions.includes(cond.name);
-            return (
-              <button
-                key={cond.name}
-                onClick={() => toggleCondition(cond.name)}
-                disabled={updateConditions.isPending}
-                title={cond.entries.length > 0 ? cond.entries[0] : cond.name}
-                style={
-                  isActive
-                    ? {
-                        background: "rgba(231,76,60,0.2)",
-                        border: "1px solid rgba(231,76,60,0.5)",
-                        borderRadius: "20px",
-                        padding: "3px 10px",
-                        fontSize: "10px",
-                        fontFamily: "'Georgia', serif",
-                        color: "#e74c3c",
-                        cursor: updateConditions.isPending
-                          ? "not-allowed"
-                          : "pointer",
-                        fontWeight: "bold",
-                      }
-                    : {
-                        background: "rgba(30,15,5,0.6)",
-                        border: "1px solid rgba(201,168,76,0.2)",
-                        borderRadius: "20px",
-                        padding: "3px 10px",
-                        fontSize: "10px",
-                        fontFamily: "'Georgia', serif",
-                        color: "#a89060",
-                        cursor: updateConditions.isPending
-                          ? "not-allowed"
-                          : "pointer",
-                      }
+
+        {/* Active condition pills */}
+        {activeConditions.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
+            {activeConditions.map((condName) => {
+              const condData = allConditions.find((c) => c.name === condName);
+              return (
+                <button
+                  key={condName}
+                  onClick={() => toggleCondition(condName)}
+                  disabled={updateConditions.isPending}
+                  title={condData && condData.entries.length > 0 ? condData.entries[0] : condName}
+                  style={{
+                    background: "rgba(231,76,60,0.2)",
+                    border: "1px solid rgba(231,76,60,0.5)",
+                    borderRadius: "20px",
+                    padding: "3px 10px",
+                    fontSize: "10px",
+                    fontFamily: "'Georgia', serif",
+                    color: "#e74c3c",
+                    cursor: updateConditions.isPending ? "not-allowed" : "pointer",
+                    fontWeight: "bold",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {condName}
+                  <span style={{ fontSize: "12px", lineHeight: 1 }}>&times;</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Dropdown to add conditions */}
+        {(() => {
+          const inactiveConditions = allConditions.filter(
+            (c) => !activeConditions.includes(c.name),
+          );
+          if (inactiveConditions.length === 0) return null;
+          return (
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  toggleCondition(e.target.value);
                 }
-              >
-                {cond.name}
-              </button>
-            );
-          })}
-        </div>
+              }}
+              disabled={updateConditions.isPending}
+              style={{
+                width: "100%",
+                maxWidth: "260px",
+                padding: "6px 10px",
+                background: "rgba(30,15,5,0.9)",
+                border: "1px solid rgba(201,168,76,0.4)",
+                borderRadius: "6px",
+                color: "#e8d5a3",
+                fontSize: "12px",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                outline: "none",
+                cursor: updateConditions.isPending ? "not-allowed" : "pointer",
+                opacity: updateConditions.isPending ? 0.6 : 1,
+              }}
+            >
+              <option value="" disabled>
+                Add a condition...
+              </option>
+              {inactiveConditions.map((cond) => (
+                <option key={cond.name} value={cond.name}>
+                  {cond.name}
+                </option>
+              ))}
+            </select>
+          );
+        })()}
       </div>
 
       {feedback && (

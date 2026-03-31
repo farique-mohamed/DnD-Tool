@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
+import { api } from "@/utils/api";
+import { getConditionsBySource } from "@/lib/conditionData";
 import {
   GOLD,
   GOLD_MUTED,
@@ -478,39 +480,14 @@ export function CharacterSheetModal({
               </div>
             </div>
 
-            {/* Active Conditions */}
-            {activeConditions.length > 0 && (
-              <div
-                style={{
-                  background: "rgba(0,0,0,0.5)",
-                  border: "1px solid rgba(201,168,76,0.3)",
-                  borderRadius: "12px",
-                  padding: "20px 24px",
-                  marginBottom: "16px",
-                }}
-              >
-                <p style={sectionTitle}>Active Conditions</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-                  {activeConditions.map((cond) => (
-                    <span
-                      key={cond}
-                      style={{
-                        background: "rgba(231,76,60,0.15)",
-                        border: "1px solid rgba(201,168,76,0.4)",
-                        borderRadius: "20px",
-                        padding: "4px 14px",
-                        fontSize: "12px",
-                        fontFamily: SERIF,
-                        color: "#e74c3c",
-                        fontWeight: "bold",
-                      }}
-                    >
-                      {cond}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            )}
+            {/* Active Conditions — DM editable */}
+            <DmConditionsSection
+              adventureId={adventureId}
+              characterId={characterId}
+              activeConditions={activeConditions}
+              classSource={classSource}
+              sectionTitle={sectionTitle}
+            />
 
             {/* Feats */}
             {feats.length > 0 && (
@@ -650,6 +627,185 @@ export function CharacterSheetModal({
           />
         )}
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DM Conditions Section — editable dropdown + active pills
+// ---------------------------------------------------------------------------
+
+function DmConditionsSection({
+  adventureId,
+  characterId,
+  activeConditions,
+  classSource,
+  sectionTitle,
+}: {
+  adventureId: string;
+  characterId: string;
+  activeConditions: string[];
+  classSource: string;
+  sectionTitle: React.CSSProperties;
+}) {
+  const utils = api.useUtils();
+  const allConditions = getConditionsBySource(
+    classSource === "XPHB" ? "XPHB" : "PHB",
+  );
+
+  const updateConditions = api.adventure.updatePlayerConditions.useMutation({
+    onSuccess: async () => {
+      await utils.adventure.getAcceptedPlayers.invalidate({ adventureId });
+    },
+  });
+
+  const addCondition = (name: string) => {
+    if (!name || activeConditions.includes(name)) return;
+    const newList = [...activeConditions, name];
+    updateConditions.mutate({
+      adventureId,
+      characterId,
+      activeConditions: newList,
+    });
+  };
+
+  const removeCondition = (name: string) => {
+    const newList = activeConditions.filter((c) => c !== name);
+    updateConditions.mutate({
+      adventureId,
+      characterId,
+      activeConditions: newList,
+    });
+  };
+
+  const inactiveConditions = allConditions.filter(
+    (c) => !activeConditions.includes(c.name),
+  );
+
+  return (
+    <div
+      style={{
+        background: "rgba(0,0,0,0.5)",
+        border: "1px solid rgba(201,168,76,0.3)",
+        borderRadius: "12px",
+        padding: "20px 24px",
+        marginBottom: "16px",
+      }}
+    >
+      <p style={sectionTitle}>Conditions</p>
+
+      {/* Active condition pills */}
+      {activeConditions.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginBottom: "12px",
+          }}
+        >
+          {activeConditions.map((condName) => {
+            const condData = allConditions.find((c) => c.name === condName);
+            return (
+              <button
+                key={condName}
+                onClick={() => removeCondition(condName)}
+                disabled={updateConditions.isPending}
+                title={
+                  condData && condData.entries.length > 0
+                    ? condData.entries[0]
+                    : condName
+                }
+                style={{
+                  background: "rgba(231,76,60,0.2)",
+                  border: "1px solid rgba(231,76,60,0.5)",
+                  borderRadius: "20px",
+                  padding: "4px 14px",
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  color: "#e74c3c",
+                  fontWeight: "bold",
+                  cursor: updateConditions.isPending
+                    ? "not-allowed"
+                    : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {condName}
+                <span style={{ fontSize: "14px", lineHeight: 1 }}>
+                  &times;
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Dropdown to add conditions */}
+      {inactiveConditions.length > 0 && (
+        <select
+          value=""
+          onChange={(e) => {
+            if (e.target.value) {
+              addCondition(e.target.value);
+            }
+          }}
+          disabled={updateConditions.isPending}
+          style={{
+            width: "100%",
+            maxWidth: "280px",
+            padding: "8px 12px",
+            background: "rgba(30,15,5,0.9)",
+            border: "1px solid rgba(201,168,76,0.4)",
+            borderRadius: "6px",
+            color: "#e8d5a3",
+            fontSize: "12px",
+            fontFamily: SERIF,
+            outline: "none",
+            cursor: updateConditions.isPending ? "not-allowed" : "pointer",
+            opacity: updateConditions.isPending ? 0.6 : 1,
+          }}
+        >
+          <option value="" disabled>
+            Add a condition...
+          </option>
+          {inactiveConditions.map((cond) => (
+            <option key={cond.name} value={cond.name}>
+              {cond.name}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {activeConditions.length === 0 && inactiveConditions.length === 0 && (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "13px",
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            margin: 0,
+          }}
+        >
+          No conditions available.
+        </p>
+      )}
+
+      {activeConditions.length === 0 && inactiveConditions.length > 0 && (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "12px",
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            margin: "8px 0 0 0",
+          }}
+        >
+          No active conditions.
+        </p>
+      )}
     </div>
   );
 }

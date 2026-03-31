@@ -24,22 +24,18 @@
 
 ## Quality-of-Life Improvements
 
-- [ ] **Mobile PWA Support** - Add a service worker and manifest for offline access and "Add to Home Screen" on phones - great for players at the table.
+- [x] **Mobile PWA Support** - Add a service worker and manifest for offline access and "Add to Home Screen" on phones - great for players at the table.
 
-- [ ] **Dark/Light Theme Toggle** - The D&D gold/brown theme is great, but a lighter option for readability in bright environments.
+- [x] **Dark/Light Theme Toggle** - The D&D gold/brown theme is great, but a lighter option for readability in bright environments.
 
 - [ ] **Keyboard Shortcuts** - Quick dice rolls (e.g., press `d` then `20` for a d20), navigation shortcuts for DMs running encounters.
 
 - [ ] **Encounter Templates** - Save and reuse encounter setups (monster groups, environmental conditions) across adventures.
 
-- [ ] **NPC Generator** - Random NPC generation with name, personality traits, appearance, and voice notes for DMs improvising.
+- [x] **NPC Generator** - Random NPC generation with name, personality traits, appearance, and voice notes for DMs improvising.
 
 ## Technical Improvements
 
 - [ ] **Move from Polling to SSE/WebSockets** - At minimum for encounters and dice history.
-
-- [ ] **Component Library Extraction** - The inline styles are consistent but hard to maintain at 57+ components. Consider extracting to CSS modules or Tailwind.
-
-- [ ] **Admin Dashboard** - The router exists but is empty. Add user management, system stats, and adventure oversight.
 
 - [ ] **Testing** - No test files found. Adding tests for critical paths (character creation, encounter logic, AC calculation) would prevent regressions.
