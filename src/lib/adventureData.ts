@@ -105,6 +105,7 @@ export interface AdventureSection {
   name?: string;
   id?: string;
   page?: number;
+  entry?: string;
   entries?: unknown[];
   items?: unknown[];
   caption?: string;

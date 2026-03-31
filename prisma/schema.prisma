@@ -33,6 +33,12 @@ enum EncounterParticipantType {
   MONSTER
 }
 
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id         String      @id @default(cuid())
   username   String      @unique
@@ -158,6 +164,7 @@ model Adventure {
   encounter    Encounter?
   dmNotes      DmNote[]
   sessionNotes SessionNote[]
+  sessions     AdventureSession[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -329,4 +336,21 @@ model EncounterTemplateParticipant {
   createdAt          DateTime           @default(now())
 
   @@map("encounter_template_participants")
+}
+
+model AdventureSession {
+  id          String        @id @default(cuid())
+  adventureId String
+  adventure   Adventure     @relation(fields: [adventureId], references: [id])
+  title       String
+  description String?
+  scheduledAt DateTime
+  duration    Int?
+  location    String?
+  status      SessionStatus @default(SCHEDULED)
+  inGameDate  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("adventure_sessions")
 }

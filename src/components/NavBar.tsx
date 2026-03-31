@@ -14,17 +14,21 @@ function getNavItems(role: string): NavItem[] {
   switch (role) {
     case "ADMIN":
       return [
+        { label: "Search", href: "/search" },
         { label: "Admin Dashboard", href: "/admin" },
         { label: "User Management", href: "/admin/users" },
         { label: "Adventure Oversight", href: "/admin/adventures" },
         { label: "DM Requests", href: "/admin/dm-requests" },
         { label: "Global Settings", href: "/admin/settings" },
+        { label: "Session Calendar", href: "/sessions" },
         { label: "NPC Generator", href: "/npc-generator" },
       ];
     case "DUNGEON_MASTER":
       return [
+        { label: "Search", href: "/search" },
         { label: "Adventure Books", href: "/dm/adventure-books" },
         { label: "My Campaigns", href: "/adventures" },
+        { label: "Session Calendar", href: "/sessions" },
         { label: "Spells", href: "/spells" },
         { label: "Classes", href: "/classes" },
         { label: "Races", href: "/races" },
@@ -40,7 +44,9 @@ function getNavItems(role: string): NavItem[] {
     case "PLAYER":
     default:
       return [
+        { label: "Search", href: "/search" },
         { label: "My Adventures", href: "/adventures" },
+        { label: "Session Calendar", href: "/sessions" },
         { label: "Spells", href: "/spells" },
         { label: "Classes", href: "/classes" },
         { label: "Races", href: "/races" },

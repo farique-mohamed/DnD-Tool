@@ -53,6 +53,15 @@ import {
   deleteEncounterTemplate,
   createEncounterFromTemplate,
 } from "./encounterTemplate";
+import {
+  createSession,
+  listSessions,
+  getSession,
+  updateSession,
+  updateSessionStatus,
+  deleteSession,
+  getUpcomingSessions,
+} from "./sessions";
 
 export const adventureRouter = createTRPCRouter({
   // Core CRUD
@@ -122,4 +131,13 @@ export const adventureRouter = createTRPCRouter({
   getEncounterTemplate,
   deleteEncounterTemplate,
   createEncounterFromTemplate,
+
+  // Sessions
+  createSession,
+  listSessions,
+  getSession,
+  updateSession,
+  updateSessionStatus,
+  deleteSession,
+  getUpcomingSessions,
 });

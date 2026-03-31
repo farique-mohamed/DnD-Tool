@@ -18,6 +18,7 @@ import {
   ItemsTab,
   PlayersTab,
   SessionNotesTab,
+  SessionsTab,
   MyCharacterTab,
   InventoryTab,
   PlayerDmNotesTab,
@@ -330,6 +331,9 @@ function AdventureDetailContent() {
           }
           adventureMonsters={adventure.monsters}
         />
+      )}
+      {resolvedTab === "sessions" && (
+        <SessionsTab adventureId={adventure.id} isOwner={isOwner} />
       )}
       {resolvedTab === "sessionnotes" && (
         <SessionNotesTab adventureId={adventure.id} />
