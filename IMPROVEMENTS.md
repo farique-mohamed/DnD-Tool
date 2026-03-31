@@ -28,9 +28,7 @@
 
 - [x] **Dark/Light Theme Toggle** - The D&D gold/brown theme is great, but a lighter option for readability in bright environments.
 
-- [ ] **Keyboard Shortcuts** - Quick dice rolls (e.g., press `d` then `20` for a d20), navigation shortcuts for DMs running encounters.
-
-- [ ] **Encounter Templates** - Save and reuse encounter setups (monster groups, environmental conditions) across adventures.
+- [x] **Encounter Templates** - Save and reuse encounter setups (monster groups, environmental conditions) across adventures.
 
 - [x] **NPC Generator** - Random NPC generation with name, personality traits, appearance, and voice notes for DMs improvising.
 

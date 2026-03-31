@@ -45,6 +45,14 @@ import {
   togglePrivateDeathSaves,
   updateInitiative,
 } from "./encounter";
+import {
+  saveEncounterAsTemplate,
+  createEncounterTemplate,
+  listEncounterTemplates,
+  getEncounterTemplate,
+  deleteEncounterTemplate,
+  createEncounterFromTemplate,
+} from "./encounterTemplate";
 
 export const adventureRouter = createTRPCRouter({
   // Core CRUD
@@ -106,4 +114,12 @@ export const adventureRouter = createTRPCRouter({
   updateDeathSaves,
   togglePrivateDeathSaves,
   updateInitiative,
+
+  // Encounter Templates
+  saveEncounterAsTemplate,
+  createEncounterTemplate,
+  listEncounterTemplates,
+  getEncounterTemplate,
+  deleteEncounterTemplate,
+  createEncounterFromTemplate,
 });

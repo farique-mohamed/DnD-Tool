@@ -532,8 +532,46 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   const togglePrivateDeathSaves = api.adventure.togglePrivateDeathSaves.useMutation({ onSuccess: invalidateEncounter });
   const updateInitiative = api.adventure.updateInitiative.useMutation({ onSuccess: invalidateEncounter });
 
+  // ---- Template mutations ----
+  const saveAsTemplate = api.adventure.saveEncounterAsTemplate.useMutation({
+    onSuccess: () => {
+      void utils.adventure.listEncounterTemplates.invalidate();
+      setSaveTemplateOpen(false);
+      setTemplateName("");
+      setTemplateDescription("");
+      setTemplateFeedback("Template saved successfully!");
+      setTimeout(() => setTemplateFeedback(null), 3000);
+    },
+    onError: (err) => {
+      setTemplateFeedback(`Error: ${err.message}`);
+      setTimeout(() => setTemplateFeedback(null), 4000);
+    },
+  });
+
+  const createFromTemplate = api.adventure.createEncounterFromTemplate.useMutation({
+    onSuccess: () => {
+      invalidateEncounter();
+      setLoadTemplateOpen(false);
+    },
+  });
+
+  const deleteTemplate = api.adventure.deleteEncounterTemplate.useMutation({
+    onSuccess: () => {
+      void utils.adventure.listEncounterTemplates.invalidate();
+      setConfirmDeleteTemplateId(null);
+    },
+  });
+
   // ---- Local UI state ----
   const [confirmEnd, setConfirmEnd] = useState(false);
+
+  // Template state
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [templateFeedback, setTemplateFeedback] = useState<string | null>(null);
+  const [loadTemplateOpen, setLoadTemplateOpen] = useState(false);
+  const [confirmDeleteTemplateId, setConfirmDeleteTemplateId] = useState<string | null>(null);
 
   // Add player form
   const [addPlayerId, setAddPlayerId] = useState("");
@@ -564,6 +602,12 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
 
   // Expanded monster stat block
   const [expandedMonsterId, setExpandedMonsterId] = useState<string | null>(null);
+
+  // ---- Template list (only when modal open) ----
+  const { data: templateList, isLoading: templatesLoading } = api.adventure.listEncounterTemplates.useQuery(
+    undefined,
+    { enabled: loadTemplateOpen },
+  );
 
   // ---- Monster search results ----
   const filteredMonsters = useMemo(() => {
@@ -775,17 +819,204 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
           <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF, marginBottom: "20px" }}>
             No active encounter. Start one to begin combat tracking.
           </p>
-          <button
-            onClick={() => createEncounter.mutate({ adventureId })}
-            disabled={createEncounter.isPending}
-            style={{
-              ...goldButtonStyle,
-              opacity: createEncounter.isPending ? 0.6 : 1,
-              cursor: createEncounter.isPending ? "default" : "pointer",
-            }}
-          >
-            {createEncounter.isPending ? "Starting..." : "Start Encounter"}
-          </button>
+          <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+            <button
+              onClick={() => createEncounter.mutate({ adventureId })}
+              disabled={createEncounter.isPending}
+              style={{
+                ...goldButtonStyle,
+                opacity: createEncounter.isPending ? 0.6 : 1,
+                cursor: createEncounter.isPending ? "default" : "pointer",
+              }}
+            >
+              {createEncounter.isPending ? "Starting..." : "Start Encounter"}
+            </button>
+            <button
+              onClick={() => setLoadTemplateOpen(true)}
+              style={{
+                ...smallButtonStyle,
+                padding: "10px 24px",
+                fontSize: "14px",
+                fontWeight: "bold",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Load Template
+            </button>
+          </div>
+
+          {/* Load Template Modal */}
+          {loadTemplateOpen && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.75)",
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+              }}
+              onClick={() => { setLoadTemplateOpen(false); setConfirmDeleteTemplateId(null); }}
+            >
+              <div
+                style={{
+                  background: "rgba(15,8,3,0.97)",
+                  border: "2px solid #c9a84c",
+                  borderRadius: "12px",
+                  padding: "24px",
+                  maxWidth: "560px",
+                  width: "100%",
+                  maxHeight: "80vh",
+                  overflowY: "auto",
+                  textAlign: "left",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3
+                  style={{
+                    color: GOLD,
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                    fontFamily: SERIF,
+                    margin: "0 0 16px 0",
+                  }}
+                >
+                  Encounter Templates
+                </h3>
+
+                {templatesLoading && (
+                  <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>
+                    Loading templates...
+                  </p>
+                )}
+
+                {!templatesLoading && (!templateList || templateList.length === 0) && (
+                  <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>
+                    No saved templates yet. Start an encounter and save it as a template.
+                  </p>
+                )}
+
+                {!templatesLoading && templateList && templateList.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {templateList.map((tpl) => (
+                      <div
+                        key={tpl.id}
+                        style={{
+                          background: "rgba(0,0,0,0.4)",
+                          border: "1px solid rgba(201,168,76,0.2)",
+                          borderRadius: "8px",
+                          padding: "12px 16px",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                          <span style={{ color: GOLD_BRIGHT, fontSize: "14px", fontFamily: SERIF, fontWeight: "bold" }}>
+                            {tpl.name}
+                          </span>
+                          <span
+                            style={{
+                              color: GOLD_MUTED,
+                              fontSize: "11px",
+                              fontFamily: SERIF,
+                              background: "rgba(201,168,76,0.1)",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            {tpl._count?.participants ?? tpl.participants?.length ?? 0} monsters
+                          </span>
+                        </div>
+
+                        {tpl.description && (
+                          <p style={{ color: GOLD_MUTED, fontSize: "12px", fontFamily: SERIF, margin: "0 0 6px 0" }}>
+                            {tpl.description}
+                          </p>
+                        )}
+
+                        {/* Monster names preview */}
+                        {tpl.participants && tpl.participants.length > 0 && (
+                          <p style={{ color: TEXT_DIM, fontSize: "11px", fontFamily: SERIF, margin: "0 0 10px 0" }}>
+                            {tpl.participants.map((p: { name: string }) => p.name).join(", ")}
+                          </p>
+                        )}
+
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          {confirmDeleteTemplateId === tpl.id ? (
+                            <>
+                              <span style={{ color: "#e74c3c", fontSize: "12px", fontFamily: SERIF }}>
+                                Delete this template?
+                              </span>
+                              <button
+                                onClick={() => deleteTemplate.mutate({ templateId: tpl.id })}
+                                disabled={deleteTemplate.isPending}
+                                style={{
+                                  ...dangerButtonStyle,
+                                  padding: "4px 12px",
+                                  fontSize: "11px",
+                                  opacity: deleteTemplate.isPending ? 0.6 : 1,
+                                }}
+                              >
+                                Yes
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteTemplateId(null)}
+                                style={{ ...smallButtonStyle, padding: "4px 12px", fontSize: "11px" }}
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => createFromTemplate.mutate({ adventureId, templateId: tpl.id })}
+                                disabled={createFromTemplate.isPending}
+                                style={{
+                                  ...goldButtonStyle,
+                                  padding: "6px 16px",
+                                  fontSize: "12px",
+                                  opacity: createFromTemplate.isPending ? 0.6 : 1,
+                                  cursor: createFromTemplate.isPending ? "default" : "pointer",
+                                }}
+                              >
+                                {createFromTemplate.isPending ? "Creating..." : "Use"}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteTemplateId(tpl.id)}
+                                style={{
+                                  ...smallButtonStyle,
+                                  padding: "6px 12px",
+                                  fontSize: "11px",
+                                  color: "#e74c3c",
+                                  borderColor: "rgba(231,76,60,0.3)",
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ marginTop: "16px", textAlign: "right" }}>
+                  <button
+                    onClick={() => { setLoadTemplateOpen(false); setConfirmDeleteTemplateId(null); }}
+                    style={{ ...smallButtonStyle, padding: "8px 20px", fontSize: "13px" }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -861,6 +1092,17 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
           {/* DM-only controls */}
           {isOwner && (
             <>
+              <button
+                onClick={() => setSaveTemplateOpen(true)}
+                style={{
+                  ...smallButtonStyle,
+                  padding: "8px 14px",
+                  fontSize: "12px",
+                }}
+              >
+                Save as Template
+              </button>
+
               <button
                 onClick={() => togglePrivateDeathSaves.mutate({ adventureId })}
                 disabled={togglePrivateDeathSaves.isPending}
@@ -1888,6 +2130,128 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Template feedback message */}
+      {templateFeedback && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            background: templateFeedback.startsWith("Error")
+              ? "rgba(192,57,43,0.15)"
+              : "rgba(74,140,63,0.15)",
+            border: `1px solid ${templateFeedback.startsWith("Error") ? "rgba(192,57,43,0.4)" : "rgba(74,140,63,0.4)"}`,
+            color: templateFeedback.startsWith("Error") ? "#e74c3c" : "#4a8c3f",
+            fontSize: "13px",
+            fontFamily: SERIF,
+          }}
+        >
+          {templateFeedback}
+        </div>
+      )}
+
+      {/* Save as Template Modal */}
+      {saveTemplateOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.75)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setSaveTemplateOpen(false)}
+        >
+          <div
+            style={{
+              background: "rgba(15,8,3,0.97)",
+              border: "2px solid #c9a84c",
+              borderRadius: "12px",
+              padding: "24px",
+              maxWidth: "420px",
+              width: "100%",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                color: GOLD,
+                fontSize: "16px",
+                fontWeight: "bold",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                fontFamily: SERIF,
+                margin: "0 0 16px 0",
+              }}
+            >
+              Save Encounter as Template
+            </h3>
+            <p style={{ color: GOLD_MUTED, fontSize: "12px", fontFamily: SERIF, marginBottom: "16px" }}>
+              This will save the current encounter&apos;s monsters as a reusable template.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div>
+                <label style={{ ...sectionLabelStyle, display: "block" }}>Template Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Goblin Ambush"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && templateName.trim()) {
+                      saveAsTemplate.mutate({ adventureId, name: templateName.trim(), description: templateDescription.trim() || undefined });
+                    }
+                  }}
+                  autoFocus
+                  style={{ ...inputStyle, width: "100%" }}
+                />
+              </div>
+              <div>
+                <label style={{ ...sectionLabelStyle, display: "block" }}>Description (optional)</label>
+                <input
+                  type="text"
+                  placeholder="Brief description..."
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  style={{ ...inputStyle, width: "100%" }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
+                <button
+                  onClick={() => { setSaveTemplateOpen(false); setTemplateName(""); setTemplateDescription(""); }}
+                  style={{ ...smallButtonStyle, padding: "8px 20px", fontSize: "13px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (templateName.trim()) {
+                      saveAsTemplate.mutate({ adventureId, name: templateName.trim(), description: templateDescription.trim() || undefined });
+                    }
+                  }}
+                  disabled={!templateName.trim() || saveAsTemplate.isPending}
+                  style={{
+                    ...goldButtonStyle,
+                    padding: "8px 20px",
+                    fontSize: "13px",
+                    opacity: !templateName.trim() || saveAsTemplate.isPending ? 0.5 : 1,
+                    cursor: !templateName.trim() || saveAsTemplate.isPending ? "default" : "pointer",
+                  }}
+                >
+                  {saveAsTemplate.isPending ? "Saving..." : "Save Template"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

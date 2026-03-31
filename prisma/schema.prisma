@@ -49,6 +49,7 @@ model User {
   dmNotesReceived  DmNote[]          @relation("dmNotesReceived")
   sessionNotes     SessionNote[]
   inventoryItemsAdded CharacterInventoryItem[] @relation("inventoryItemsAdded")
+  encounterTemplates  EncounterTemplate[]
 
   @@map("users")
 }
@@ -300,4 +301,32 @@ model EncounterParticipant {
   createdAt         DateTime                  @default(now())
 
   @@map("encounter_participants")
+}
+
+model EncounterTemplate {
+  id           String                        @id @default(cuid())
+  userId       String
+  user         User                          @relation(fields: [userId], references: [id])
+  name         String
+  description  String?
+  participants EncounterTemplateParticipant[]
+  createdAt    DateTime                      @default(now())
+  updatedAt    DateTime                      @updatedAt
+
+  @@map("encounter_templates")
+}
+
+model EncounterTemplateParticipant {
+  id                 String             @id @default(cuid())
+  templateId         String
+  template           EncounterTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name               String
+  monsterSource      String
+  maxHp              Int
+  armorClass         Int
+  initiativeModifier Int?
+  sortOrder          Int                @default(0)
+  createdAt          DateTime           @default(now())
+
+  @@map("encounter_template_participants")
 }
