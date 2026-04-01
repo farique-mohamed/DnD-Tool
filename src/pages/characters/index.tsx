@@ -1,14 +1,168 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useState, useRef, useEffect } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
+import { ImportCharacterModal } from "@/components/ImportCharacterModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
+import { downloadCharacterJson } from "@/lib/characterJsonExport";
+import { downloadCharacterPdf } from "@/lib/characterPdfExport";
 
 function abilityModifier(score: number): string {
   const mod = Math.floor((score - 10) / 2);
   return mod >= 0 ? `+${mod}` : `${mod}`;
 }
+
+// ---------------------------------------------------------------------------
+// Export Dropdown — small menu on each card
+// ---------------------------------------------------------------------------
+
+function ExportDropdown({ character }: {
+  character: {
+    id: string;
+    name: string;
+    race: string;
+    characterClass: string;
+    level: number;
+    alignment: string;
+    maxHp: number;
+    currentHp: number;
+    armorClass: number;
+    speed: number;
+    strength: number;
+    dexterity: number;
+    constitution: number;
+    intelligence: number;
+    wisdom: number;
+    charisma: number;
+  };
+}) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
+  // Lazy-fetch export data only when the user clicks JSON export
+  const exportQuery = api.character.export.useQuery(
+    { id: character.id },
+    { enabled: false },
+  );
+
+  // Close on outside click
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e: MouseEvent) => {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [open]);
+
+  const handleJsonExport = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    try {
+      const result = await exportQuery.refetch();
+      if (result.data) {
+        downloadCharacterJson(result.data as Record<string, unknown>, character.name);
+      }
+    } catch {
+      // silent — user can retry
+    }
+  };
+
+  const handlePdfExport = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setOpen(false);
+    downloadCharacterPdf(character);
+  };
+
+  return (
+    <div ref={ref} style={{ position: "relative" }}>
+      <button
+        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        title="Export character"
+        style={{
+          background: "none",
+          border: "1px solid rgba(201,168,76,0.3)",
+          borderRadius: "4px",
+          color: "#a89060",
+          fontSize: "11px",
+          fontFamily: "'Georgia', serif",
+          padding: "3px 8px",
+          cursor: "pointer",
+          letterSpacing: "0.5px",
+          transition: "border-color 0.2s, color 0.2s",
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.7)"; e.currentTarget.style.color = "#c9a84c"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; e.currentTarget.style.color = "#a89060"; }}
+      >
+        Export
+      </button>
+      {open && (
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            top: "100%",
+            marginTop: "4px",
+            background: "rgba(15,8,3,0.95)",
+            border: "1px solid rgba(201,168,76,0.4)",
+            borderRadius: "6px",
+            padding: "4px 0",
+            zIndex: 100,
+            minWidth: "130px",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.5)",
+          }}
+        >
+          <button
+            onClick={(e) => void handleJsonExport(e)}
+            style={{
+              display: "block",
+              width: "100%",
+              background: "none",
+              border: "none",
+              color: "#e8d5a3",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              padding: "8px 14px",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(201,168,76,0.1)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            Export JSON
+          </button>
+          <button
+            onClick={handlePdfExport}
+            style={{
+              display: "block",
+              width: "100%",
+              background: "none",
+              border: "none",
+              color: "#e8d5a3",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              padding: "8px 14px",
+              cursor: "pointer",
+              textAlign: "left",
+            }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(201,168,76,0.1)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "none")}
+          >
+            Export PDF
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Character Card
+// ---------------------------------------------------------------------------
 
 function CharacterCard({ character, onClick, isMobile }: { character: {
   id: string;
@@ -58,7 +212,7 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
     >
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "16px" }}>
-        <div>
+        <div style={{ flex: 1 }}>
           <h2 style={{ color: "#c9a84c", fontSize: "20px", fontWeight: "bold", letterSpacing: "1px", marginBottom: "4px" }}>
             {character.name}
           </h2>
@@ -86,16 +240,19 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
             );
           })()}
         </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ color: "#e8d5a3", fontSize: "13px" }}>
-            <span style={{ color: "#b8934a" }}>HP:</span> {character.currentHp}/{character.maxHp}
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
+          <div style={{ textAlign: "right" }}>
+            <div style={{ color: "#e8d5a3", fontSize: "13px" }}>
+              <span style={{ color: "#b8934a" }}>HP:</span> {character.currentHp}/{character.maxHp}
+            </div>
+            <div style={{ color: "#e8d5a3", fontSize: "13px" }}>
+              <span style={{ color: "#b8934a" }}>AC:</span> {character.armorClass}
+            </div>
+            <div style={{ color: "#e8d5a3", fontSize: "13px" }}>
+              <span style={{ color: "#b8934a" }}>Speed:</span> {character.speed}ft
+            </div>
           </div>
-          <div style={{ color: "#e8d5a3", fontSize: "13px" }}>
-            <span style={{ color: "#b8934a" }}>AC:</span> {character.armorClass}
-          </div>
-          <div style={{ color: "#e8d5a3", fontSize: "13px" }}>
-            <span style={{ color: "#b8934a" }}>Speed:</span> {character.speed}ft
-          </div>
+          <ExportDropdown character={character} />
         </div>
       </div>
 
@@ -125,10 +282,15 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
   );
 }
 
+// ---------------------------------------------------------------------------
+// Page content
+// ---------------------------------------------------------------------------
+
 function CharactersContent() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const { data: characters, isLoading } = api.character.list.useQuery();
+  const [importOpen, setImportOpen] = useState(false);
 
   return (
     <>
@@ -145,12 +307,32 @@ function CharactersContent() {
               Your roster of heroes and villains.
             </p>
           </div>
-          <button
-            onClick={() => void router.push("/characters/new")}
-            style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 24px", fontSize: "13px", fontFamily: "'Georgia', serif", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px", whiteSpace: "nowrap" }}
-          >
-            + Create Character
-          </button>
+          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+            <button
+              onClick={() => setImportOpen(true)}
+              style={{
+                background: "transparent",
+                color: "#c9a84c",
+                border: "1px solid #c9a84c",
+                borderRadius: "6px",
+                padding: "12px 20px",
+                fontSize: "13px",
+                fontFamily: "'Georgia', serif",
+                fontWeight: "bold",
+                cursor: "pointer",
+                letterSpacing: "0.5px",
+                whiteSpace: "nowrap",
+              }}
+            >
+              Import Character
+            </button>
+            <button
+              onClick={() => void router.push("/characters/new")}
+              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 24px", fontSize: "13px", fontFamily: "'Georgia', serif", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px", whiteSpace: "nowrap" }}
+            >
+              + Create Character
+            </button>
+          </div>
         </div>
         <div style={{ width: "80px", height: "2px", background: "#c9a84c", marginBottom: "32px", opacity: 0.6 }} />
 
@@ -176,6 +358,8 @@ function CharactersContent() {
           </div>
         )}
       </div>
+
+      <ImportCharacterModal open={importOpen} onClose={() => setImportOpen(false)} />
     </>
   );
 }

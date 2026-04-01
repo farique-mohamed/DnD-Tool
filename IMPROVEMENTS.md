@@ -2,11 +2,11 @@
 
 ## High-Impact Features
 
-- [ ] **Real-time Multiplayer (WebSockets)** - Currently using 3-second polling for dice/encounters. Adding WebSocket support (e.g., Socket.io or Pusher) would make combat encounters, dice rolls, and DM notes feel instant and collaborative.
+- [x] **Real-time Multiplayer (WebSockets)** - Currently using 3-second polling for dice/encounters. Adding WebSocket support (e.g., Socket.io or Pusher) would make combat encounters, dice rolls, and DM notes feel instant and collaborative.
 
 - [ ] **Character Import/Export** - Export character sheets as PDF or JSON for sharing/backup. Import from D&D Beyond or standard formats would be a killer feature.
 
-- [ ] **Campaign Map Support** - Image uploads for battle maps, world maps, or dungeon layouts. Could integrate with encounter tracking for token placement.
+- [x] **Campaign Map Support** - Image uploads for battle maps, world maps, or dungeon layouts. Could integrate with encounter tracking for token placement.
 
 - [ ] **DM Elevation Workflow** - The `requestDungeonMaster` is currently a stub. Completing the admin approval flow would make the role system fully functional.
 
