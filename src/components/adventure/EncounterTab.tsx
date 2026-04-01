@@ -512,25 +512,172 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   // ---- Queries ----
   const { data: encounter, isLoading } = api.adventure.getEncounter.useQuery(
     { adventureId },
-    { refetchInterval: 3000 },
+    { refetchInterval: 1000 },
   );
 
   // ---- Mutations ----
+  type EncounterData = NonNullable<typeof encounter>;
+
   const invalidateEncounter = () => {
     void utils.adventure.getEncounter.invalidate({ adventureId });
   };
+
+  /** Snapshot the current cache and cancel in-flight queries for optimistic update. */
+  async function optimisticSetup() {
+    await utils.adventure.getEncounter.cancel({ adventureId });
+    return utils.adventure.getEncounter.getData({ adventureId }) ?? null;
+  }
+
+  /** Roll back to a previous snapshot on error. */
+  function optimisticRollback(_err: unknown, _input: unknown, context: { previous: EncounterData | null } | undefined) {
+    if (context?.previous) {
+      utils.adventure.getEncounter.setData({ adventureId }, context.previous);
+    }
+  }
 
   const createEncounter = api.adventure.createEncounter.useMutation({ onSuccess: invalidateEncounter });
   const endEncounter = api.adventure.endEncounter.useMutation({ onSuccess: invalidateEncounter });
   const addPlayer = api.adventure.addEncounterPlayer.useMutation({ onSuccess: invalidateEncounter });
   const addMonster = api.adventure.addEncounterMonster.useMutation({ onSuccess: invalidateEncounter });
   const removeParticipant = api.adventure.removeParticipant.useMutation({ onSuccess: invalidateEncounter });
-  const nextTurn = api.adventure.nextTurn.useMutation({ onSuccess: invalidateEncounter });
-  const updateHp = api.adventure.updateParticipantHp.useMutation({ onSuccess: invalidateEncounter });
-  const updateConditions = api.adventure.updateParticipantConditions.useMutation({ onSuccess: invalidateEncounter });
-  const updateDeathSaves = api.adventure.updateDeathSaves.useMutation({ onSuccess: invalidateEncounter });
   const togglePrivateDeathSaves = api.adventure.togglePrivateDeathSaves.useMutation({ onSuccess: invalidateEncounter });
-  const updateInitiative = api.adventure.updateInitiative.useMutation({ onSuccess: invalidateEncounter });
+
+  const nextTurn = api.adventure.nextTurn.useMutation({
+    onMutate: async () => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        const sorted = [...old.participants].sort((a, b) => {
+          if (b.initiativeRoll !== a.initiativeRoll) return b.initiativeRoll - a.initiativeRoll;
+          return a.sortOrder - b.sortOrder;
+        });
+        let nextIndex = old.currentTurnIndex;
+        let round = old.round;
+        let wrapped = false;
+        for (let i = 0; i < sorted.length; i++) {
+          nextIndex++;
+          if (nextIndex >= sorted.length) {
+            nextIndex = 0;
+            wrapped = true;
+          }
+          if (sorted[nextIndex].isActive) break;
+        }
+        if (wrapped) round++;
+        return { ...old, currentTurnIndex: nextIndex, round };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateHp = api.adventure.updateParticipantHp.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) => {
+            if (p.id !== input.participantId) return p;
+            let currentHp = p.currentHp ?? 0;
+            let tempHp = p.tempHp ?? 0;
+            const maxHp = p.maxHp ?? 0;
+            if (input.type === "heal") {
+              currentHp = Math.min(maxHp, currentHp + input.amount);
+            } else if (input.type === "damage") {
+              const remainingDamage = Math.max(0, input.amount - tempHp);
+              tempHp = Math.max(0, tempHp - input.amount);
+              currentHp = Math.max(0, currentHp - remainingDamage);
+            } else if (input.type === "setTempHp") {
+              tempHp = input.amount;
+            }
+            // Also update nested character HP for players
+            const adventurePlayer = p.adventurePlayer
+              ? {
+                  ...p.adventurePlayer,
+                  character: p.adventurePlayer.character
+                    ? { ...p.adventurePlayer.character, currentHp, tempHp }
+                    : p.adventurePlayer.character,
+                }
+              : p.adventurePlayer;
+            return { ...p, currentHp, tempHp, adventurePlayer };
+          }),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateConditions = api.adventure.updateParticipantConditions.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        const conditionsJson = JSON.stringify(input.conditions);
+        return {
+          ...old,
+          participants: old.participants.map((p) => {
+            if (p.id !== input.participantId) return p;
+            const adventurePlayer = p.adventurePlayer
+              ? {
+                  ...p.adventurePlayer,
+                  character: p.adventurePlayer.character
+                    ? { ...p.adventurePlayer.character, activeConditions: conditionsJson }
+                    : p.adventurePlayer.character,
+                }
+              : p.adventurePlayer;
+            return { ...p, conditions: conditionsJson, adventurePlayer };
+          }),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateDeathSaves = api.adventure.updateDeathSaves.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) =>
+            p.id === input.participantId
+              ? { ...p, deathSaveSuccesses: input.successes, deathSaveFailures: input.failures }
+              : p
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateInitiative = api.adventure.updateInitiative.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) =>
+            p.id === input.participantId
+              ? { ...p, initiativeRoll: input.initiativeRoll }
+              : p
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
 
   // ---- Template mutations ----
   const saveAsTemplate = api.adventure.saveEncounterAsTemplate.useMutation({

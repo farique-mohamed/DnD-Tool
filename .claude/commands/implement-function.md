@@ -10,6 +10,7 @@ You are implementing a function for the DnD Tool project. The requirement is:
 ## Step 1 — Identify relevant business logic docs
 
 The dungeon-logic docs live in `docs/dungeon-logic/`. The available files are:
+
 - `docs/dungeon-logic/overview.md`
 - `docs/dungeon-logic/architecture.md`
 - `docs/dungeon-logic/authentication.md`
@@ -20,6 +21,7 @@ Read **all** of them now (in parallel), then decide which are relevant to the re
 ## Step 2 — Determine the implementation domain
 
 Based on the requirement and the relevant docs, decide which type of agent to use:
+
 - **backend-engineer** — server logic, API endpoints, database interactions, services
 - **frontend-engineer** — UI components, hooks, client-side logic
 - **database-specialist** — schema changes, queries, migrations
@@ -30,9 +32,10 @@ If the function spans multiple domains, use the most central one and note what t
 ## Step 3 — Implement using the appropriate agent
 
 Launch the agent with:
+
 1. The full requirement from `$ARGUMENTS`
 2. The relevant excerpts from the dungeon-logic docs (include verbatim — don't summarize)
-3. Clear instructions to implement the function, write it into the correct file(s), and follow project conventions
+3. Clear instructions to implement the function, write it into the correct file(s), and follow project conventions. If any edited or created file exceeds 600 lines, break it apart into smaller modules wherever possible.
 4. An explicit instruction to **create or update relevant docs** in `docs/dungeon-logic/` at the end of the implementation — add or update a doc file for the feature, and update `architecture.md` models table and `ui-patterns.md` pages table if new routes or models were added.
 
 Do not implement the function yourself — delegate entirely to the agent and report back what was done.
