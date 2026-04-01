@@ -240,7 +240,7 @@ export const ADVENTURE_LIST: AdventureInfo[] = [
   { source: "cos", name: "Curse of Strahd" },
   { source: "crcotn", name: "Critical Role: Call of the Netherdeep" },
   { source: "dc", name: "Divine Contention" },
-  { source: "dd", name: "Dragon of Icespire Peak: Dragon of Icespire Peak" },
+  { source: "dd", name: "Dangerous Designs" },
   { source: "dip", name: "Dragon of Icespire Peak" },
   { source: "ditlcot", name: "Descent into the Lost Caverns of Tsojcanth" },
   { source: "dosi", name: "Dragons of Stormwreck Isle" },

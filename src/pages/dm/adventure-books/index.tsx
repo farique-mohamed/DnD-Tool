@@ -5,6 +5,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { ADVENTURE_LIST } from "@/lib/adventureData";
+import { getCoverImageUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 
 function AdventureBooksContent() {
   const { user } = useAuth();
@@ -85,6 +87,18 @@ function AdventureBooksContent() {
                   fontFamily: "'Georgia', 'Times New Roman', serif",
                 }}
               >
+                <EntityImage
+                  src={getCoverImageUrl(adventure.source)}
+                  alt={adventure.name}
+                  width="100%"
+                  style={{
+                    borderRadius: "4px",
+                    marginBottom: "12px",
+                    border: "none",
+                    boxShadow: "none",
+                    background: "transparent",
+                  }}
+                />
                 <div
                   style={{
                     color: "#e8d5a3",

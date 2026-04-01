@@ -85,6 +85,15 @@ export function parseTaggedText(text: string): string {
       return num >= 0 ? `+${num}` : String(num);
     });
 
+    // {@5etoolsImg Name|path} → clickable download link
+    result = result.replace(
+      /\{@5etoolsImg\s+([^|}]+)\|([^}]+)\}/g,
+      (_m, name: string, path: string) => {
+        const url = `https://raw.githubusercontent.com/5etools-mirror-3/5etools-img/main/${path.trim()}`;
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer" style="color:#c9a84c;text-decoration:underline">${name.trim()}</a>`;
+      },
+    );
+
     // Generic: {@tag content} — use content before first "|"
     result = result.replace(/\{@\w+\s([^}]*)\}/g, (_m, body: string) => {
       const parts = body.split("|");

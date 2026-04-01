@@ -80,6 +80,7 @@ Exported style objects: `baseTextStyle`, `headingStyle`, `cardStyle`, `inputStyl
 | `Badge` | `Badge.tsx` | `color?` (default `GOLD`), `style?`, `children` | Small uppercase tag/label with tinted background derived from the color prop. |
 | `Modal` | `Modal.tsx` | `open`, `onClose`, `title?`, `style?`, `children` | Fixed overlay with centred panel. Closes on backdrop click. Optional title with close button. Scrollable content area. |
 | `Alert` | `Alert.tsx` | `variant?: "error" \| "success" \| "info"`, `style?`, `children` | Status message box. `error` = red, `success` = green, `info` = gold border. |
+| `EntityImage` | `EntityImage.tsx` | `src`, `alt`, `width?`, `height?`, `style?` | Themed image with gold border, lazy loading, and graceful error handling (hides on 404). Used for monster, item, spell, and adventure/book images. See `images.md`. |
 
 ### Usage convention
 

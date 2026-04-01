@@ -6,6 +6,8 @@ import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { BOOK_LIST } from "@/lib/bookData";
+import { getCoverImageUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 
 function RuleBooksContent() {
   const { user } = useAuth();
@@ -91,6 +93,18 @@ function RuleBooksContent() {
                   fontFamily: "'Georgia', 'Times New Roman', serif",
                 }}
               >
+                <EntityImage
+                  src={getCoverImageUrl(book.source)}
+                  alt={book.name}
+                  width="100%"
+                  style={{
+                    borderRadius: "4px",
+                    marginBottom: "12px",
+                    border: "none",
+                    boxShadow: "none",
+                    background: "transparent",
+                  }}
+                />
                 <div
                   style={{
                     color: "#e8d5a3",

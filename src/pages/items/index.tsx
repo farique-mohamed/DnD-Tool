@@ -13,6 +13,8 @@ import {
 } from "@/lib/itemsData";
 import { WEAPON_PROPERTY_DESCRIPTIONS, WEAPON_MASTERY_DESCRIPTIONS } from "@/lib/equipmentData";
 import { parseTaggedTextToHtml } from "@/lib/dndTagParser";
+import { getItemImageUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 
 const PLAYER_SOURCES = new Set(["PHB", "XPHB"]);
 
@@ -377,6 +379,14 @@ function ItemDetailPanel({ item, isMobile, onBack }: { item: Item; isMobile?: bo
           {item.source}
         </span>
       </div>
+
+      {/* Item image */}
+      <EntityImage
+        src={getItemImageUrl(item.name, item.source)}
+        alt={item.name}
+        width={isMobile ? "100%" : 240}
+        style={{ alignSelf: "center" }}
+      />
 
       {/* Gradient divider */}
       <div

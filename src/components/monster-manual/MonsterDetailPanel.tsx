@@ -1,5 +1,8 @@
+import { useState } from "react";
 import { type MonsterInfo, crLabel } from "@/lib/bestiaryData";
 import { parseTaggedText } from "@/lib/dndTagParser";
+import { getMonsterImageUrl, getMonsterTokenUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 import {
   GOLD,
   GOLD_BRIGHT,
@@ -15,6 +18,69 @@ import {
 import { AbilityBlock } from "./AbilityBlock";
 import { ActionList } from "./ActionList";
 import { SpellcastingSection } from "./SpellcastingSection";
+
+// ---------------------------------------------------------------------------
+// Token with hover-enlarged preview
+// ---------------------------------------------------------------------------
+
+function TokenWithPreview({
+  name,
+  source,
+  isMobile,
+}: {
+  name: string;
+  source: string;
+  isMobile?: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const tokenUrl = getMonsterTokenUrl(name, source);
+
+  return (
+    <div
+      style={{ position: "relative", flexShrink: 0 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <EntityImage
+        src={tokenUrl}
+        alt={`${name} token`}
+        width={56}
+        height={56}
+        style={{
+          borderRadius: "50%",
+          border: `2px solid ${GOLD}`,
+          boxShadow: "0 0 12px rgba(201,168,76,0.4)",
+          cursor: "pointer",
+        }}
+      />
+      {hovered && !isMobile && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "calc(100% + 12px)",
+            zIndex: 100,
+            pointerEvents: "none",
+          }}
+        >
+          <img
+            src={tokenUrl}
+            alt={`${name} token enlarged`}
+            style={{
+              width: 200,
+              height: 200,
+              borderRadius: "50%",
+              border: `2px solid ${GOLD}`,
+              boxShadow: "0 0 30px rgba(201,168,76,0.5), 0 0 60px rgba(0,0,0,0.8)",
+              objectFit: "cover",
+              background: "rgba(0,0,0,0.9)",
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Monster detail panel (right side)
@@ -86,34 +152,49 @@ export function MonsterDetailPanel({ monster, isMobile, onBack }: MonsterDetailP
       )}
 
       {/* Header */}
-      <div>
-        <h2
-          style={{
-            color: GOLD,
-            fontSize: "26px",
-            fontWeight: "bold",
-            letterSpacing: "1.5px",
-            textTransform: "uppercase",
-            fontFamily: SERIF,
-            margin: 0,
-            marginBottom: "6px",
-          }}
-        >
-          {monster.name}
-        </h2>
-        <p
-          style={{
-            color: GOLD_MUTED,
-            fontSize: "13px",
-            fontFamily: SERIF,
-            fontStyle: "italic",
-            margin: 0,
-          }}
-        >
-          {monster.size} {monster.type},{" "}
-          <span style={{ color: TEXT_DIM }}>{monster.alignment}</span>
-        </p>
+      <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <TokenWithPreview
+          name={monster.name}
+          source={monster.source}
+          isMobile={isMobile}
+        />
+        <div>
+          <h2
+            style={{
+              color: GOLD,
+              fontSize: "26px",
+              fontWeight: "bold",
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              fontFamily: SERIF,
+              margin: 0,
+              marginBottom: "6px",
+            }}
+          >
+            {monster.name}
+          </h2>
+          <p
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "13px",
+              fontFamily: SERIF,
+              fontStyle: "italic",
+              margin: 0,
+            }}
+          >
+            {monster.size} {monster.type},{" "}
+            <span style={{ color: TEXT_DIM }}>{monster.alignment}</span>
+          </p>
+        </div>
       </div>
+
+      {/* Monster image */}
+      <EntityImage
+        src={getMonsterImageUrl(monster.name, monster.source)}
+        alt={monster.name}
+        width={isMobile ? "100%" : 280}
+        style={{ alignSelf: "center" }}
+      />
 
       {/* CR + source badge row */}
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
