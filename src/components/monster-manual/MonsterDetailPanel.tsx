@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { type MonsterInfo, crLabel } from "@/lib/bestiaryData";
 import { parseTaggedText } from "@/lib/dndTagParser";
+import { getMonsterFeature } from "@/lib/monsterFeatureData";
 import { getMonsterImageUrl, getMonsterTokenUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
 import {
@@ -79,6 +80,72 @@ function TokenWithPreview({
         </div>
       )}
     </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Trait name with monster-feature tooltip on hover
+// ---------------------------------------------------------------------------
+
+function TraitName({ name }: { name: string }) {
+  const [hovered, setHovered] = useState(false);
+  // Strip parenthetical suffixes like "Aggressive (3/Day)" → "Aggressive"
+  const baseName = name.replace(/\s*\(.*\)$/, "").trim();
+  const feature = getMonsterFeature(baseName);
+
+  return (
+    <span
+      style={{ position: "relative", display: "inline" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span
+        style={{
+          color: GOLD_BRIGHT,
+          fontSize: "13px",
+          fontFamily: SERIF,
+          fontWeight: "bold",
+          fontStyle: "italic",
+          cursor: feature ? "help" : undefined,
+          borderBottom: feature
+            ? `1px dotted ${GOLD_MUTED}`
+            : undefined,
+        }}
+      >
+        {name}.{" "}
+      </span>
+      {feature && hovered && (
+        <span
+          style={{
+            position: "absolute",
+            left: 0,
+            bottom: "calc(100% + 6px)",
+            zIndex: 200,
+            background: "rgba(20,16,10,0.96)",
+            border: `1px solid ${GOLD}`,
+            borderRadius: "6px",
+            padding: "8px 12px",
+            maxWidth: "320px",
+            fontSize: "12px",
+            fontFamily: SERIF,
+            fontStyle: "normal",
+            fontWeight: "normal",
+            color: TEXT_DIM,
+            lineHeight: "1.5",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.7)",
+            pointerEvents: "none",
+            whiteSpace: "normal",
+          }}
+        >
+          <span style={{ color: GOLD, fontWeight: "bold" }}>
+            {feature.name}
+          </span>
+          <span style={{ color: GOLD_MUTED }}> (e.g. {feature.example})</span>
+          <br />
+          {feature.effect}
+        </span>
+      )}
+    </span>
   );
 }
 
@@ -343,17 +410,7 @@ export function MonsterDetailPanel({ monster, isMobile, onBack }: MonsterDetailP
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {monster.traits.map((trait, idx) => (
             <div key={idx}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontSize: "13px",
-                  fontFamily: SERIF,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                }}
-              >
-                {trait.name}.{" "}
-              </span>
+              <TraitName name={trait.name} />
               <span
                 style={{
                   color: TEXT_DIM,

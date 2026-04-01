@@ -433,8 +433,10 @@ function CreateCharacterContent() {
             {/* Backstory */}
             <BackstorySection
               backstory={form.backstory}
+              characterClass={form.characterClass}
               isLoading={isLoading}
               onFormChange={handleChange}
+              onAppendBackstory={handleUseBackstory}
             />
 
             {error && (
