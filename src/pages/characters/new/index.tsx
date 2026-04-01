@@ -456,7 +456,13 @@ function CreateCharacterContent() {
           </div>
         </form>
 
-        <ThisIsYourLifeGenerator onUseBackstory={handleUseBackstory} />
+        <ThisIsYourLifeGenerator
+          onUseBackstory={handleUseBackstory}
+          race={form.race}
+          background={form.background}
+          characterClass={form.characterClass}
+          charismaScore={form.charisma + racialBonuses.charisma}
+        />
       </div>
     </>
   );

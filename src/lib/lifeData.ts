@@ -12,6 +12,12 @@ export interface LifeClass {
   categories: LifeCategory[];
 }
 
+export interface LifeBackground {
+  name: string;
+  source: string;
+  reasons: string[];
+}
+
 const raw = (
   rawData as unknown as {
     lifeClass: {
@@ -20,10 +26,15 @@ const raw = (
       reasons?: string[];
       other?: Record<string, string[]>;
     }[];
+    lifeBackground: {
+      name: string;
+      source: string;
+      reasons?: string[];
+    }[];
   }
-).lifeClass;
+);
 
-export const LIFE_CLASSES: LifeClass[] = raw
+export const LIFE_CLASSES: LifeClass[] = raw.lifeClass
   .map((c) => ({
     name: c.name,
     source: c.source,
@@ -32,5 +43,13 @@ export const LIFE_CLASSES: LifeClass[] = raw
       name,
       options,
     })),
+  }))
+  .sort((a, b) => a.name.localeCompare(b.name));
+
+export const LIFE_BACKGROUNDS: LifeBackground[] = (raw.lifeBackground ?? [])
+  .map((b) => ({
+    name: b.name,
+    source: b.source,
+    reasons: b.reasons ?? [],
   }))
   .sort((a, b) => a.name.localeCompare(b.name));
