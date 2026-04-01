@@ -111,7 +111,19 @@ export function IdentitySection({
           </select>
         </div>
         <div>
-          <label htmlFor="background" style={labelStyle}>Background</label>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", marginBottom: "8px" }}>
+            <label htmlFor="background" style={{ ...labelStyle, marginBottom: 0 }}>Background</label>
+            <a
+              href="/backgrounds"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", textDecoration: "none", letterSpacing: "0.3px" }}
+              onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#c9a84c"; }}
+              onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#a89060"; }}
+            >
+              Browse all backgrounds →
+            </a>
+          </div>
           <select id="background" name="background" value={form.background} onChange={onFormChange} style={{ ...inputStyle, cursor: "pointer" }} disabled={isLoading}>
             <option value="">Choose your origins...</option>
             {BACKGROUND_NAMES.map((b) => <option key={b} value={b} style={{ background: "#1a1a2e" }}>{b}</option>)}
