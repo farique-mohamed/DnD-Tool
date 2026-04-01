@@ -109,8 +109,34 @@ export function getSpellImageUrl(name: string, source: string): string {
   return get5eToolsImageUrl("spells", source, name);
 }
 
+/** Vehicle image URL. */
+export function getVehicleImageUrl(name: string, source: string): string {
+  return get5eToolsImageUrl("vehicles", source, name);
+}
+
+/** Vehicle token image URL. */
+export function getVehicleTokenUrl(name: string, source: string): string {
+  const encodedName = encodeURIComponent(name);
+  return `${BASE_URL}/vehicles/tokens/${source}/${encodedName}.webp`;
+}
+
+// ---------------------------------------------------------------------------
+// Cover image overrides
+// ---------------------------------------------------------------------------
+// Some adventures don't have their own cover image in the 5etools-img repo.
+// Map their source key to the source whose cover image should be used instead.
+const COVER_OVERRIDE: Record<string, string> = {
+  "ffotr": "EFA",
+  "kkw": "GGR",
+  "oow": "AI",
+  "rmbre": "RMR",
+  "efr": "ERLW",
+};
+
 /** Book/adventure cover image URL (e.g. covers/DoSI.webp). */
 export function getCoverImageUrl(source: string): string {
+  const override = COVER_OVERRIDE[source.toLowerCase()];
+  if (override) return `${BASE_URL}/covers/${override}.webp`;
   const properSource = resolveSourceCasing(source);
   return `${BASE_URL}/covers/${properSource}.webp`;
 }

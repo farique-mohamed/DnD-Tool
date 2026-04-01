@@ -5,8 +5,7 @@ import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { SPELLS, SPELL_SOURCES, type Spell } from "@/lib/spellsData";
 import { SPELL_CLASSES, type SpellClass } from "@/lib/spellClassMap";
-import { getSpellImageUrl } from "@/lib/imageUtils";
-import { EntityImage } from "@/components/ui/EntityImage";
+
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -361,14 +360,6 @@ function SpellDetailPanel({ spell, isMobile, onBack }: { spell: Spell; isMobile?
           {spell.source}
         </span>
       </div>
-
-      {/* Spell image */}
-      <EntityImage
-        src={getSpellImageUrl(spell.name, spell.source)}
-        alt={spell.name}
-        width={isMobile ? "100%" : 240}
-        style={{ alignSelf: "center" }}
-      />
 
       {/* Gradient divider */}
       <div
