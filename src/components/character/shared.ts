@@ -29,6 +29,7 @@ export type CharacterData = {
   preparedSpells: string; // JSON string[]
   featureUses: string; // JSON Record<string,number>
   activeConditions?: string; // JSON string[]
+  activeDiseases?: string; // JSON string[]
   feats?: string; // JSON string[]
   notes?: string;
   background?: string | null;

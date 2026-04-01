@@ -67,7 +67,7 @@ function flattenEntries(entries: RawEntry[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// Parse raw data — conditions + statuses (skip diseases)
+// Parse raw data — conditions, statuses, and diseases
 // ---------------------------------------------------------------------------
 
 interface RawCondition {
@@ -88,6 +88,9 @@ const allConditions = parseConditions(rawData.condition as RawCondition[]);
 const allStatuses = parseConditions(
   (rawData.status ?? []) as RawCondition[],
 );
+const allDiseases = parseConditions(
+  ((rawData as Record<string, unknown>).disease ?? []) as RawCondition[],
+);
 
 // ---------------------------------------------------------------------------
 // De-duplicate by name: keep one per name. When filtering by source we pick
@@ -96,6 +99,9 @@ const allStatuses = parseConditions(
 
 /** All conditions and statuses (both PHB and XPHB versions). */
 export const CONDITIONS: Condition[] = [...allConditions, ...allStatuses];
+
+/** All diseases from the data file. */
+export const DISEASES: Condition[] = allDiseases;
 
 /**
  * Get conditions/statuses for a specific rules source.

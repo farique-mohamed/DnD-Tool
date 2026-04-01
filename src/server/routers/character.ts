@@ -471,6 +471,29 @@ export const characterRouter = createTRPCRouter({
       });
     }),
 
+  updateActiveDiseases: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        activeDiseases: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { activeDiseases: JSON.stringify(input.activeDiseases) },
+      });
+    }),
+
   updateFeats: protectedProcedure
     .input(
       z.object({

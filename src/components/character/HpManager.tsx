@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
 import { isWarlock } from "@/lib/spellSlotData";
-import { getConditionsBySource } from "@/lib/conditionData";
+import { getConditionsBySource, DISEASES } from "@/lib/conditionData";
 import { type CharacterData, mod, HIT_DIE_AVERAGE, HIT_DIE_SIZE } from "./shared";
 
 export function HpManager({ character }: { character: CharacterData }) {
@@ -21,7 +21,32 @@ export function HpManager({ character }: { character: CharacterData }) {
     }
   })();
 
+  const activeDiseases: string[] = (() => {
+    try {
+      return JSON.parse(character.activeDiseases || "[]") as string[];
+    } catch {
+      return [];
+    }
+  })();
+
   const allConditions = getConditionsBySource("PHB");
+
+  const updateDiseases = api.character.updateActiveDiseases.useMutation({
+    onSuccess: async () => {
+      await utils.character.getById.invalidate({ id: character.id });
+    },
+    onError: (err) => {
+      setFeedback(err.message);
+      setTimeout(() => setFeedback(null), 3000);
+    },
+  });
+
+  const toggleDisease = (name: string) => {
+    const newList = activeDiseases.includes(name)
+      ? activeDiseases.filter((d) => d !== name)
+      : [...activeDiseases, name];
+    updateDiseases.mutate({ id: character.id, activeDiseases: newList });
+  };
 
   const updateConditions = api.character.updateActiveConditions.useMutation({
     onSuccess: async () => {
@@ -636,6 +661,104 @@ export function HpManager({ character }: { character: CharacterData }) {
               {inactiveConditions.map((cond) => (
                 <option key={cond.name} value={cond.name}>
                   {cond.name}
+                </option>
+              ))}
+            </select>
+          );
+        })()}
+      </div>
+
+      {/* Diseases */}
+      <div
+        style={{
+          marginTop: "12px",
+          paddingTop: "12px",
+          borderTop: "1px solid rgba(201,168,76,0.1)",
+        }}
+      >
+        <p
+          style={{
+            color: "#bb8fd9",
+            fontSize: "10px",
+            textTransform: "uppercase",
+            letterSpacing: "1px",
+            fontFamily: "'Georgia', serif",
+            margin: "0 0 8px 0",
+          }}
+        >
+          Diseases
+        </p>
+
+        {/* Active disease pills */}
+        {activeDiseases.length > 0 && (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", marginBottom: "8px" }}>
+            {activeDiseases.map((diseaseName) => {
+              const diseaseData = DISEASES.find((d) => d.name === diseaseName);
+              return (
+                <button
+                  key={diseaseName}
+                  onClick={() => toggleDisease(diseaseName)}
+                  disabled={updateDiseases.isPending}
+                  title={diseaseData && diseaseData.entries.length > 0 ? diseaseData.entries[0] : diseaseName}
+                  style={{
+                    background: "rgba(155,89,182,0.2)",
+                    border: "1px solid rgba(155,89,182,0.5)",
+                    borderRadius: "20px",
+                    padding: "3px 10px",
+                    fontSize: "10px",
+                    fontFamily: "'Georgia', serif",
+                    color: "#bb8fd9",
+                    cursor: updateDiseases.isPending ? "not-allowed" : "pointer",
+                    fontWeight: "bold",
+                    display: "inline-flex",
+                    alignItems: "center",
+                    gap: "4px",
+                  }}
+                >
+                  {diseaseName}
+                  <span style={{ fontSize: "12px", lineHeight: 1 }}>&times;</span>
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* Dropdown to add diseases */}
+        {(() => {
+          const inactiveDiseases = DISEASES.filter(
+            (d) => !activeDiseases.includes(d.name),
+          );
+          if (inactiveDiseases.length === 0) return null;
+          return (
+            <select
+              value=""
+              onChange={(e) => {
+                if (e.target.value) {
+                  toggleDisease(e.target.value);
+                }
+              }}
+              disabled={updateDiseases.isPending}
+              style={{
+                width: "100%",
+                maxWidth: "260px",
+                padding: "6px 10px",
+                background: "rgba(30,15,5,0.9)",
+                border: "1px solid rgba(155,89,182,0.4)",
+                borderRadius: "6px",
+                color: "#e8d5a3",
+                fontSize: "12px",
+                fontFamily: "'Georgia', 'Times New Roman', serif",
+                outline: "none",
+                cursor: updateDiseases.isPending ? "not-allowed" : "pointer",
+                opacity: updateDiseases.isPending ? 0.6 : 1,
+              }}
+            >
+              <option value="" disabled>
+                Add a disease...
+              </option>
+              {inactiveDiseases.map((disease) => (
+                <option key={disease.name} value={disease.name}>
+                  {disease.name}
                 </option>
               ))}
             </select>

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
-import { getConditionsBySource } from "@/lib/conditionData";
+import { getConditionsBySource, DISEASES } from "@/lib/conditionData";
 import {
   GOLD,
   GOLD_MUTED,
@@ -81,6 +81,7 @@ export function CharacterSheetModal({
   const proficientSkills = parseJsonArray(character.skillProficiencies);
   const expertiseSkills = parseJsonArray(character.skillExpertise);
   const activeConditions = parseJsonArray(character.activeConditions);
+  const activeDiseases = parseJsonArray(character.activeDiseases);
   const feats = parseJsonArray(character.feats);
 
   const sectionTitle: React.CSSProperties = {
@@ -489,6 +490,14 @@ export function CharacterSheetModal({
               sectionTitle={sectionTitle}
             />
 
+            {/* Active Diseases — DM editable */}
+            <DmDiseasesSection
+              adventureId={adventureId}
+              characterId={characterId}
+              activeDiseases={activeDiseases}
+              sectionTitle={sectionTitle}
+            />
+
             {/* Feats */}
             {feats.length > 0 && (
               <div
@@ -804,6 +813,180 @@ function DmConditionsSection({
           }}
         >
           No active conditions.
+        </p>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// DM Diseases Section — editable dropdown + active pills
+// ---------------------------------------------------------------------------
+
+function DmDiseasesSection({
+  adventureId,
+  characterId,
+  activeDiseases,
+  sectionTitle,
+}: {
+  adventureId: string;
+  characterId: string;
+  activeDiseases: string[];
+  sectionTitle: React.CSSProperties;
+}) {
+  const utils = api.useUtils();
+
+  const updateDiseases = api.adventure.updatePlayerDiseases.useMutation({
+    onSuccess: async () => {
+      await utils.adventure.getAcceptedPlayers.invalidate({ adventureId });
+    },
+  });
+
+  const addDisease = (name: string) => {
+    if (!name || activeDiseases.includes(name)) return;
+    const newList = [...activeDiseases, name];
+    updateDiseases.mutate({
+      adventureId,
+      characterId,
+      activeDiseases: newList,
+    });
+  };
+
+  const removeDisease = (name: string) => {
+    const newList = activeDiseases.filter((d) => d !== name);
+    updateDiseases.mutate({
+      adventureId,
+      characterId,
+      activeDiseases: newList,
+    });
+  };
+
+  const inactiveDiseases = DISEASES.filter(
+    (d) => !activeDiseases.includes(d.name),
+  );
+
+  return (
+    <div
+      style={{
+        background: "rgba(0,0,0,0.5)",
+        border: "1px solid rgba(155,89,182,0.3)",
+        borderRadius: "12px",
+        padding: "20px 24px",
+        marginBottom: "16px",
+      }}
+    >
+      <p style={{ ...sectionTitle, color: "#bb8fd9" }}>Diseases</p>
+
+      {/* Active disease pills */}
+      {activeDiseases.length > 0 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: "8px",
+            marginBottom: "12px",
+          }}
+        >
+          {activeDiseases.map((diseaseName) => {
+            const diseaseData = DISEASES.find((d) => d.name === diseaseName);
+            return (
+              <button
+                key={diseaseName}
+                onClick={() => removeDisease(diseaseName)}
+                disabled={updateDiseases.isPending}
+                title={
+                  diseaseData && diseaseData.entries.length > 0
+                    ? diseaseData.entries[0]
+                    : diseaseName
+                }
+                style={{
+                  background: "rgba(155,89,182,0.2)",
+                  border: "1px solid rgba(155,89,182,0.5)",
+                  borderRadius: "20px",
+                  padding: "4px 14px",
+                  fontSize: "12px",
+                  fontFamily: SERIF,
+                  color: "#bb8fd9",
+                  fontWeight: "bold",
+                  cursor: updateDiseases.isPending
+                    ? "not-allowed"
+                    : "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "6px",
+                }}
+              >
+                {diseaseName}
+                <span style={{ fontSize: "14px", lineHeight: 1 }}>
+                  &times;
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Dropdown to add diseases */}
+      {inactiveDiseases.length > 0 && (
+        <select
+          value=""
+          onChange={(e) => {
+            if (e.target.value) {
+              addDisease(e.target.value);
+            }
+          }}
+          disabled={updateDiseases.isPending}
+          style={{
+            width: "100%",
+            maxWidth: "280px",
+            padding: "8px 12px",
+            background: "rgba(30,15,5,0.9)",
+            border: "1px solid rgba(155,89,182,0.4)",
+            borderRadius: "6px",
+            color: "#e8d5a3",
+            fontSize: "12px",
+            fontFamily: SERIF,
+            outline: "none",
+            cursor: updateDiseases.isPending ? "not-allowed" : "pointer",
+            opacity: updateDiseases.isPending ? 0.6 : 1,
+          }}
+        >
+          <option value="" disabled>
+            Add a disease...
+          </option>
+          {inactiveDiseases.map((disease) => (
+            <option key={disease.name} value={disease.name}>
+              {disease.name}
+            </option>
+          ))}
+        </select>
+      )}
+
+      {activeDiseases.length === 0 && inactiveDiseases.length === 0 && (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "13px",
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            margin: 0,
+          }}
+        >
+          No diseases available.
+        </p>
+      )}
+
+      {activeDiseases.length === 0 && inactiveDiseases.length > 0 && (
+        <p
+          style={{
+            color: GOLD_MUTED,
+            fontSize: "12px",
+            fontFamily: SERIF,
+            fontStyle: "italic",
+            margin: "8px 0 0 0",
+          }}
+        >
+          No active diseases.
         </p>
       )}
     </div>

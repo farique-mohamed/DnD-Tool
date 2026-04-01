@@ -138,6 +138,7 @@ model Character {
   preparedSpells     String  @default("[]")           // JSON: string[] of prepared/known spell names
   featureUses        String  @default("{}")           // JSON: Record<string, number> feature name → used count
   activeConditions    String  @default("[]")           // JSON: string[] of active condition/status names
+  activeDiseases      String  @default("[]")           // JSON: string[] of active disease names
   feats              String  @default("[]")           // JSON: string[] of taken feat names
   notes              String  @default("")             // Free-text notes for the character
   equippedItems      String  @default("{\"mainHand\":null,\"offHand\":null,\"armor\":null,\"shield\":null}") // JSON: EquippedItems
