@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
-import { getSpellSlots, isSpellcaster, isWarlock } from "@/lib/spellSlotData";
+import {
+  getSpellSlots,
+  isSpellcaster,
+  isWarlock,
+  getCantripsKnown,
+  getSpellsKnownOrPrepared,
+  getSpellManagementType,
+} from "@/lib/spellSlotData";
 import { SPELLS } from "@/lib/spellsData";
 import { type CharacterData, mod } from "./shared";
 import { SpellSelectionSection } from "./SpellSelectionSection";
@@ -18,9 +25,6 @@ const SPELLCASTING_ABILITY: Record<string, string> = {
   Warlock: "charisma",
   Wizard: "intelligence",
 };
-
-const PREPARED_CASTERS = ["Cleric", "Druid", "Paladin", "Wizard", "Artificer"];
-
 
 export function SpellsTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
@@ -84,7 +88,6 @@ export function SpellsTab({ character }: { character: CharacterData }) {
   };
 
   // Spell management
-  const isPreparedCaster = PREPARED_CASTERS.includes(character.characterClass);
   const spellAbility =
     SPELLCASTING_ABILITY[character.characterClass] ?? "intelligence";
   const abilityScores: Record<string, number> = {
@@ -96,14 +99,20 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     charisma: character.charisma,
   };
   const spellAbilityMod = mod(abilityScores[spellAbility] ?? 10);
-  const preparedMax = isPreparedCaster
-    ? Math.max(
-        1,
-        character.characterClass === "Artificer"
-          ? spellAbilityMod + Math.floor(character.level / 2)
-          : spellAbilityMod + character.level,
-      )
-    : null;
+
+  // Data-driven spell limits
+  const cantripsMax = getCantripsKnown(
+    character.characterClass,
+    character.level,
+    character.rulesSource,
+  );
+  const spellManagement = getSpellManagementType(character.characterClass);
+  const spellsMax = getSpellsKnownOrPrepared(
+    character.characterClass,
+    character.level,
+    spellAbilityMod,
+    character.rulesSource,
+  );
 
   // Compute maximum castable spell level from spell slots
   const maxCastableLevel = (() => {
@@ -151,9 +160,35 @@ export function SpellsTab({ character }: { character: CharacterData }) {
   });
 
   const toggleSpell = (spellName: string) => {
-    const next = localPrepared.includes(spellName)
-      ? localPrepared.filter((s) => s !== spellName)
-      : [...localPrepared, spellName];
+    // If removing, always allow
+    if (localPrepared.includes(spellName)) {
+      const next = localPrepared.filter((s) => s !== spellName);
+      setLocalPrepared(next);
+      updatePreparedSpells.mutate({ id: character.id, preparedSpells: next });
+      return;
+    }
+
+    // Adding — check limits
+    const spellData = SPELLS.find((s) => s.name === spellName);
+    if (spellData) {
+      const isCantrip = spellData.level === 0;
+      if (isCantrip && cantripsMax > 0) {
+        const currentCantrips = localPrepared.filter((n) => {
+          const s = SPELLS.find((sp) => sp.name === n);
+          return s && s.level === 0;
+        }).length;
+        if (currentCantrips >= cantripsMax) return; // at limit
+      }
+      if (!isCantrip && spellsMax !== null) {
+        const currentLeveled = localPrepared.filter((n) => {
+          const s = SPELLS.find((sp) => sp.name === n);
+          return s && s.level > 0;
+        }).length;
+        if (currentLeveled >= spellsMax) return; // at limit
+      }
+    }
+
+    const next = [...localPrepared, spellName];
     setLocalPrepared(next);
     updatePreparedSpells.mutate({ id: character.id, preparedSpells: next });
   };
@@ -292,8 +327,9 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           setSpellLevelFilter={setSpellLevelFilter}
           filteredSpells={filteredSpells}
           toggleSpell={toggleSpell}
-          isPreparedCaster={isPreparedCaster}
-          preparedMax={preparedMax}
+          cantripsMax={cantripsMax}
+          spellsMax={spellsMax}
+          spellManagement={spellManagement}
         />
       </div>
     );
@@ -426,8 +462,9 @@ export function SpellsTab({ character }: { character: CharacterData }) {
         setSpellLevelFilter={setSpellLevelFilter}
         filteredSpells={filteredSpells}
         toggleSpell={toggleSpell}
-        isPreparedCaster={isPreparedCaster}
-        preparedMax={preparedMax}
+        cantripsMax={cantripsMax}
+        spellsMax={spellsMax}
+        spellManagement={spellManagement}
       />
     </div>
   );
