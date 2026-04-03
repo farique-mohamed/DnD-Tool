@@ -3,9 +3,7 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useMonsters } from "@/hooks/useStaticData";
-import type { MonsterInfo } from "@/lib/bestiaryData";
-import { LoadingSkeleton } from "@/components/ui";
+import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
 import { GOLD, GOLD_MUTED, SERIF, PAGE_SIZE } from "@/components/monster-manual/theme";
 import { MonsterListSidebar } from "@/components/monster-manual/MonsterListSidebar";
 import { MonsterDetailPanel } from "@/components/monster-manual/MonsterDetailPanel";
@@ -16,17 +14,11 @@ import { MonsterDetailPanel } from "@/components/monster-manual/MonsterDetailPan
 
 function MonsterManualContent() {
   const isMobile = useIsMobile();
-  const { data: monsterData, isLoading: monstersLoading } = useMonsters();
   const [query, setQuery] = useState("");
   const [crFilter, setCrFilter] = useState("All");
-  const [selected, setSelected] = useState<MonsterInfo | null>(null);
+  const [selected, setSelected] = useState<MonsterInfo>(MONSTER_LIST[0]!);
   const [page, setPage] = useState(0);
   const [showDetail, setShowDetail] = useState(false);
-
-  if (monstersLoading || !monsterData) return <LoadingSkeleton />;
-  const { MONSTER_LIST } = monsterData;
-
-  const resolvedSelected = selected ?? MONSTER_LIST[0]!;
 
   const filtered = useMemo(() => {
     const q = query.toLowerCase().trim();
@@ -113,7 +105,7 @@ function MonsterManualContent() {
             onCrFilterChange={handleCrFilter}
             filteredCount={filtered.length}
             visibleMonsters={visibleMonsters}
-            selected={resolvedSelected}
+            selected={selected}
             onSelect={handleSelect}
             page={page}
             totalPages={totalPages}
@@ -125,7 +117,7 @@ function MonsterManualContent() {
         {/* Right: monster detail */}
         {(!isMobile || showDetail) && (
           <MonsterDetailPanel
-            monster={resolvedSelected}
+            monster={selected}
             isMobile={isMobile}
             onBack={() => setShowDetail(false)}
           />

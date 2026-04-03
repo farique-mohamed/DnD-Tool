@@ -5,8 +5,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/utils/api";
-import { useAdventureList } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { ADVENTURE_LIST } from "@/lib/adventureData";
 
 // ---------------------------------------------------------------------------
 // Invite Code Button (DM only) — inline popup showing the code
@@ -157,7 +156,6 @@ function AdventureCard({
   onClick,
   unreadNoteCount,
   unreadReactionCount,
-  adventureList,
 }: {
   adventure: { id: string; name: string; source: string; createdAt: Date; userId: string; _count?: { players?: number } };
   showInviteCode: boolean;
@@ -167,7 +165,6 @@ function AdventureCard({
   onClick: () => void;
   unreadNoteCount?: number;
   unreadReactionCount?: number;
-  adventureList: Array<{ source: string; name: string }>;
 }) {
   const pendingCount = adventure._count?.players ?? 0;
   return (
@@ -199,7 +196,7 @@ function AdventureCard({
           {adventure.name}
         </h2>
         <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif", marginBottom: "2px" }}>
-          {adventureList.find((a) => a.source === adventure.source)?.name ?? adventure.source}
+          {ADVENTURE_LIST.find((a) => a.source === adventure.source)?.name ?? adventure.source}
         </p>
         <p style={{ color: "#8b7a5e", fontSize: "11px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
           Created{" "}
@@ -288,7 +285,6 @@ function AdventureCard({
 function AdventuresContent() {
   const router = useRouter();
   const { user } = useAuth();
-  const { data: advData, isLoading: advLoading } = useAdventureList();
   const apiUtils = api.useUtils();
   const { data: adventures = [], isLoading } = api.adventure.list.useQuery();
   const { data: unreadNoteCounts = [] } = api.adventure.getUnreadNoteCount.useQuery();
@@ -336,9 +332,6 @@ function AdventuresContent() {
 
   // Invite code popup state (for DM/ADMIN role)
   const [activeInviteAdventureId, setActiveInviteAdventureId] = useState<string | null>(null);
-
-  if (advLoading || !advData) return <LoadingSkeleton />;
-  const { ADVENTURE_LIST } = advData;
 
   const isDM = user?.role === "DUNGEON_MASTER" || user?.role === "ADMIN";
 
@@ -413,7 +406,6 @@ function AdventuresContent() {
               setActiveInviteAdventureId={setActiveInviteAdventureId}
               unreadNoteCount={unreadNoteMap[adventure.id] ?? 0}
               unreadReactionCount={unreadReactionMap[adventure.id] ?? 0}
-              adventureList={ADVENTURE_LIST}
               onClick={() => void router.push(`/adventures/${adventure.id}`)}
             />
           ))}

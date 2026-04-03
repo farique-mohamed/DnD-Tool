@@ -1,12 +1,15 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { useItems, useStartingEquipment } from "@/hooks/useStaticData";
-import type { Item } from "@/lib/itemsData";
+import { ITEMS, type Item } from "@/lib/itemsData";
 import { parseTaggedTextToHtml } from "@/lib/dndTagParser";
 import { WEAPON_PROPERTY_DESCRIPTIONS, WEAPON_MASTERY_DESCRIPTIONS } from "@/lib/equipmentData";
 import { EquipButton } from "@/components/adventure/EquipButton";
-import type { StartingEquipmentPreset, StartingItem } from "@/lib/startingEquipmentData";
-import { LoadingSkeleton } from "@/components/ui";
+import {
+  getClassStartingEquipment,
+  getBackgroundStartingEquipment,
+  type StartingEquipmentPreset,
+  type StartingItem,
+} from "@/lib/startingEquipmentData";
 import { type CharacterData } from "./shared";
 
 function InventoryItemDescription({
@@ -16,9 +19,6 @@ function InventoryItemDescription({
   itemData: Item | undefined;
   customDescription: string | null | undefined;
 }) {
-  const { data: itemInnerData } = useItems();
-  const ITEMS_INNER = itemInnerData?.ITEMS ?? [];
-
   let attachedItemData: Item | undefined;
   let cleanCustomDescription = customDescription;
 
@@ -30,7 +30,7 @@ function InventoryItemDescription({
       if (pipeIdx !== -1) {
         const attachedName = ref.slice(0, pipeIdx);
         const attachedSource = ref.slice(pipeIdx + 1);
-        attachedItemData = ITEMS_INNER.find(
+        attachedItemData = ITEMS.find(
           (it) => it.name === attachedName && it.source === attachedSource,
         );
       }
@@ -370,7 +370,6 @@ function CharacterStartingItemsModal({
   adventureId: string;
 }) {
   const utils = api.useUtils();
-  const { data: seData, isLoading: seLoading } = useStartingEquipment();
   const [selectedPresetIdx, setSelectedPresetIdx] = useState(0);
 
   const addStartingItems = api.adventure.addStartingItems.useMutation({
@@ -384,10 +383,9 @@ function CharacterStartingItemsModal({
   });
 
   if (!open) return null;
-  if (seLoading || !seData) return <LoadingSkeleton />;
 
-  const classEquip = seData.getClassStartingEquipment(characterClass, classSource);
-  const bgEquip = seData.getBackgroundStartingEquipment(background);
+  const classEquip = getClassStartingEquipment(characterClass, classSource);
+  const bgEquip = getBackgroundStartingEquipment(background);
 
   const classPresets: StartingEquipmentPreset[] = classEquip?.presets ?? [];
   const selectedPreset = classPresets[selectedPresetIdx] ?? null;
@@ -621,8 +619,6 @@ function CharacterStartingItemsModal({
 // ---------------------------------------------------------------------------
 
 export function CharacterInventoryTab({ character }: { character: CharacterData }) {
-  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
-  const { data: startingEqData, isLoading: startingEqLoading } = useStartingEquipment();
   const [searchText, setSearchText] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showStartingModal, setShowStartingModal] = useState(false);
@@ -642,10 +638,6 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
       { adventureId, adventurePlayerId },
       { enabled: !!adventurePlayerId && !!adventureId },
     );
-
-  if (itemsHookLoading || startingEqLoading || !itemHookData || !startingEqData) return <LoadingSkeleton />;
-  const { ITEMS } = itemHookData;
-  const { getClassStartingEquipment, getBackgroundStartingEquipment } = startingEqData;
 
   const splitItem = api.adventure.splitInventoryItem.useMutation({
     onSuccess: () => {

@@ -8,9 +8,7 @@ import {
   getSpellsKnownOrPrepared,
   getSpellManagementType,
 } from "@/lib/spellSlotData";
-import { useSpells } from "@/hooks/useStaticData";
-import type { Spell } from "@/lib/spellsData";
-import { LoadingSkeleton } from "@/components/ui";
+import { SPELLS } from "@/lib/spellsData";
 import { type CharacterData, mod } from "./shared";
 import { SpellSelectionSection } from "./SpellSelectionSection";
 import { getAutoKnownCantrips } from "@/lib/autoKnownSpells";
@@ -31,7 +29,6 @@ const SPELLCASTING_ABILITY: Record<string, string> = {
 
 export function SpellsTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
-  const { data: spellHookData, isLoading: spellsHookLoading } = useSpells();
 
   // Per-player spell filtering
   const activeAdventure = character.adventurePlayers?.find(
@@ -86,9 +83,6 @@ export function SpellsTab({ character }: { character: CharacterData }) {
       await utils.character.getById.invalidate({ id: character.id });
     },
   });
-
-  if (spellsHookLoading || !spellHookData) return <LoadingSkeleton />;
-  const { SPELLS } = spellHookData;
 
   const toggleSlot = (levelIdx: number, slotIdx: number) => {
     const current = localUsed[levelIdx] ?? 0;
@@ -165,7 +159,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
   // If not in an adventure or DM hasn't assigned spells yet, show all class spells.
   const classSpells = (() => {
     const seen = new Set<string>();
-    const deduped: Spell[] = [];
+    const deduped: typeof SPELLS = [];
 
     if (hasPlayerSpells) {
       // DM-curated: only show exactly what the DM assigned (any class)

@@ -4,9 +4,11 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { parseTaggedText } from "@/lib/dndTagParser";
-import { useConditions } from "@/hooks/useStaticData";
-import type { ConditionDetail } from "@/lib/conditionData";
-import { LoadingSkeleton } from "@/components/ui";
+import {
+  ALL_ENTRIES,
+  CONDITION_SOURCES,
+  type ConditionDetail,
+} from "@/lib/conditionData";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -630,7 +632,6 @@ type CategoryFilter = "all" | "condition" | "status" | "disease";
 
 function ConditionsContent() {
   const isMobile = useIsMobile();
-  const { data: condData, isLoading: condLoading } = useConditions();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] =
     useState<CategoryFilter>("all");
@@ -638,9 +639,6 @@ function ConditionsContent() {
   const [selectedEntry, setSelectedEntry] = useState<ConditionDetail | null>(
     null,
   );
-
-  if (condLoading || !condData) return <LoadingSkeleton />;
-  const { ALL_ENTRIES, CONDITION_SOURCES } = condData;
 
   const filteredEntries = useMemo(() => {
     return ALL_ENTRIES.filter((entry) => {

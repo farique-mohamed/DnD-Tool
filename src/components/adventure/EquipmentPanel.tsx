@@ -1,7 +1,5 @@
 import { api } from "@/utils/api";
-import { useItems } from "@/hooks/useStaticData";
-import type { Item } from "@/lib/itemsData";
-import { LoadingSkeleton } from "@/components/ui";
+import { ITEMS, type Item } from "@/lib/itemsData";
 import {
   type EquipmentSlot,
   type EquippedItems,
@@ -48,11 +46,6 @@ export function EquipmentPanel({
       void utils.adventure.getInventory.invalidate();
     },
   });
-
-  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
-
-  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
-  const { ITEMS } = itemHookData;
 
   // Parse equipped items from status or fallback
   const equippedItems: EquippedItems = equipmentStatus?.equippedItems ?? {

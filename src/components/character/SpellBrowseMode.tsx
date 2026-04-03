@@ -1,4 +1,4 @@
-import type { Spell } from "@/lib/spellsData";
+import { SPELLS } from "@/lib/spellsData";
 import { SectionCounter, LimitReachedBanner, BrowseSpellRow } from "./SpellListItems";
 
 // ---------------------------------------------------------------------------
@@ -29,9 +29,9 @@ export function SpellBrowseMode({
   setSpellSearch: (v: string) => void;
   spellLevelFilter: number | null;
   setSpellLevelFilter: (v: number | null) => void;
-  filteredCantrips: Spell[];
-  filteredLeveled: Spell[];
-  filteredSpells: Spell[];
+  filteredCantrips: typeof SPELLS;
+  filteredLeveled: typeof SPELLS;
+  filteredSpells: typeof SPELLS;
   localPrepared: string[];
   toggleSpell: (name: string) => void;
   cantripsMax: number;

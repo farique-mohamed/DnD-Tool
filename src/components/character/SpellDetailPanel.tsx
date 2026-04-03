@@ -1,16 +1,10 @@
-import { useSpells } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { SPELLS } from "@/lib/spellsData";
 
 // ---------------------------------------------------------------------------
 // Spell detail panel (right column in non-browse mode)
 // ---------------------------------------------------------------------------
 
 export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
-  const { data: spellData, isLoading: spellsLoading } = useSpells();
-
-  if (spellsLoading || !spellData) return <LoadingSkeleton />;
-  const { SPELLS } = spellData;
-
   const selectedSpellData = spellName
     ? SPELLS.find((s) => s.name === spellName)
     : null;

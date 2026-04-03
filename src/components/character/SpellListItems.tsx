@@ -1,5 +1,4 @@
-import { useSpells } from "@/hooks/useStaticData";
-import type { Spell } from "@/lib/spellsData";
+import { SPELLS } from "@/lib/spellsData";
 
 // ---------------------------------------------------------------------------
 // Shared small components for spell lists
@@ -100,7 +99,7 @@ export function BrowseSpellRow({
   toggleSpell,
   sourceBadgeStyle,
 }: {
-  spell: Spell;
+  spell: (typeof SPELLS)[number];
   isPrepared: boolean;
   isAtLimit: boolean;
   toggleSpell: (name: string) => void;
@@ -194,8 +193,6 @@ export function PreparedSpellRow({
   isCantrip: boolean;
   isAutoKnown?: boolean;
 }) {
-  const { data: spellHookData } = useSpells();
-  const SPELLS = spellHookData?.SPELLS ?? [];
   const spellData = SPELLS.find((s) => s.name === spellName);
 
   return (
