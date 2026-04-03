@@ -1,13 +1,18 @@
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/utils/api";
-import { ADVENTURE_LIST } from "@/lib/adventureData";
+import { useAdventureList } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import { DashboardCard } from "./DashboardCard";
 
 export function MyCampaignsWidget() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: adventures = [], isLoading } = api.adventure.list.useQuery();
+  const { data: advData, isLoading: advListLoading } = useAdventureList();
+
+  if (advListLoading || !advData) return <LoadingSkeleton />;
+  const { ADVENTURE_LIST } = advData;
 
   const owned = adventures.filter(
     (a) =>

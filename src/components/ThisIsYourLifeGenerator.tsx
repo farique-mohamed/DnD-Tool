@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
-import { LIFE_CLASSES, LIFE_BACKGROUNDS } from "@/lib/lifeData";
+import { useLife } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import {
   d, roll, pickRandom, rollOnTable, resolveDiceExpressions,
   BIRTHPLACE_TABLE, PARENT_KNOWLEDGE_TABLE,
@@ -210,7 +211,7 @@ function generateSibling(race: string): SiblingInfo {
   };
 }
 
-function getBackgroundReason(background: string): string {
+function getBackgroundReason(background: string, LIFE_BACKGROUNDS: Array<{ name: string; reasons: string[] }>): string {
   // First try life.json data
   const lifeEntry = LIFE_BACKGROUNDS.find(
     (b) => b.name.toLowerCase() === background.toLowerCase()
@@ -228,7 +229,7 @@ function getBackgroundReason(background: string): string {
   return `Circumstances in my life led me naturally to the path of a ${background}.`;
 }
 
-function getClassReason(characterClass: string): string {
+function getClassReason(characterClass: string, LIFE_CLASSES: Array<{ name: string; reasons: string[] }>): string {
   const lifeEntry = LIFE_CLASSES.find(
     (c) => c.name.toLowerCase() === characterClass.toLowerCase()
   );
@@ -244,6 +245,8 @@ function generateFullResult(
   characterClass: string,
   charismaModifier: number,
   age: number,
+  lifeClasses: Array<{ name: string; reasons: string[] }>,
+  lifeBackgrounds: Array<{ name: string; reasons: string[] }>,
 ): BackstoryResult {
   // Parents
   const knowledge = rollOnTable(PARENT_KNOWLEDGE_TABLE);
@@ -272,8 +275,8 @@ function generateFullResult(
   const childhoodMemories = rollChildhoodMemories(charismaModifier);
 
   // Personal decisions
-  const backgroundReason = getBackgroundReason(background);
-  const classReason = getClassReason(characterClass);
+  const backgroundReason = getBackgroundReason(background, lifeBackgrounds);
+  const classReason = getClassReason(characterClass, lifeClasses);
 
   // Life events
   const eventCount = rollLifeEventCount(age, race);
@@ -456,6 +459,7 @@ export function ThisIsYourLifeGenerator({
   characterClass,
   charismaScore,
 }: ThisIsYourLifeGeneratorProps) {
+  const { data: lifeHookData, isLoading: lifeHookLoading } = useLife();
   const [result, setResult] = useState<BackstoryResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [chaModifier, setChaModifier] = useState<number>(0);
@@ -466,13 +470,16 @@ export function ThisIsYourLifeGenerator({
     ? Math.floor((charismaScore - 10) / 2)
     : chaModifier;
 
+  if (lifeHookLoading || !lifeHookData) return <LoadingSkeleton />;
+  const { LIFE_CLASSES, LIFE_BACKGROUNDS } = lifeHookData;
+
   const canRoll = race && background && characterClass;
 
   const rollAll = useCallback(() => {
     if (!canRoll) return;
-    setResult(generateFullResult(race, background, characterClass, effectiveChaModifier, age));
+    setResult(generateFullResult(race, background, characterClass, effectiveChaModifier, age, LIFE_CLASSES, LIFE_BACKGROUNDS));
     setCopied(false);
-  }, [race, background, characterClass, effectiveChaModifier, age, canRoll]);
+  }, [race, background, characterClass, effectiveChaModifier, age, canRoll, LIFE_CLASSES, LIFE_BACKGROUNDS]);
 
   // Section rerollers
   const rerollParents = useCallback(() => {
@@ -518,11 +525,11 @@ export function ThisIsYourLifeGenerator({
     setResult({
       ...result,
       personalDecisions: {
-        backgroundReason: getBackgroundReason(background),
-        classReason: getClassReason(characterClass),
+        backgroundReason: getBackgroundReason(background, LIFE_BACKGROUNDS),
+        classReason: getClassReason(characterClass, LIFE_CLASSES),
       },
     });
-  }, [result, background, characterClass]);
+  }, [result, background, characterClass, LIFE_BACKGROUNDS, LIFE_CLASSES]);
 
   const rerollLifeEvents = useCallback(() => {
     if (!result) return;

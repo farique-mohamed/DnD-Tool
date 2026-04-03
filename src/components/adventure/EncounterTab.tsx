@@ -1,8 +1,9 @@
 import { useState, useMemo } from "react";
 import { api } from "@/utils/api";
 import { useAuth } from "@/hooks/useAuth";
-import { CONDITIONS } from "@/lib/conditionData";
-import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
+import { useConditions, useMonsters } from "@/hooks/useStaticData";
+import type { MonsterInfo } from "@/lib/bestiaryData";
+import { LoadingSkeleton } from "@/components/ui";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, TEXT_DIM, SERIF, SourceBadge } from "./shared";
 import { findMonsterData, MonsterStatBlock } from "./MonsterStatBlock";
 
@@ -130,28 +131,14 @@ function hpBarColor(current: number, max: number): string {
 }
 
 // ---------------------------------------------------------------------------
-// Unique condition names (de-duplicated)
-// ---------------------------------------------------------------------------
-
-const UNIQUE_CONDITION_NAMES: string[] = (() => {
-  const seen = new Set<string>();
-  const result: string[] = [];
-  for (const c of CONDITIONS) {
-    if (!seen.has(c.name)) {
-      seen.add(c.name);
-      result.push(c.name);
-    }
-  }
-  return result.sort();
-})();
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
 export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureMonsters }: EncounterTabProps) {
   const { user } = useAuth();
   const utils = api.useUtils();
+  const { data: condData, isLoading: condLoading } = useConditions();
+  const { data: monsterData, isLoading: monstersLoading } = useMonsters();
 
   // ---- Queries ----
   const { data: encounter, isLoading } = api.adventure.getEncounter.useQuery(
@@ -428,6 +415,23 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
     undefined,
     { enabled: loadTemplateOpen },
   );
+
+  if (condLoading || monstersLoading || !condData || !monsterData) return <LoadingSkeleton />;
+  const { CONDITIONS } = condData;
+  const { MONSTER_LIST } = monsterData;
+
+  // Unique condition names (de-duplicated)
+  const UNIQUE_CONDITION_NAMES: string[] = (() => {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const c of CONDITIONS) {
+      if (!seen.has(c.name)) {
+        seen.add(c.name);
+        result.push(c.name);
+      }
+    }
+    return result.sort();
+  })();
 
   // ---- Monster search results ----
   const filteredMonsters = useMemo(() => {

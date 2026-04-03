@@ -3,7 +3,9 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { BACKGROUNDS, BACKGROUND_SOURCES, type Background } from "@/lib/backgroundData";
+import { useBackgrounds } from "@/hooks/useStaticData";
+import type { Background } from "@/lib/backgroundData";
+import { LoadingSkeleton } from "@/components/ui";
 import { parseTaggedText } from "@/lib/dndTagParser";
 
 // ---------------------------------------------------------------------------
@@ -523,9 +525,13 @@ function BackgroundDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 
 function BackgroundsContent() {
   const isMobile = useIsMobile();
+  const { data: bgData, isLoading: bgLoading } = useBackgrounds();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedBackground, setSelectedBackground] = useState<Background | null>(null);
+
+  if (bgLoading || !bgData) return <LoadingSkeleton />;
+  const { BACKGROUNDS, BACKGROUND_SOURCES } = bgData;
 
   const filteredBackgrounds = useMemo(() => {
     return BACKGROUNDS.filter((bg) => {

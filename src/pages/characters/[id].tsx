@@ -1,13 +1,17 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { api } from "@/utils/api";
-import { CharacterSheet, type CharacterData } from "@/components/character";
-import { DiceRoller } from "@/components/DiceRoller";
+import { type CharacterData } from "@/components/character";
 import { downloadCharacterJson } from "@/lib/characterJsonExport";
 import { downloadCharacterPdf } from "@/lib/characterPdfExport";
+
+// Dynamic imports for heavy components
+const CharacterSheet = dynamic(() => import("@/components/character").then(m => ({ default: m.CharacterSheet })));
+const DiceRoller = dynamic(() => import("@/components/DiceRoller").then(m => ({ default: m.DiceRoller })), { ssr: false });
 
 // ---------------------------------------------------------------------------
 // Export bar — JSON + PDF buttons shown above the character sheet

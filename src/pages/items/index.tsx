@@ -4,13 +4,9 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import {
-  ITEMS,
-  ITEM_SOURCES,
-  ITEM_TYPES,
-  ITEM_RARITIES,
-  type Item,
-} from "@/lib/itemsData";
+import { useItems } from "@/hooks/useStaticData";
+import type { Item } from "@/lib/itemsData";
+import { LoadingSkeleton } from "@/components/ui";
 import { WEAPON_PROPERTY_DESCRIPTIONS, WEAPON_MASTERY_DESCRIPTIONS } from "@/lib/equipmentData";
 import { parseTaggedTextToHtml } from "@/lib/dndTagParser";
 import { getItemImageUrl } from "@/lib/imageUtils";
@@ -579,6 +575,7 @@ function ItemDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 function ItemsContent() {
   const { user } = useAuth();
   const isMobile = useIsMobile();
+  const { data: itemData, isLoading: itemsLoading } = useItems();
   const isPlayer = user?.role === "PLAYER";
 
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
@@ -587,14 +584,17 @@ function ItemsContent() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedItem, setSelectedItem] = useState<Item | null>(null);
 
+  if (itemsLoading || !itemData) return <LoadingSkeleton />;
+  const { ITEMS, ITEM_SOURCES, ITEM_TYPES, ITEM_RARITIES } = itemData;
+
   // Players can only see PHB and XPHB items
   const availableItems = useMemo(
     () => (isPlayer ? ITEMS.filter((i) => PLAYER_SOURCES.has(i.source)) : ITEMS),
-    [isPlayer],
+    [isPlayer, ITEMS],
   );
   const availableSources = useMemo(
     () => (isPlayer ? ITEM_SOURCES.filter((s) => PLAYER_SOURCES.has(s)) : ITEM_SOURCES),
-    [isPlayer],
+    [isPlayer, ITEM_SOURCES],
   );
 
   const filteredItems = useMemo(() => {

@@ -1,11 +1,13 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
 import { isWarlock } from "@/lib/spellSlotData";
-import { getConditionsBySource, DISEASES } from "@/lib/conditionData";
+import { useConditions } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import { type CharacterData, mod, HIT_DIE_AVERAGE, HIT_DIE_SIZE } from "./shared";
 
 export function HpManager({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
+  const { data: condHookData, isLoading: condHookLoading } = useConditions();
   const [damageAmount, setDamageAmount] = useState<string>("");
   const [healAmount, setHealAmount] = useState<string>("");
   const [tempHpAmount, setTempHpAmount] = useState<string>("");
@@ -28,8 +30,6 @@ export function HpManager({ character }: { character: CharacterData }) {
       return [];
     }
   })();
-
-  const allConditions = getConditionsBySource("PHB");
 
   const updateDiseases = api.character.updateActiveDiseases.useMutation({
     onSuccess: async () => {
@@ -99,6 +99,11 @@ export function HpManager({ character }: { character: CharacterData }) {
       setTimeout(() => setFeedback(null), 3000);
     },
   });
+
+  if (condHookLoading || !condHookData) return <LoadingSkeleton />;
+  const { getConditionsBySource, DISEASES } = condHookData;
+
+  const allConditions = getConditionsBySource("PHB");
 
   const handleDamage = () => {
     const n = parseInt(damageAmount);

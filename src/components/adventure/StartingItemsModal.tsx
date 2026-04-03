@@ -1,11 +1,8 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
-import {
-  getClassStartingEquipment,
-  getBackgroundStartingEquipment,
-  type StartingEquipmentPreset,
-  type StartingItem,
-} from "@/lib/startingEquipmentData";
+import { useStartingEquipment } from "@/hooks/useStaticData";
+import type { StartingEquipmentPreset, StartingItem } from "@/lib/startingEquipmentData";
+import { LoadingSkeleton } from "@/components/ui";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, SERIF, SourceBadge } from "./shared";
 
 export function StartingItemsModal({
@@ -26,6 +23,7 @@ export function StartingItemsModal({
   adventureId: string;
 }) {
   const utils = api.useUtils();
+  const { data: seData, isLoading: seLoading } = useStartingEquipment();
   const [selectedPresetIdx, setSelectedPresetIdx] = useState(0);
 
   const addStartingItems = api.adventure.addStartingItems.useMutation({
@@ -39,9 +37,10 @@ export function StartingItemsModal({
   });
 
   if (!open) return null;
+  if (seLoading || !seData) return <LoadingSkeleton />;
 
-  const classEquip = getClassStartingEquipment(characterClass, classSource);
-  const bgEquip = getBackgroundStartingEquipment(background);
+  const classEquip = seData.getClassStartingEquipment(characterClass, classSource);
+  const bgEquip = seData.getBackgroundStartingEquipment(background);
 
   const classPresets: StartingEquipmentPreset[] = classEquip?.presets ?? [];
   const selectedPreset = classPresets[selectedPresetIdx] ?? null;

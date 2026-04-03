@@ -1,7 +1,8 @@
 import { useState, useCallback, useMemo } from "react";
 import { sectionTitleStyle, labelStyle, inputStyle } from "./shared";
-import { LIFE_CLASSES } from "@/lib/lifeData";
+import { useLife } from "@/hooks/useStaticData";
 import type { LifeClass } from "@/lib/lifeData";
+import { LoadingSkeleton } from "@/components/ui";
 
 interface BackstorySectionProps {
   backstory: string;
@@ -195,9 +196,14 @@ export function BackstorySection({
   onFormChange,
   onAppendBackstory,
 }: BackstorySectionProps) {
+  const { data: lifeHookData, isLoading: lifeHookLoading } = useLife();
+
+  if (lifeHookLoading || !lifeHookData) return <LoadingSkeleton />;
+  const { LIFE_CLASSES } = lifeHookData;
+
   const lifeClass = useMemo(
     () => LIFE_CLASSES.find((lc) => lc.name.toLowerCase() === characterClass.toLowerCase()),
-    [characterClass],
+    [characterClass, LIFE_CLASSES],
   );
 
   return (

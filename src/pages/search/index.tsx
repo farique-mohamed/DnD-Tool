@@ -14,13 +14,15 @@ import {
   GOLD_MUTED,
   TEXT_DIM,
   SERIF,
+  LoadingSkeleton,
 } from "@/components/ui";
-import { SPELLS, type Spell } from "@/lib/spellsData";
-import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
-import { ITEMS, type Item } from "@/lib/itemsData";
-import { CLASS_LIST, type ClassInfo } from "@/lib/classData";
-import { RACES, type RaceInfo } from "@/lib/raceData";
-import { FEATS, type Feat } from "@/lib/featData";
+import { useSpells, useMonsters, useItems, useClasses, useRaces, useFeats } from "@/hooks/useStaticData";
+import type { Spell } from "@/lib/spellsData";
+import type { MonsterInfo } from "@/lib/bestiaryData";
+import type { Item } from "@/lib/itemsData";
+import type { ClassInfo } from "@/lib/classData";
+import type { RaceInfo } from "@/lib/raceData";
+import type { Feat } from "@/lib/featData";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -64,7 +66,7 @@ function levelLabel(level: number): string {
   return `${level}${suffix} Level`;
 }
 
-function buildSpellResults(query: string): SearchResult[] {
+function buildSpellResults(SPELLS: Spell[], query: string): SearchResult[] {
   const q = query.toLowerCase();
   return SPELLS.filter((s) => s.name.toLowerCase().includes(q)).map((s: Spell) => ({
     name: s.name,
@@ -74,7 +76,7 @@ function buildSpellResults(query: string): SearchResult[] {
   }));
 }
 
-function buildMonsterResults(query: string): SearchResult[] {
+function buildMonsterResults(MONSTER_LIST: MonsterInfo[], query: string): SearchResult[] {
   const q = query.toLowerCase();
   return MONSTER_LIST.filter((m) => m.name.toLowerCase().includes(q)).map((m: MonsterInfo) => ({
     name: m.name,
@@ -84,7 +86,7 @@ function buildMonsterResults(query: string): SearchResult[] {
   }));
 }
 
-function buildItemResults(query: string): SearchResult[] {
+function buildItemResults(ITEMS: Item[], query: string): SearchResult[] {
   const q = query.toLowerCase();
   return ITEMS.filter((i) => i.name.toLowerCase().includes(q)).map((i: Item) => ({
     name: i.name,
@@ -94,7 +96,7 @@ function buildItemResults(query: string): SearchResult[] {
   }));
 }
 
-function buildClassResults(query: string): SearchResult[] {
+function buildClassResults(CLASS_LIST: ClassInfo[], query: string): SearchResult[] {
   const q = query.toLowerCase();
   return CLASS_LIST.filter((c) => c.name.toLowerCase().includes(q)).map((c: ClassInfo) => ({
     name: c.name,
@@ -104,7 +106,7 @@ function buildClassResults(query: string): SearchResult[] {
   }));
 }
 
-function buildRaceResults(query: string): SearchResult[] {
+function buildRaceResults(RACES: RaceInfo[], query: string): SearchResult[] {
   const q = query.toLowerCase();
   return RACES.filter((r) => r.name.toLowerCase().includes(q)).map((r: RaceInfo) => ({
     name: r.name,
@@ -114,7 +116,7 @@ function buildRaceResults(query: string): SearchResult[] {
   }));
 }
 
-function buildFeatResults(query: string): SearchResult[] {
+function buildFeatResults(FEATS: Feat[], query: string): SearchResult[] {
   const q = query.toLowerCase();
   return FEATS.filter((f) => f.name.toLowerCase().includes(q)).map((f: Feat) => ({
     name: f.name,
@@ -223,19 +225,35 @@ function ResultCard({
 function SearchContent() {
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { data: spellData, isLoading: spellsLoading } = useSpells();
+  const { data: monsterData, isLoading: monstersLoading } = useMonsters();
+  const { data: itemData, isLoading: itemsLoading } = useItems();
+  const { data: classData, isLoading: classesLoading } = useClasses();
+  const { data: raceData, isLoading: racesLoading } = useRaces();
+  const { data: featData, isLoading: featsLoading } = useFeats();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("All");
+
+  const anyLoading = spellsLoading || monstersLoading || itemsLoading || classesLoading || racesLoading || featsLoading;
+  if (anyLoading || !spellData || !monsterData || !itemData || !classData || !raceData || !featData) return <LoadingSkeleton />;
+
+  const { SPELLS } = spellData;
+  const { MONSTER_LIST } = monsterData;
+  const { ITEMS } = itemData;
+  const { CLASS_LIST } = classData;
+  const { RACES } = raceData;
+  const { FEATS } = featData;
 
   const results = useMemo(() => {
     if (query.length < 2) return { grouped: {} as Record<Category, SearchResult[]>, total: 0 };
 
     const builders: Array<{ key: Category; fn: (q: string) => SearchResult[] }> = [
-      { key: "Spells", fn: buildSpellResults },
-      { key: "Monsters", fn: buildMonsterResults },
-      { key: "Items", fn: buildItemResults },
-      { key: "Classes", fn: buildClassResults },
-      { key: "Races", fn: buildRaceResults },
-      { key: "Feats", fn: buildFeatResults },
+      { key: "Spells", fn: (q) => buildSpellResults(SPELLS, q) },
+      { key: "Monsters", fn: (q) => buildMonsterResults(MONSTER_LIST, q) },
+      { key: "Items", fn: (q) => buildItemResults(ITEMS, q) },
+      { key: "Classes", fn: (q) => buildClassResults(CLASS_LIST, q) },
+      { key: "Races", fn: (q) => buildRaceResults(RACES, q) },
+      { key: "Feats", fn: (q) => buildFeatResults(FEATS, q) },
     ];
 
     const grouped: Record<string, SearchResult[]> = {};

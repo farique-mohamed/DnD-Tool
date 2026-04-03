@@ -1,13 +1,16 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
 import { useState, useRef, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
-import { ImportCharacterModal } from "@/components/ImportCharacterModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
 import { downloadCharacterJson } from "@/lib/characterJsonExport";
 import { downloadCharacterPdf } from "@/lib/characterPdfExport";
+
+// Dynamic import for modal — only loads when opened
+const ImportCharacterModal = dynamic(() => import("@/components/ImportCharacterModal").then(m => ({ default: m.ImportCharacterModal })));
 
 function abilityModifier(score: number): string {
   const mod = Math.floor((score - 10) / 2);

@@ -1,31 +1,37 @@
 import { useMemo, useState } from "react";
 import { useRouter } from "next/router";
 import Head from "next/head";
+import dynamic from "next/dynamic";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
-import { DiceRoller } from "@/components/DiceRoller";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
-import { ADVENTURE_LIST } from "@/lib/adventureData";
+import { useAdventureList } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import {
   DM_TABS,
   PLAYER_TABS,
   PLAYERS_TAB,
   type TabKey,
-  StoryTab,
-  MonstersTab,
-  ItemsTab,
-  SpellsTab,
-  PlayersTab,
-  SessionNotesTab,
-  SessionsTab,
-  MyCharacterTab,
-  InventoryTab,
-  PlayerDmNotesTab,
-  EncounterTab,
-  NpcsTab,
 } from "@/components/adventure";
+
+// Dynamic imports for tab components — only loads when rendered
+const StoryTab = dynamic(() => import("@/components/adventure/StoryTab").then(m => ({ default: m.StoryTab })));
+const MonstersTab = dynamic(() => import("@/components/adventure/MonstersTab").then(m => ({ default: m.MonstersTab })));
+const ItemsTab = dynamic(() => import("@/components/adventure/ItemsTab").then(m => ({ default: m.ItemsTab })));
+const SpellsTab = dynamic(() => import("@/components/adventure/SpellsTab").then(m => ({ default: m.SpellsTab })));
+const PlayersTab = dynamic(() => import("@/components/adventure/PlayersTab").then(m => ({ default: m.PlayersTab })));
+const SessionNotesTab = dynamic(() => import("@/components/adventure/SessionNotesTab").then(m => ({ default: m.SessionNotesTab })));
+const SessionsTab = dynamic(() => import("@/components/adventure/SessionsTab").then(m => ({ default: m.SessionsTab })));
+const MyCharacterTab = dynamic(() => import("@/components/adventure/MyCharacterTab").then(m => ({ default: m.MyCharacterTab })));
+const InventoryTab = dynamic(() => import("@/components/adventure/InventoryTab").then(m => ({ default: m.InventoryTab })));
+const PlayerDmNotesTab = dynamic(() => import("@/components/adventure/PlayerDmNotesTab").then(m => ({ default: m.PlayerDmNotesTab })));
+const EncounterTab = dynamic(() => import("@/components/adventure/EncounterTab").then(m => ({ default: m.EncounterTab })));
+const NpcsTab = dynamic(() => import("@/components/adventure/NpcsTab").then(m => ({ default: m.NpcsTab })));
+
+// DiceRoller is a floating popup — no SSR needed
+const DiceRoller = dynamic(() => import("@/components/DiceRoller").then(m => ({ default: m.DiceRoller })), { ssr: false });
 
 // ---------------------------------------------------------------------------
 // Main page content
@@ -35,6 +41,7 @@ function AdventureDetailContent() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const router = useRouter();
+  const { data: advData, isLoading: advLoading } = useAdventureList();
   const id = typeof router.query.id === "string" ? router.query.id : "";
 
   const [storySectionIndex, setStorySectionIndex] = useState(0);
@@ -79,6 +86,9 @@ function AdventureDetailContent() {
   const tabs: Array<{ key: string; label: string }> = isOwner
     ? [...DM_TABS, PLAYERS_TAB]
     : [...PLAYER_TABS];
+
+  if (advLoading || !advData) return <LoadingSkeleton />;
+  const { ADVENTURE_LIST } = advData;
 
   const adventureInfo = adventure
     ? ADVENTURE_LIST.find((a) => a.source === adventure.source)

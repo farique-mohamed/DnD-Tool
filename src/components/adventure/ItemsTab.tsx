@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { ITEMS, type Item } from "@/lib/itemsData";
+import { useItems } from "@/hooks/useStaticData";
+import type { Item } from "@/lib/itemsData";
+import { LoadingSkeleton } from "@/components/ui";
 import { parseTaggedText } from "@/lib/dndTagParser";
 import {
   GOLD,
@@ -61,6 +63,11 @@ export function ItemsTab({
       void utils.adventure.getById.invalidate({ id: adventureId });
     },
   });
+
+  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
+
+  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
+  const { ITEMS } = itemHookData;
 
   const filteredItems = useMemo(() => {
     if (searchText.length < 2) return [];

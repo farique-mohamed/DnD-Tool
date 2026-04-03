@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { MONSTER_LIST, type MonsterInfo, abilityMod } from "@/lib/bestiaryData";
+import { useMonsters } from "@/hooks/useStaticData";
+import type { MonsterInfo } from "@/lib/bestiaryData";
+import { LoadingSkeleton } from "@/components/ui";
 import { parseTaggedText } from "@/lib/dndTagParser";
 import {
   GOLD,
@@ -42,6 +44,11 @@ export function MonstersTab({
       void utils.adventure.getById.invalidate({ id: adventureId });
     },
   });
+
+  const { data: monsterHookData, isLoading: monstersLoading } = useMonsters();
+
+  if (monstersLoading || !monsterHookData) return <LoadingSkeleton />;
+  const { MONSTER_LIST, abilityMod } = monsterHookData;
 
   const filteredMonsters = useMemo(() => {
     if (searchText.length < 2) return [];

@@ -3,7 +3,9 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { RACES, RACE_SOURCES, type RaceInfo } from "@/lib/raceData";
+import { useRaces } from "@/hooks/useStaticData";
+import type { RaceInfo } from "@/lib/raceData";
+import { LoadingSkeleton } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -441,9 +443,13 @@ function RaceDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 
 function RacesContent() {
   const isMobile = useIsMobile();
+  const { data: raceData, isLoading: racesLoading } = useRaces();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedRace, setSelectedRace] = useState<RaceInfo | null>(null);
+
+  if (racesLoading || !raceData) return <LoadingSkeleton />;
+  const { RACES, RACE_SOURCES } = raceData;
 
   const filteredRaces = useMemo(() => {
     return RACES.filter((race) => {

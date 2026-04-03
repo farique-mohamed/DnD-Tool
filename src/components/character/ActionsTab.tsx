@@ -4,7 +4,8 @@ import {
   type EquippedItems,
   getEquipmentActions,
 } from "@/lib/equipmentData";
-import { ITEMS } from "@/lib/itemsData";
+import { useItems } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import { type CharacterData } from "./shared";
 
 const ACTION_COST_ORDER = [
@@ -52,6 +53,11 @@ function costBadgeStyle(cost: string): React.CSSProperties {
 }
 
 export function ActionsTab({ character }: { character: CharacterData }) {
+  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
+
+  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
+  const { ITEMS } = itemHookData;
+
   // Parse equipped items if available
   const equippedItems: EquippedItems | undefined = (() => {
     if (!character.equippedItems) return undefined;
