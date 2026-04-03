@@ -33,6 +33,12 @@ enum EncounterParticipantType {
   MONSTER
 }
 
+enum SessionStatus {
+  SCHEDULED
+  COMPLETED
+  CANCELLED
+}
+
 model User {
   id         String      @id @default(cuid())
   username   String      @unique
@@ -49,6 +55,9 @@ model User {
   dmNotesReceived  DmNote[]          @relation("dmNotesReceived")
   sessionNotes     SessionNote[]
   inventoryItemsAdded CharacterInventoryItem[] @relation("inventoryItemsAdded")
+  playerSpellsAssigned AdventurePlayerSpell[] @relation("playerSpellsAssigned")
+  familiarsAssigned AdventurePlayerFamiliar[] @relation("familiarsAssigned")
+  encounterTemplates  EncounterTemplate[]
 
   @@map("users")
 }
@@ -131,6 +140,7 @@ model Character {
   preparedSpells     String  @default("[]")           // JSON: string[] of prepared/known spell names
   featureUses        String  @default("{}")           // JSON: Record<string, number> feature name → used count
   activeConditions    String  @default("[]")           // JSON: string[] of active condition/status names
+  activeDiseases      String  @default("[]")           // JSON: string[] of active disease names
   feats              String  @default("[]")           // JSON: string[] of taken feat names
   notes              String  @default("")             // Free-text notes for the character
   equippedItems      String  @default("{\"mainHand\":null,\"offHand\":null,\"armor\":null,\"shield\":null}") // JSON: EquippedItems
@@ -153,10 +163,13 @@ model Adventure {
   inviteCode String   @unique @default(cuid())
   monsters   AdventureMonster[]
   items      AdventureItem[]
+  spells     AdventureSpell[]
+  npcs       AdventureNpc[]
   players    AdventurePlayer[]
   encounter    Encounter?
   dmNotes      DmNote[]
   sessionNotes SessionNote[]
+  sessions     AdventureSession[]
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -187,6 +200,18 @@ model AdventureItem {
   @@map("adventure_items")
 }
 
+model AdventureSpell {
+  id          String    @id @default(cuid())
+  adventureId String
+  adventure   Adventure @relation(fields: [adventureId], references: [id])
+  name        String
+  source      String
+  createdAt   DateTime  @default(now())
+
+  @@unique([adventureId, name, source])
+  @@map("adventure_spells")
+}
+
 model AdventurePlayer {
   id          String                @id @default(cuid())
   adventureId String
@@ -201,6 +226,8 @@ model AdventurePlayer {
   resolvedAt  DateTime?
 
   inventoryItems CharacterInventoryItem[]
+  spells         AdventurePlayerSpell[]
+  familiars      AdventurePlayerFamiliar[]
   encounterParticipants EncounterParticipant[]
 
   @@unique([adventureId, userId])
@@ -257,6 +284,20 @@ model CharacterInventoryItem {
   @@map("character_inventory_items")
 }
 
+model AdventurePlayerSpell {
+  id                String          @id @default(cuid())
+  adventurePlayerId String
+  adventurePlayer   AdventurePlayer @relation(fields: [adventurePlayerId], references: [id])
+  spellName         String
+  spellSource       String
+  assignedByUserId  String
+  assignedByUser    User            @relation("playerSpellsAssigned", fields: [assignedByUserId], references: [id])
+  createdAt         DateTime        @default(now())
+
+  @@unique([adventurePlayerId, spellName, spellSource])
+  @@map("adventure_player_spells")
+}
+
 model Encounter {
   id                String   @id @default(cuid())
   adventureId       String   @unique
@@ -285,6 +326,7 @@ model EncounterParticipant {
 
   // Monster fields (only set for MONSTER type)
   name              String?
+  originalName      String?           // Original monster name for stat block lookup (preserved on rename)
   monsterSource     String?
   maxHp             Int?
   currentHp         Int?
@@ -300,4 +342,90 @@ model EncounterParticipant {
   createdAt         DateTime                  @default(now())
 
   @@map("encounter_participants")
+}
+
+model EncounterTemplate {
+  id           String                        @id @default(cuid())
+  userId       String
+  user         User                          @relation(fields: [userId], references: [id])
+  name         String
+  description  String?
+  participants EncounterTemplateParticipant[]
+  createdAt    DateTime                      @default(now())
+  updatedAt    DateTime                      @updatedAt
+
+  @@map("encounter_templates")
+}
+
+model EncounterTemplateParticipant {
+  id                 String             @id @default(cuid())
+  templateId         String
+  template           EncounterTemplate  @relation(fields: [templateId], references: [id], onDelete: Cascade)
+  name               String
+  monsterSource      String
+  maxHp              Int
+  armorClass         Int
+  initiativeModifier Int?
+  sortOrder          Int                @default(0)
+  createdAt          DateTime           @default(now())
+
+  @@map("encounter_template_participants")
+}
+
+model AdventurePlayerFamiliar {
+  id                String          @id @default(cuid())
+  adventurePlayerId String
+  adventurePlayer   AdventurePlayer @relation(fields: [adventurePlayerId], references: [id])
+  monsterName       String          // Original monster name for stat block lookup
+  displayName       String          // Custom name (e.g., "Shadow" for a cat familiar)
+  monsterSource     String          // Source book code for lookup
+  notes             String          @default("")  // DM notes about this familiar
+  assignedByUserId  String
+  assignedByUser    User            @relation("familiarsAssigned", fields: [assignedByUserId], references: [id])
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@unique([adventurePlayerId, displayName])
+  @@map("adventure_player_familiars")
+}
+
+model AdventureNpc {
+  id               String   @id @default(cuid())
+  adventureId      String
+  adventure        Adventure @relation(fields: [adventureId], references: [id])
+  name             String
+  race             String
+  gender           String
+  alignment        String
+  occupation       String
+  personalityTraits String  @default("[]")   // JSON string[]
+  appearance       String   @default("")
+  voiceMannerism   String   @default("")
+  background       String   @default("")     // backstory/background info
+  motivation       String   @default("")     // what drives this NPC
+  secret           String   @default("")     // hidden info only DM knows
+  notes            String   @default("")     // free-text DM notes
+  location         String   @default("")     // "Found in" location field
+  isVisible        Boolean  @default(false)  // false = hidden from players, true = visible
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  @@map("adventure_npcs")
+}
+
+model AdventureSession {
+  id          String        @id @default(cuid())
+  adventureId String
+  adventure   Adventure     @relation(fields: [adventureId], references: [id])
+  title       String
+  description String?
+  scheduledAt DateTime
+  duration    Int?
+  location    String?
+  status      SessionStatus @default(SCHEDULED)
+  inGameDate  String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@map("adventure_sessions")
 }

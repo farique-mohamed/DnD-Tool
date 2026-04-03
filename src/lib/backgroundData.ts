@@ -12,6 +12,11 @@ export interface Background {
   source: string;
   skillProficiencies: string[];
   skillChoices?: { from: string[]; count: number };
+  feats?: string[];
+  toolProficiencies?: string[];
+  entries?: unknown[];
+  edition?: string;
+  startingEquipment?: unknown[];
 }
 
 // ---------------------------------------------------------------------------
@@ -62,6 +67,11 @@ interface RawBackground {
   source: string;
   skillProficiencies?: RawSkillProfEntry[];
   _copy?: RawCopy;
+  feats?: Array<Record<string, unknown>>;
+  toolProficiencies?: Array<Record<string, unknown>>;
+  entries?: unknown[];
+  edition?: string;
+  startingEquipment?: unknown[];
 }
 
 interface RawBackgroundFile {
@@ -73,6 +83,53 @@ interface RawBackgroundFile {
 // ---------------------------------------------------------------------------
 
 const PREFERRED_SOURCES = new Set(["PHB", "XPHB"]);
+
+// ---------------------------------------------------------------------------
+// Parse feats from raw feats array
+// ---------------------------------------------------------------------------
+
+function parseFeats(rawFeats?: Array<Record<string, unknown>>): string[] | undefined {
+  if (!rawFeats || rawFeats.length === 0) return undefined;
+
+  const feats: string[] = [];
+  for (const featObj of rawFeats) {
+    for (const key of Object.keys(featObj)) {
+      // Keys look like "aberrant dragonmark|efa" — extract before the pipe
+      const name = key.split("|")[0]!;
+      // Capitalize each word
+      const capitalized = name
+        .split(" ")
+        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(" ");
+      feats.push(capitalized);
+    }
+  }
+  return feats.length > 0 ? feats : undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Parse tool proficiencies from raw array
+// ---------------------------------------------------------------------------
+
+function parseToolProficiencies(rawTools?: Array<Record<string, unknown>>): string[] | undefined {
+  if (!rawTools || rawTools.length === 0) return undefined;
+
+  const tools: string[] = [];
+  for (const toolObj of rawTools) {
+    for (const [key, value] of Object.entries(toolObj)) {
+      if (key === "choose" || key === "any") continue;
+      if (value === true) {
+        // Capitalize each word
+        const capitalized = key
+          .split(" ")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ");
+        tools.push(capitalized);
+      }
+    }
+  }
+  return tools.length > 0 ? tools : undefined;
+}
 
 // ---------------------------------------------------------------------------
 // Parse a single background entry
@@ -116,6 +173,11 @@ function parseBackground(raw: RawBackground): Background {
     source: raw.source,
     skillProficiencies: fixedSkills,
     skillChoices: skillChoices,
+    feats: parseFeats(raw.feats),
+    toolProficiencies: parseToolProficiencies(raw.toolProficiencies),
+    entries: raw.entries,
+    edition: raw.edition,
+    startingEquipment: raw.startingEquipment,
   };
 }
 
@@ -194,3 +256,7 @@ function buildBackgrounds(): Background[] {
 export const BACKGROUNDS: Background[] = buildBackgrounds();
 
 export const BACKGROUND_NAMES: string[] = BACKGROUNDS.map((b) => b.name);
+
+export const BACKGROUND_SOURCES: string[] = [
+  ...new Set(BACKGROUNDS.map((b) => b.source)),
+].sort();

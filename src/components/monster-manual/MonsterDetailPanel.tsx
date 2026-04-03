@@ -1,5 +1,9 @@
+import { useState } from "react";
 import { type MonsterInfo, crLabel } from "@/lib/bestiaryData";
 import { parseTaggedText } from "@/lib/dndTagParser";
+import { getMonsterFeature } from "@/lib/monsterFeatureData";
+import { getMonsterImageUrl, getMonsterTokenUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 import {
   GOLD,
   GOLD_BRIGHT,
@@ -15,6 +19,135 @@ import {
 import { AbilityBlock } from "./AbilityBlock";
 import { ActionList } from "./ActionList";
 import { SpellcastingSection } from "./SpellcastingSection";
+
+// ---------------------------------------------------------------------------
+// Token with hover-enlarged preview
+// ---------------------------------------------------------------------------
+
+function TokenWithPreview({
+  name,
+  source,
+  isMobile,
+}: {
+  name: string;
+  source: string;
+  isMobile?: boolean;
+}) {
+  const [hovered, setHovered] = useState(false);
+  const tokenUrl = getMonsterTokenUrl(name, source);
+
+  return (
+    <div
+      style={{ position: "relative", flexShrink: 0 }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <EntityImage
+        src={tokenUrl}
+        alt={`${name} token`}
+        width={56}
+        height={56}
+        style={{
+          borderRadius: "50%",
+          border: `2px solid ${GOLD}`,
+          boxShadow: "0 0 12px rgba(201,168,76,0.4)",
+          cursor: "pointer",
+        }}
+      />
+      {hovered && !isMobile && (
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: "calc(100% + 12px)",
+            zIndex: 100,
+            pointerEvents: "none",
+          }}
+        >
+          <img
+            src={tokenUrl}
+            alt={`${name} token enlarged`}
+            style={{
+              width: 200,
+              height: 200,
+              borderRadius: "50%",
+              border: `2px solid ${GOLD}`,
+              boxShadow: "0 0 30px rgba(201,168,76,0.5), 0 0 60px rgba(0,0,0,0.8)",
+              objectFit: "cover",
+              background: "rgba(0,0,0,0.9)",
+            }}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Trait name with monster-feature tooltip on hover
+// ---------------------------------------------------------------------------
+
+function TraitName({ name }: { name: string }) {
+  const [hovered, setHovered] = useState(false);
+  // Strip parenthetical suffixes like "Aggressive (3/Day)" → "Aggressive"
+  const baseName = name.replace(/\s*\(.*\)$/, "").trim();
+  const feature = getMonsterFeature(baseName);
+
+  return (
+    <span
+      style={{ position: "relative", display: "inline" }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+    >
+      <span
+        style={{
+          color: GOLD_BRIGHT,
+          fontSize: "13px",
+          fontFamily: SERIF,
+          fontWeight: "bold",
+          fontStyle: "italic",
+          cursor: feature ? "help" : undefined,
+          borderBottom: feature
+            ? `1px dotted ${GOLD_MUTED}`
+            : undefined,
+        }}
+      >
+        {name}.{" "}
+      </span>
+      {feature && hovered && (
+        <span
+          style={{
+            position: "absolute",
+            left: 0,
+            bottom: "calc(100% + 6px)",
+            zIndex: 200,
+            background: "rgba(20,16,10,0.96)",
+            border: `1px solid ${GOLD}`,
+            borderRadius: "6px",
+            padding: "8px 12px",
+            maxWidth: "320px",
+            fontSize: "12px",
+            fontFamily: SERIF,
+            fontStyle: "normal",
+            fontWeight: "normal",
+            color: TEXT_DIM,
+            lineHeight: "1.5",
+            boxShadow: "0 4px 20px rgba(0,0,0,0.7)",
+            pointerEvents: "none",
+            whiteSpace: "normal",
+          }}
+        >
+          <span style={{ color: GOLD, fontWeight: "bold" }}>
+            {feature.name}
+          </span>
+          <span style={{ color: GOLD_MUTED }}> (e.g. {feature.example})</span>
+          <br />
+          {feature.effect}
+        </span>
+      )}
+    </span>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Monster detail panel (right side)
@@ -86,34 +219,49 @@ export function MonsterDetailPanel({ monster, isMobile, onBack }: MonsterDetailP
       )}
 
       {/* Header */}
-      <div>
-        <h2
-          style={{
-            color: GOLD,
-            fontSize: "26px",
-            fontWeight: "bold",
-            letterSpacing: "1.5px",
-            textTransform: "uppercase",
-            fontFamily: SERIF,
-            margin: 0,
-            marginBottom: "6px",
-          }}
-        >
-          {monster.name}
-        </h2>
-        <p
-          style={{
-            color: GOLD_MUTED,
-            fontSize: "13px",
-            fontFamily: SERIF,
-            fontStyle: "italic",
-            margin: 0,
-          }}
-        >
-          {monster.size} {monster.type},{" "}
-          <span style={{ color: TEXT_DIM }}>{monster.alignment}</span>
-        </p>
+      <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <TokenWithPreview
+          name={monster.name}
+          source={monster.source}
+          isMobile={isMobile}
+        />
+        <div>
+          <h2
+            style={{
+              color: GOLD,
+              fontSize: "26px",
+              fontWeight: "bold",
+              letterSpacing: "1.5px",
+              textTransform: "uppercase",
+              fontFamily: SERIF,
+              margin: 0,
+              marginBottom: "6px",
+            }}
+          >
+            {monster.name}
+          </h2>
+          <p
+            style={{
+              color: GOLD_MUTED,
+              fontSize: "13px",
+              fontFamily: SERIF,
+              fontStyle: "italic",
+              margin: 0,
+            }}
+          >
+            {monster.size} {monster.type},{" "}
+            <span style={{ color: TEXT_DIM }}>{monster.alignment}</span>
+          </p>
+        </div>
       </div>
+
+      {/* Monster image */}
+      <EntityImage
+        src={getMonsterImageUrl(monster.name, monster.source)}
+        alt={monster.name}
+        width={isMobile ? "100%" : 280}
+        style={{ alignSelf: "center" }}
+      />
 
       {/* CR + source badge row */}
       <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
@@ -262,17 +410,7 @@ export function MonsterDetailPanel({ monster, isMobile, onBack }: MonsterDetailP
         <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
           {monster.traits.map((trait, idx) => (
             <div key={idx}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontSize: "13px",
-                  fontFamily: SERIF,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                }}
-              >
-                {trait.name}.{" "}
-              </span>
+              <TraitName name={trait.name} />
               <span
                 style={{
                   color: TEXT_DIM,

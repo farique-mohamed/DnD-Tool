@@ -136,3 +136,11 @@ export function isSpellcaster(className: string): boolean {
 export function isWarlock(className: string): boolean {
   return SPELLCASTING_TYPE[className] === "warlock";
 }
+
+// Re-export spellcasting progression helpers for convenient single-module imports
+export {
+  getCantripsKnown,
+  getSpellsKnownOrPrepared,
+  getSpellManagementType,
+  getWizardSpellbookSize,
+} from "./spellcastingProgressionData";

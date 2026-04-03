@@ -195,6 +195,7 @@ export const addMonster = protectedProcedure
     z.object({
       adventureId: z.string(),
       name: z.string().min(1),
+      displayName: z.string().min(1).optional(),
       monsterSource: z.string(),
       maxHp: z.number().int().min(1),
       armorClass: z.number().int().min(1),
@@ -219,7 +220,8 @@ export const addMonster = protectedProcedure
         encounterId: encounter.id,
         type: "MONSTER",
         initiativeRoll: input.initiativeRoll,
-        name: input.name,
+        name: input.displayName ?? input.name,
+        originalName: input.name,
         monsterSource: input.monsterSource,
         maxHp: input.maxHp,
         currentHp: input.maxHp,
@@ -507,5 +509,35 @@ export const updateInitiative = protectedProcedure
     return ctx.db.encounterParticipant.update({
       where: { id: input.participantId },
       data: { initiativeRoll: input.initiativeRoll },
+    });
+  });
+
+export const renameParticipant = protectedProcedure
+  .input(
+    z.object({
+      participantId: z.string(),
+      name: z.string().min(1).max(200),
+    }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    const participant = await ctx.db.encounterParticipant.findUnique({
+      where: { id: input.participantId },
+      include: {
+        encounter: { include: { adventure: true } },
+      },
+    });
+    if (!participant) {
+      throw new TRPCError({ code: "NOT_FOUND", message: "Participant not found" });
+    }
+    if (participant.encounter.adventure.userId !== ctx.user.userId) {
+      throw new TRPCError({ code: "FORBIDDEN", message: "Only the DM can rename participants" });
+    }
+    if (participant.type !== "MONSTER") {
+      throw new TRPCError({ code: "BAD_REQUEST", message: "Only monster participants can be renamed" });
+    }
+
+    return ctx.db.encounterParticipant.update({
+      where: { id: input.participantId },
+      data: { name: input.name },
     });
   });

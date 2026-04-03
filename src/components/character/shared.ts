@@ -29,6 +29,7 @@ export type CharacterData = {
   preparedSpells: string; // JSON string[]
   featureUses: string; // JSON Record<string,number>
   activeConditions?: string; // JSON string[]
+  activeDiseases?: string; // JSON string[]
   feats?: string; // JSON string[]
   notes?: string;
   background?: string | null;
@@ -137,7 +138,7 @@ export const ABILITY_NAMES: { key: string; label: string }[] = [
   { key: "charisma", label: "CHA" },
 ];
 
-export type TabId = "overview" | "features" | "actions" | "spells" | "notes" | "inventory";
+export type TabId = "overview" | "features" | "actions" | "spells" | "notes" | "inventory" | "familiars";
 
 // ---------------------------------------------------------------------------
 // Feature usage config
@@ -190,6 +191,11 @@ export const FEATURE_USAGE_CONFIG: Record<string, FeatureUsageConfig> = {
     recharge: "long",
   },
   "Arcane Recovery": { maxUses: () => 1, recharge: "long" },
+  "Magical Tinkering": {
+    maxUses: (_level: number, abs: Record<string, number>) =>
+      Math.max(1, Math.floor(((abs.intelligence ?? 10) - 10) / 2)),
+    recharge: "long",
+  },
   "Psionic Power": {
     maxUses: (level) => 2 * (Math.ceil(level / 4) + 1),
     recharge: "long",

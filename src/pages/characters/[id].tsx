@@ -1,10 +1,98 @@
 import Head from "next/head";
 import { useRouter } from "next/router";
+import { useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { api } from "@/utils/api";
 import { CharacterSheet, type CharacterData } from "@/components/character";
 import { DiceRoller } from "@/components/DiceRoller";
+import { downloadCharacterJson } from "@/lib/characterJsonExport";
+import { downloadCharacterPdf } from "@/lib/characterPdfExport";
+
+// ---------------------------------------------------------------------------
+// Export bar — JSON + PDF buttons shown above the character sheet
+// ---------------------------------------------------------------------------
+
+function ExportBar({ character }: { character: CharacterData }) {
+  const [exporting, setExporting] = useState<"json" | "pdf" | null>(null);
+
+  const exportQuery = api.character.export.useQuery(
+    { id: character.id },
+    { enabled: false },
+  );
+
+  const handleJsonExport = async () => {
+    setExporting("json");
+    try {
+      const result = await exportQuery.refetch();
+      if (result.data) {
+        downloadCharacterJson(result.data as Record<string, unknown>, character.name);
+      }
+    } catch {
+      // silent
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const handlePdfExport = () => {
+    setExporting("pdf");
+    try {
+      downloadCharacterPdf(character);
+    } finally {
+      setExporting(null);
+    }
+  };
+
+  const buttonStyle: React.CSSProperties = {
+    background: "none",
+    border: "1px solid rgba(201,168,76,0.3)",
+    borderRadius: "4px",
+    color: "#a89060",
+    fontSize: "12px",
+    fontFamily: "'Georgia', serif",
+    padding: "5px 12px",
+    cursor: "pointer",
+    letterSpacing: "0.5px",
+    transition: "border-color 0.2s, color 0.2s",
+  };
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        justifyContent: "flex-end",
+        gap: "8px",
+        marginBottom: "12px",
+      }}
+    >
+      <button
+        onClick={() => void handleJsonExport()}
+        disabled={exporting === "json"}
+        style={{
+          ...buttonStyle,
+          opacity: exporting === "json" ? 0.5 : 1,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.7)"; e.currentTarget.style.color = "#c9a84c"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; e.currentTarget.style.color = "#a89060"; }}
+      >
+        {exporting === "json" ? "Exporting..." : "Export JSON"}
+      </button>
+      <button
+        onClick={handlePdfExport}
+        disabled={exporting === "pdf"}
+        style={{
+          ...buttonStyle,
+          opacity: exporting === "pdf" ? 0.5 : 1,
+        }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.7)"; e.currentTarget.style.color = "#c9a84c"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.3)"; e.currentTarget.style.color = "#a89060"; }}
+      >
+        {exporting === "pdf" ? "Generating..." : "Export PDF"}
+      </button>
+    </div>
+  );
+}
 
 // ---------------------------------------------------------------------------
 // Page-level data fetching
@@ -77,6 +165,7 @@ function CharacterDetailContent() {
       <Head>
         <title>{character.name} — DnD Tool</title>
       </Head>
+      <ExportBar character={normalized} />
       <CharacterSheet character={normalized} />
       {adventureId && <DiceRoller adventureId={adventureId} />}
     </>

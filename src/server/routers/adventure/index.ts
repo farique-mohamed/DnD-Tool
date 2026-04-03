@@ -1,7 +1,16 @@
 import { createTRPCRouter } from "../../trpc";
 import { create, list, getById } from "./core";
 import { addMonster, removeMonster } from "./monsters";
+import { addNpc, updateNpc, removeNpc, getNpcs, toggleNpcVisibility } from "./npcs";
 import { addItem, removeItem } from "./items";
+import {
+  addSpell,
+  removeSpell,
+  getSpells,
+  addPlayerSpell,
+  removePlayerSpell,
+  getPlayerSpells,
+} from "./spells";
 import {
   getInviteCode,
   joinByCode,
@@ -9,6 +18,7 @@ import {
   resolvePlayer,
   getAcceptedPlayers,
   updatePlayerConditions,
+  updatePlayerDiseases,
 } from "./players";
 import {
   sendNote,
@@ -32,6 +42,12 @@ import {
 } from "./inventory";
 import { equipItem, unequipItem, getEquipmentStatus } from "./equipment";
 import {
+  getFamiliars,
+  addFamiliar,
+  removeFamiliar,
+  updateFamiliar,
+} from "./familiars";
+import {
   createEncounter,
   getEncounter,
   endEncounter,
@@ -44,7 +60,25 @@ import {
   updateDeathSaves,
   togglePrivateDeathSaves,
   updateInitiative,
+  renameParticipant,
 } from "./encounter";
+import {
+  saveEncounterAsTemplate,
+  createEncounterTemplate,
+  listEncounterTemplates,
+  getEncounterTemplate,
+  deleteEncounterTemplate,
+  createEncounterFromTemplate,
+} from "./encounterTemplate";
+import {
+  createSession,
+  listSessions,
+  getSession,
+  updateSession,
+  updateSessionStatus,
+  deleteSession,
+  getUpcomingSessions,
+} from "./sessions";
 
 export const adventureRouter = createTRPCRouter({
   // Core CRUD
@@ -56,9 +90,24 @@ export const adventureRouter = createTRPCRouter({
   addMonster,
   removeMonster,
 
+  // NPCs
+  addNpc,
+  updateNpc,
+  removeNpc,
+  getNpcs,
+  toggleNpcVisibility,
+
   // Items
   addItem,
   removeItem,
+
+  // Spells
+  addSpell,
+  removeSpell,
+  getSpells,
+  addPlayerSpell,
+  removePlayerSpell,
+  getPlayerSpells,
 
   // Players
   getInviteCode,
@@ -67,6 +116,7 @@ export const adventureRouter = createTRPCRouter({
   resolvePlayer,
   getAcceptedPlayers,
   updatePlayerConditions,
+  updatePlayerDiseases,
 
   // Notes
   sendNote,
@@ -93,6 +143,12 @@ export const adventureRouter = createTRPCRouter({
   unequipItem,
   getEquipmentStatus,
 
+  // Familiars
+  getFamiliars,
+  addFamiliar,
+  removeFamiliar,
+  updateFamiliar,
+
   // Encounter
   createEncounter,
   getEncounter,
@@ -100,10 +156,28 @@ export const adventureRouter = createTRPCRouter({
   addEncounterPlayer,
   addEncounterMonster,
   removeParticipant,
+  renameParticipant,
   nextTurn,
   updateParticipantHp,
   updateParticipantConditions,
   updateDeathSaves,
   togglePrivateDeathSaves,
   updateInitiative,
+
+  // Encounter Templates
+  saveEncounterAsTemplate,
+  createEncounterTemplate,
+  listEncounterTemplates,
+  getEncounterTemplate,
+  deleteEncounterTemplate,
+  createEncounterFromTemplate,
+
+  // Sessions
+  createSession,
+  listSessions,
+  getSession,
+  updateSession,
+  updateSessionStatus,
+  deleteSession,
+  getUpcomingSessions,
 });

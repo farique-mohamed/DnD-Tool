@@ -14,22 +14,31 @@ function getNavItems(role: string): NavItem[] {
   switch (role) {
     case "ADMIN":
       return [
+        { label: "Search", href: "/search" },
         { label: "Admin Dashboard", href: "/admin" },
         { label: "User Management", href: "/admin/users" },
         { label: "Adventure Oversight", href: "/admin/adventures" },
         { label: "DM Requests", href: "/admin/dm-requests" },
         { label: "Global Settings", href: "/admin/settings" },
+        { label: "Session Calendar", href: "/sessions" },
         { label: "NPC Generator", href: "/npc-generator" },
       ];
     case "DUNGEON_MASTER":
       return [
+        { label: "Search", href: "/search" },
         { label: "Adventure Books", href: "/dm/adventure-books" },
         { label: "My Campaigns", href: "/adventures" },
+        { label: "Session Calendar", href: "/sessions" },
         { label: "Spells", href: "/spells" },
         { label: "Classes", href: "/classes" },
         { label: "Races", href: "/races" },
+        { label: "Backgrounds", href: "/backgrounds" },
+        { label: "Conditions", href: "/conditions" },
+        { label: "Languages", href: "/languages" },
+        { label: "Life Events", href: "/life" },
         { label: "Monster Manual", href: "/dm/monster-manual" },
         { label: "Item Vault", href: "/items" },
+        { label: "Vehicles", href: "/vehicles" },
         { label: "Rule Books", href: "/dm/rule-books" },
         { label: "Rules For DM", href: "/dm/rules" },
         { label: "Rules For Players", href: "/rules" },
@@ -40,11 +49,18 @@ function getNavItems(role: string): NavItem[] {
     case "PLAYER":
     default:
       return [
+        { label: "Search", href: "/search" },
         { label: "My Adventures", href: "/adventures" },
+        { label: "Session Calendar", href: "/sessions" },
         { label: "Spells", href: "/spells" },
         { label: "Classes", href: "/classes" },
         { label: "Races", href: "/races" },
+        { label: "Backgrounds", href: "/backgrounds" },
+        { label: "Conditions", href: "/conditions" },
+        { label: "Languages", href: "/languages" },
+        { label: "Life Events", href: "/life" },
         { label: "Item Vault", href: "/items" },
+        { label: "Vehicles", href: "/vehicles" },
         { label: "Rules For Players", href: "/rules" },
         { label: "My Characters", href: "/characters" },
         { label: "Create New Character", href: "/characters/new" },

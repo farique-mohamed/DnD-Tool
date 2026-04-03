@@ -1,9 +1,17 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
-import { getSpellSlots, isSpellcaster, isWarlock } from "@/lib/spellSlotData";
+import {
+  getSpellSlots,
+  isSpellcaster,
+  isWarlock,
+  getCantripsKnown,
+  getSpellsKnownOrPrepared,
+  getSpellManagementType,
+} from "@/lib/spellSlotData";
 import { SPELLS } from "@/lib/spellsData";
 import { type CharacterData, mod } from "./shared";
 import { SpellSelectionSection } from "./SpellSelectionSection";
+import { getAutoKnownCantrips } from "@/lib/autoKnownSpells";
 
 export { isSpellcaster };
 
@@ -19,11 +27,24 @@ const SPELLCASTING_ABILITY: Record<string, string> = {
   Wizard: "intelligence",
 };
 
-const PREPARED_CASTERS = ["Cleric", "Druid", "Paladin", "Wizard", "Artificer"];
-
-
 export function SpellsTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
+
+  // Per-player spell filtering
+  const activeAdventure = character.adventurePlayers?.find(
+    (ap) => ap.status === "ACCEPTED",
+  );
+  const adventurePlayerId = activeAdventure?.id;
+  const adventureId = activeAdventure?.adventure?.id;
+
+  const { data: playerSpells } = api.adventure.getPlayerSpells.useQuery(
+    { adventurePlayerId: adventurePlayerId! },
+    { enabled: !!adventurePlayerId },
+  );
+
+  const isInAdventure = !!adventureId;
+  const hasPlayerSpells =
+    isInAdventure && playerSpells && playerSpells.length > 0;
   const slots = getSpellSlots(character.characterClass, character.level);
   const warlockMode = isWarlock(character.characterClass);
 
@@ -84,7 +105,6 @@ export function SpellsTab({ character }: { character: CharacterData }) {
   };
 
   // Spell management
-  const isPreparedCaster = PREPARED_CASTERS.includes(character.characterClass);
   const spellAbility =
     SPELLCASTING_ABILITY[character.characterClass] ?? "intelligence";
   const abilityScores: Record<string, number> = {
@@ -96,14 +116,27 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     charisma: character.charisma,
   };
   const spellAbilityMod = mod(abilityScores[spellAbility] ?? 10);
-  const preparedMax = isPreparedCaster
-    ? Math.max(
-        1,
-        character.characterClass === "Artificer"
-          ? spellAbilityMod + Math.floor(character.level / 2)
-          : spellAbilityMod + character.level,
-      )
-    : null;
+
+  // Data-driven spell limits
+  const cantripsMax = getCantripsKnown(
+    character.characterClass,
+    character.level,
+    character.rulesSource,
+  );
+  const spellManagement = getSpellManagementType(character.characterClass);
+  const spellsMax = getSpellsKnownOrPrepared(
+    character.characterClass,
+    character.level,
+    spellAbilityMod,
+    character.rulesSource,
+  );
+
+  // Auto-known cantrips (free, don't count against limit)
+  const autoCantrips = getAutoKnownCantrips(
+    character.characterClass,
+    character.subclass,
+    character.rulesSource,
+  );
 
   // Compute maximum castable spell level from spell slots
   const maxCastableLevel = (() => {
@@ -122,21 +155,38 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     return maxLvl;
   })();
 
-  // Filter spells for this class, deduplicate by name (keep first occurrence)
+  // Filter spells: if the DM assigned per-player spells, show ONLY those (no class filter).
+  // If not in an adventure or DM hasn't assigned spells yet, show all class spells.
   const classSpells = (() => {
-    const all = SPELLS.filter((s) =>
-      s.classes
-        .map((c) => c.toLowerCase())
-        .includes(character.characterClass.toLowerCase()),
-    );
     const seen = new Set<string>();
-    const deduped: typeof all = [];
-    for (const spell of all) {
-      if (!seen.has(spell.name)) {
-        seen.add(spell.name);
-        deduped.push(spell);
+    const deduped: typeof SPELLS = [];
+
+    if (hasPlayerSpells) {
+      // DM-curated: only show exactly what the DM assigned (any class)
+      const playerSpellNames = new Set(
+        (playerSpells as Array<{ spellName: string }>).map((s) =>
+          s.spellName.toLowerCase(),
+        ),
+      );
+      for (const spell of SPELLS) {
+        if (playerSpellNames.has(spell.name.toLowerCase()) && !seen.has(spell.name)) {
+          seen.add(spell.name);
+          deduped.push(spell);
+        }
+      }
+    } else {
+      // No DM spells: show all spells matching the character's class
+      for (const spell of SPELLS) {
+        if (
+          spell.classes.map((c) => c.toLowerCase()).includes(character.characterClass.toLowerCase()) &&
+          !seen.has(spell.name)
+        ) {
+          seen.add(spell.name);
+          deduped.push(spell);
+        }
       }
     }
+
     return deduped;
   })();
 
@@ -151,9 +201,36 @@ export function SpellsTab({ character }: { character: CharacterData }) {
   });
 
   const toggleSpell = (spellName: string) => {
-    const next = localPrepared.includes(spellName)
-      ? localPrepared.filter((s) => s !== spellName)
-      : [...localPrepared, spellName];
+    // If removing, always allow
+    if (localPrepared.includes(spellName)) {
+      const next = localPrepared.filter((s) => s !== spellName);
+      setLocalPrepared(next);
+      updatePreparedSpells.mutate({ id: character.id, preparedSpells: next });
+      return;
+    }
+
+    // Adding — check limits
+    const spellData = SPELLS.find((s) => s.name === spellName);
+    if (spellData) {
+      const isCantrip = spellData.level === 0;
+      if (isCantrip && cantripsMax > 0) {
+        // Auto-known cantrips don't count against the limit
+        const currentCantrips = localPrepared.filter((n) => {
+          const s = SPELLS.find((sp) => sp.name === n);
+          return s && s.level === 0 && !autoCantrips.includes(n);
+        }).length;
+        if (currentCantrips >= cantripsMax) return; // at limit
+      }
+      if (!isCantrip && spellsMax !== null) {
+        const currentLeveled = localPrepared.filter((n) => {
+          const s = SPELLS.find((sp) => sp.name === n);
+          return s && s.level > 0;
+        }).length;
+        if (currentLeveled >= spellsMax) return; // at limit
+      }
+    }
+
+    const next = [...localPrepared, spellName];
     setLocalPrepared(next);
     updatePreparedSpells.mutate({ id: character.id, preparedSpells: next });
   };
@@ -280,6 +357,73 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           </div>
         </div>
 
+        {/* Player spell status */}
+        {hasPlayerSpells && (
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "8px",
+              marginTop: "16px",
+              padding: "8px 14px",
+              background: "rgba(201,168,76,0.08)",
+              border: "1px solid rgba(201,168,76,0.25)",
+              borderRadius: "6px",
+            }}
+          >
+            <span
+              style={{
+                background: "rgba(201,168,76,0.25)",
+                color: "#c9a84c",
+                fontSize: "10px",
+                fontFamily: "'Georgia', serif",
+                padding: "2px 8px",
+                borderRadius: "4px",
+                letterSpacing: "0.5px",
+                textTransform: "uppercase",
+                fontWeight: "bold",
+              }}
+            >
+              DM Curated
+            </span>
+            <span
+              style={{
+                color: "#a89060",
+                fontSize: "12px",
+                fontFamily: "'Georgia', serif",
+              }}
+            >
+              Spells assigned to you by your DM
+            </span>
+          </div>
+        )}
+        {isInAdventure && !hasPlayerSpells && (
+          <p
+            style={{
+              color: "#a89060",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              fontStyle: "italic",
+              marginTop: "16px",
+            }}
+          >
+            Your DM hasn&apos;t assigned spells to your character yet — showing all class spells
+          </p>
+        )}
+        {!isInAdventure && (
+          <p
+            style={{
+              color: "#a89060",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              fontStyle: "italic",
+              marginTop: "16px",
+            }}
+          >
+            Not in an adventure — all class spells shown
+          </p>
+        )}
+
         {/* Spell selection for Warlock */}
         <SpellSelectionSection
           character={character}
@@ -292,8 +436,10 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           setSpellLevelFilter={setSpellLevelFilter}
           filteredSpells={filteredSpells}
           toggleSpell={toggleSpell}
-          isPreparedCaster={isPreparedCaster}
-          preparedMax={preparedMax}
+          cantripsMax={cantripsMax}
+          spellsMax={spellsMax}
+          spellManagement={spellManagement}
+          autoCantrips={autoCantrips}
         />
       </div>
     );
@@ -414,6 +560,73 @@ export function SpellsTab({ character }: { character: CharacterData }) {
         })}
       </div>
 
+      {/* Player spell status */}
+      {hasPlayerSpells && (
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "8px",
+            marginTop: "16px",
+            padding: "8px 14px",
+            background: "rgba(201,168,76,0.08)",
+            border: "1px solid rgba(201,168,76,0.25)",
+            borderRadius: "6px",
+          }}
+        >
+          <span
+            style={{
+              background: "rgba(201,168,76,0.25)",
+              color: "#c9a84c",
+              fontSize: "10px",
+              fontFamily: "'Georgia', serif",
+              padding: "2px 8px",
+              borderRadius: "4px",
+              letterSpacing: "0.5px",
+              textTransform: "uppercase",
+              fontWeight: "bold",
+            }}
+          >
+            DM Curated
+          </span>
+          <span
+            style={{
+              color: "#a89060",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+            }}
+          >
+            Spells assigned to you by your DM
+          </span>
+        </div>
+      )}
+      {isInAdventure && !hasPlayerSpells && (
+        <p
+          style={{
+            color: "#a89060",
+            fontSize: "12px",
+            fontFamily: "'Georgia', serif",
+            fontStyle: "italic",
+            marginTop: "16px",
+          }}
+        >
+          Your DM hasn&apos;t assigned spells to your character yet — showing all class spells
+        </p>
+      )}
+      {!isInAdventure && (
+        <p
+          style={{
+            color: "#a89060",
+            fontSize: "12px",
+            fontFamily: "'Georgia', serif",
+            fontStyle: "italic",
+            marginTop: "16px",
+          }}
+        >
+          Not in an adventure — all class spells shown
+        </p>
+      )}
+
       {/* Spell selection */}
       <SpellSelectionSection
         character={character}
@@ -426,8 +639,10 @@ export function SpellsTab({ character }: { character: CharacterData }) {
         setSpellLevelFilter={setSpellLevelFilter}
         filteredSpells={filteredSpells}
         toggleSpell={toggleSpell}
-        isPreparedCaster={isPreparedCaster}
-        preparedMax={preparedMax}
+        cantripsMax={cantripsMax}
+        spellsMax={spellsMax}
+        spellManagement={spellManagement}
+        autoCantrips={autoCantrips}
       />
     </div>
   );

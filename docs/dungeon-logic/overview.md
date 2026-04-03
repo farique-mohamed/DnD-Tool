@@ -95,7 +95,8 @@ docs/
     ├── roles.md              # Role system: PLAYER, DUNGEON_MASTER, ADMIN
     ├── dice-roller.md        # Dice roller feature: DB schema, tRPC procedures, UI component
     ├── equipment.md          # Equipment system: slots, weapon properties/masteries, armor proficiency, AC calculation
-    └── encounters.md         # Encounter system: combat tracking, initiative, HP, conditions, death saves
+    ├── encounters.md         # Encounter system: combat tracking, initiative, HP, conditions, death saves
+    └── this-is-your-life.md  # "This Is Your Life" backstory generator: XGE tables, life events, character creation integration
 ```
 
 ## Environment Variables

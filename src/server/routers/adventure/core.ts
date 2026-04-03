@@ -87,6 +87,8 @@ export const getById = protectedProcedure
       include: {
         monsters: { orderBy: { createdAt: "asc" } },
         items: { orderBy: { createdAt: "asc" } },
+        spells: { orderBy: { createdAt: "asc" } },
+        npcs: { orderBy: { createdAt: "asc" } },
         players: {
           include: {
             user: { select: { id: true, username: true } },

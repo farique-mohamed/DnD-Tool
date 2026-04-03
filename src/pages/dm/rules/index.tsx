@@ -10,6 +10,8 @@ import {
   type BookEntry,
 } from "@/lib/bookData";
 import { parseTaggedText } from "@/lib/dndTagParser";
+import { getInternalImageUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 
 type Edition = "2014" | "2024";
 
@@ -40,7 +42,62 @@ function renderEntries(
 
     const e = entry as BookEntry;
 
-    if (e.type === "image") return null;
+    if (e.type === "image") {
+      const href = e.href as { type?: string; path?: string } | undefined;
+      if (href?.type === "internal" && href.path) {
+        return (
+          <div key={i} style={{ margin: "16px 0", textAlign: "center" }}>
+            <EntityImage
+              src={getInternalImageUrl(href.path)}
+              alt={typeof e.title === "string" ? e.title : "Book image"}
+              width="100%"
+              style={{ maxWidth: "600px" }}
+            />
+            {typeof e.title === "string" && (
+              <p
+                style={{
+                  color: "#a89060",
+                  fontSize: "12px",
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontStyle: "italic",
+                  marginTop: "6px",
+                }}
+              >
+                {e.title}
+              </p>
+            )}
+          </div>
+        );
+      }
+      return null;
+    }
+
+    if (e.type === "gallery") {
+      const images = (e.images ?? []) as BookEntry[];
+      return (
+        <div key={i} style={{ margin: "16px 0", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center" }}>
+          {images.map((img, j) => {
+            const href = img.href as { type?: string; path?: string } | undefined;
+            if (href?.type !== "internal" || !href.path) return null;
+            return (
+              <div key={j} style={{ textAlign: "center" }}>
+                <EntityImage
+                  src={getInternalImageUrl(href.path)}
+                  alt={typeof img.title === "string" ? img.title : "Gallery image"}
+                  width="100%"
+                  style={{ maxWidth: "600px" }}
+                />
+                {typeof img.title === "string" && (
+                  <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "6px" }}>
+                    {img.title}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
 
     if (e.type === "entries" || e.type === "section") {
       const HeadingTag = (e.type === "section" || depth === 0) ? "h3" : "h4";
@@ -95,6 +152,16 @@ function renderEntries(
                     {parseTaggedText(itemEntry.name)}
                   </strong>{" "}
                   {renderEntries(itemEntry.entries as (BookEntry | string)[], depth + 1)}
+                </li>
+              );
+            }
+            if (itemEntry.name && (itemEntry as BookEntry & { entry?: string }).entry) {
+              return (
+                <li key={j} style={{ marginBottom: "6px" }}>
+                  <strong style={{ color: "#c9a84c" }}>
+                    {parseTaggedText(itemEntry.name)}
+                  </strong>{" "}
+                  <span dangerouslySetInnerHTML={{ __html: parseTaggedText((itemEntry as BookEntry & { entry?: string }).entry!) }} />
                 </li>
               );
             }

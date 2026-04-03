@@ -251,3 +251,49 @@ export const updatePlayerConditions = protectedProcedure
       data: { activeConditions: JSON.stringify(input.activeConditions) },
     });
   });
+
+export const updatePlayerDiseases = protectedProcedure
+  .input(
+    z.object({
+      adventureId: z.string(),
+      characterId: z.string(),
+      activeDiseases: z.array(z.string()),
+    }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    const adventure = await ctx.db.adventure.findUnique({
+      where: { id: input.adventureId },
+    });
+    if (!adventure) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Adventure not found",
+      });
+    }
+    if (adventure.userId !== ctx.user.userId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the DM can update player diseases",
+      });
+    }
+
+    // Verify the character belongs to an accepted player in this adventure
+    const adventurePlayer = await ctx.db.adventurePlayer.findFirst({
+      where: {
+        adventureId: input.adventureId,
+        characterId: input.characterId,
+        status: "ACCEPTED",
+      },
+    });
+    if (!adventurePlayer) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Character is not an accepted player in this adventure",
+      });
+    }
+
+    return ctx.db.character.update({
+      where: { id: input.characterId },
+      data: { activeDiseases: JSON.stringify(input.activeDiseases) },
+    });
+  });

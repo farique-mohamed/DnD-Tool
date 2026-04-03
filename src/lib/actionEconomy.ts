@@ -98,7 +98,7 @@ export const CLASS_ACTIONS: Record<string, ClassActionEntry[]> = {
   ],
   Artificer: [
     { name: "Magical Tinkering", cost: "Action", description: "Touch a Tiny object to imbue it with one of several minor magical properties.", feature: "Magical Tinkering", levelRequired: 1 },
-    { name: "Infuse Item", cost: "No Action", description: "During a long rest, infuse magical properties into up to N items (scales with level).", feature: "Infuse Item", levelRequired: 2 },
+    { name: "Infuse Item", cost: "No Action", description: "During a long rest, infuse magical properties into nonmagical objects. Max infused items: 2 (L2), 3 (L6), 4 (L10), 5 (L14), 6 (L18).", feature: "Infuse Item", levelRequired: 2 },
     { name: "The Right Tool for the Job", cost: "Action", description: "Spend 1 hour to magically create a set of artisan's tools.", feature: "The Right Tool for the Job", levelRequired: 3 },
     { name: "Flash of Genius", cost: "Reaction", description: "Add your INT modifier to an ability check or saving throw made by you or a visible creature within 30 ft.", feature: "Flash of Genius", levelRequired: 7 },
   ],

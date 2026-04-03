@@ -67,7 +67,7 @@ function flattenEntries(entries: RawEntry[]): string[] {
 }
 
 // ---------------------------------------------------------------------------
-// Parse raw data — conditions + statuses (skip diseases)
+// Parse raw data — conditions, statuses, and diseases
 // ---------------------------------------------------------------------------
 
 interface RawCondition {
@@ -88,6 +88,9 @@ const allConditions = parseConditions(rawData.condition as RawCondition[]);
 const allStatuses = parseConditions(
   (rawData.status ?? []) as RawCondition[],
 );
+const allDiseases = parseConditions(
+  ((rawData as Record<string, unknown>).disease ?? []) as RawCondition[],
+);
 
 // ---------------------------------------------------------------------------
 // De-duplicate by name: keep one per name. When filtering by source we pick
@@ -96,6 +99,9 @@ const allStatuses = parseConditions(
 
 /** All conditions and statuses (both PHB and XPHB versions). */
 export const CONDITIONS: Condition[] = [...allConditions, ...allStatuses];
+
+/** All diseases from the data file. */
+export const DISEASES: Condition[] = allDiseases;
 
 /**
  * Get conditions/statuses for a specific rules source.
@@ -132,3 +138,79 @@ export function getConditionByName(
   }
   return CONDITIONS.find((c) => c.name === name);
 }
+
+// ---------------------------------------------------------------------------
+// Rich detail entries — preserves raw structure for the detail page
+// ---------------------------------------------------------------------------
+
+export interface ConditionDetail {
+  name: string;
+  source: string;
+  category: "condition" | "status" | "disease";
+  entries: unknown[]; // raw entries for rich rendering
+  flatEntries: string[]; // flattened text (existing format)
+}
+
+function buildDetails(
+  raw: RawCondition[],
+  category: "condition" | "status" | "disease",
+): ConditionDetail[] {
+  return raw.map((c) => ({
+    name: c.name,
+    source: c.source,
+    category,
+    entries: c.entries as unknown[],
+    flatEntries: flattenEntries(c.entries).map((text) => parseTaggedText(text)),
+  }));
+}
+
+const allConditionDetails = buildDetails(
+  rawData.condition as RawCondition[],
+  "condition",
+);
+const allStatusDetails = buildDetails(
+  (rawData.status ?? []) as RawCondition[],
+  "status",
+);
+const allDiseaseDetails = buildDetails(
+  ((rawData as Record<string, unknown>).disease ?? []) as RawCondition[],
+  "disease",
+);
+
+/** Preferred sources — newer reprints are preferred over older ones. */
+const PREFERRED_SOURCES = new Set(["XPHB", "XDMG"]);
+
+/**
+ * All conditions, statuses, and diseases with category tags.
+ * De-duplicated by name, preferring XPHB/XDMG sources over PHB/DMG.
+ * Sorted alphabetically by name.
+ */
+export const ALL_ENTRIES: ConditionDetail[] = (() => {
+  const combined = [
+    ...allConditionDetails,
+    ...allStatusDetails,
+    ...allDiseaseDetails,
+  ];
+  const byName = new Map<string, ConditionDetail>();
+
+  for (const entry of combined) {
+    const existing = byName.get(entry.name);
+    if (!existing) {
+      byName.set(entry.name, entry);
+    } else if (
+      PREFERRED_SOURCES.has(entry.source) &&
+      !PREFERRED_SOURCES.has(existing.source)
+    ) {
+      byName.set(entry.name, entry);
+    }
+  }
+
+  return Array.from(byName.values()).sort((a, b) =>
+    a.name.localeCompare(b.name),
+  );
+})();
+
+/** Sorted unique sources across all entries. */
+export const CONDITION_SOURCES: string[] = [
+  ...new Set(ALL_ENTRIES.map((e) => e.source)),
+].sort();

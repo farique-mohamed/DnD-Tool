@@ -6,6 +6,7 @@ import { useIsMobile } from "@/hooks/useIsMobile";
 import { SPELLS, SPELL_SOURCES, type Spell } from "@/lib/spellsData";
 import { SPELL_CLASSES, type SpellClass } from "@/lib/spellClassMap";
 
+
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------

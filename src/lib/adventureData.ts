@@ -27,6 +27,7 @@ import drdeTfvJson from "../../data/adventure/adventure-drde-tfv.json";
 import drdeTwooJson from "../../data/adventure/adventure-drde-twoo.json";
 import dsotdqJson from "../../data/adventure/adventure-dsotdq.json";
 import efrJson from "../../data/adventure/adventure-efr.json";
+import ffotrJson from "../../data/adventure/adventure-ffotr.json";
 import fraifTllolJson from "../../data/adventure/adventure-fraif-tllol.json";
 import fsJson from "../../data/adventure/adventure-fs.json";
 import gosJson from "../../data/adventure/adventure-gos.json";
@@ -105,6 +106,7 @@ export interface AdventureSection {
   name?: string;
   id?: string;
   page?: number;
+  entry?: string;
   entries?: unknown[];
   items?: unknown[];
   caption?: string;
@@ -155,6 +157,7 @@ export const ADVENTURE_DATA_MAP: Record<string, AdventureSection[]> = {
   "drde-twoo": (drdeTwooJson as AdventureJson).data,
   dsotdq: (dsotdqJson as AdventureJson).data,
   efr: (efrJson as AdventureJson).data,
+  ffotr: (ffotrJson as AdventureJson).data,
   "fraif-tllol": (fraifTllolJson as AdventureJson).data,
   fs: (fsJson as AdventureJson).data,
   gos: (gosJson as AdventureJson).data,
@@ -239,7 +242,7 @@ export const ADVENTURE_LIST: AdventureInfo[] = [
   { source: "cos", name: "Curse of Strahd" },
   { source: "crcotn", name: "Critical Role: Call of the Netherdeep" },
   { source: "dc", name: "Divine Contention" },
-  { source: "dd", name: "Dragon of Icespire Peak: Dragon of Icespire Peak" },
+  { source: "dd", name: "Dangerous Designs" },
   { source: "dip", name: "Dragon of Icespire Peak" },
   { source: "ditlcot", name: "Descent into the Lost Caverns of Tsojcanth" },
   { source: "dosi", name: "Dragons of Stormwreck Isle" },
@@ -254,7 +257,8 @@ export const ADVENTURE_LIST: AdventureInfo[] = [
   { source: "drde-tfv", name: "Dragonlance: The Fall of Vogler" },
   { source: "drde-twoo", name: "Dragonlance: The Weight of Obligation" },
   { source: "dsotdq", name: "Dragonlance: Shadow of the Dragon Queen" },
-  { source: "efr", name: "Essentials Kit: Find a Way" },
+  { source: "efr", name: "Eberron: Forgotten Relics" },
+  { source: "ffotr", name: "Fated Flight of the Recluse" },
   { source: "fs", name: "Fallen Star" },
   { source: "fraif-tllol", name: "Forgotten Realms: The Legend of Lady Larel" },
   { source: "gos", name: "Ghosts of Saltmarsh" },
@@ -290,7 +294,7 @@ export const ADVENTURE_LIST: AdventureInfo[] = [
   { source: "pip", name: "Pipyap's Guide to All of the Nine Hells" },
   { source: "pota", name: "Princes of the Apocalypse" },
   { source: "qftis", name: "Quests from the Infinite Staircase" },
-  { source: "rmbre", name: "The Red Market — A Bargain's Reach" },
+  { source: "rmbre", name: "The Lost Dungeon of Rickedness: Big Rick Energy" },
   { source: "rot", name: "The Rise of Tiamat" },
   { source: "rtg", name: "Return to Glory" },
   { source: "scc-arir", name: "Strixhaven: A Curriculum of Chaos — A Reckoning in Ruins" },

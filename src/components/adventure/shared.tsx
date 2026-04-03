@@ -4,6 +4,8 @@ import {
   type AdventureSection,
 } from "@/lib/adventureData";
 import { ITEMS, type Item } from "@/lib/itemsData";
+import { getInternalImageUrl } from "@/lib/imageUtils";
+import { EntityImage } from "@/components/ui/EntityImage";
 
 // ---------------------------------------------------------------------------
 // Styling constants (re-exported from the shared UI theme)
@@ -31,13 +33,18 @@ export const DM_TABS = [
   { key: "story", label: "Story" },
   { key: "monsters", label: "Monsters" },
   { key: "items", label: "Items" },
+  { key: "spells", label: "Spells" },
+  { key: "npcs", label: "NPCs" },
   { key: "encounter", label: "Encounter" },
+  { key: "sessions", label: "Sessions" },
   { key: "sessionnotes", label: "Session Notes" },
 ] as const;
 
 export const PLAYER_TABS = [
   { key: "mycharacter", label: "My Character" },
   { key: "encounter", label: "Encounter" },
+  { key: "sessions", label: "Sessions" },
+  { key: "npcs", label: "NPCs" },
   { key: "inventory", label: "Inventory" },
   { key: "dmnotes", label: "DM Notes" },
   { key: "sessionnotes", label: "My Session Notes" },
@@ -45,7 +52,7 @@ export const PLAYER_TABS = [
 
 export const PLAYERS_TAB = { key: "players" as const, label: "Players" };
 
-export type TabKey = "story" | "monsters" | "items" | "players" | "encounter" | "mycharacter" | "inventory" | "dmnotes" | "sessionnotes";
+export type TabKey = "story" | "monsters" | "items" | "spells" | "npcs" | "players" | "encounter" | "sessions" | "mycharacter" | "inventory" | "dmnotes" | "sessionnotes";
 
 // ---------------------------------------------------------------------------
 // Character constants
@@ -169,7 +176,62 @@ export function renderEntries(
 
     const e = entry as AdventureSection;
 
-    if (e.type === "image") return null;
+    if (e.type === "image") {
+      const href = e.href as { type?: string; path?: string } | undefined;
+      if (href?.type === "internal" && href.path) {
+        return (
+          <div key={i} style={{ margin: "16px 0", textAlign: "center" }}>
+            <EntityImage
+              src={getInternalImageUrl(href.path)}
+              alt={typeof e.title === "string" ? e.title : "Adventure image"}
+              width="100%"
+              style={{ maxWidth: "600px" }}
+            />
+            {typeof e.title === "string" && (
+              <p
+                style={{
+                  color: "#a89060",
+                  fontSize: "12px",
+                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontStyle: "italic",
+                  marginTop: "6px",
+                }}
+              >
+                {e.title}
+              </p>
+            )}
+          </div>
+        );
+      }
+      return null;
+    }
+
+    if (e.type === "gallery") {
+      const images = (e.images ?? []) as AdventureSection[];
+      return (
+        <div key={i} style={{ margin: "16px 0", display: "flex", flexWrap: "wrap", gap: "12px", justifyContent: "center" }}>
+          {images.map((img, j) => {
+            const href = img.href as { type?: string; path?: string } | undefined;
+            if (href?.type !== "internal" || !href.path) return null;
+            return (
+              <div key={j} style={{ textAlign: "center" }}>
+                <EntityImage
+                  src={getInternalImageUrl(href.path)}
+                  alt={typeof img.title === "string" ? img.title : "Gallery image"}
+                  width="100%"
+                  style={{ maxWidth: "600px" }}
+                />
+                {typeof img.title === "string" && (
+                  <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "6px" }}>
+                    {img.title}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      );
+    }
 
     if (e.type === "entries" || e.type === "section") {
       const HeadingTag = (e.type === "section" || depth === 0) ? "h3" : "h4";
@@ -224,6 +286,16 @@ export function renderEntries(
                     {parseTaggedText(itemEntry.name)}
                   </strong>{" "}
                   {renderEntries(itemEntry.entries as (AdventureSection | string)[], depth + 1)}
+                </li>
+              );
+            }
+            if (itemEntry.name && itemEntry.entry) {
+              return (
+                <li key={j} style={{ marginBottom: "6px" }}>
+                  <strong style={{ color: "#c9a84c" }}>
+                    {parseTaggedText(itemEntry.name)}
+                  </strong>{" "}
+                  <span dangerouslySetInnerHTML={{ __html: parseTaggedText(itemEntry.entry) }} />
                 </li>
               );
             }

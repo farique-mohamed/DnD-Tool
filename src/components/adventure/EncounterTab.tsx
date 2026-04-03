@@ -2,9 +2,9 @@ import { useState, useMemo } from "react";
 import { api } from "@/utils/api";
 import { useAuth } from "@/hooks/useAuth";
 import { CONDITIONS } from "@/lib/conditionData";
-import { MONSTER_LIST, type MonsterInfo, abilityMod } from "@/lib/bestiaryData";
-import { parseTaggedText } from "@/lib/dndTagParser";
+import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, TEXT_DIM, SERIF, SourceBadge } from "./shared";
+import { findMonsterData, MonsterStatBlock } from "./MonsterStatBlock";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -146,362 +146,6 @@ const UNIQUE_CONDITION_NAMES: string[] = (() => {
 })();
 
 // ---------------------------------------------------------------------------
-// Monster lookup helper
-// ---------------------------------------------------------------------------
-
-function findMonsterData(name: string | null | undefined, source: string | null | undefined): MonsterInfo | undefined {
-  if (!name) return undefined;
-  // Exact name match
-  const byName = MONSTER_LIST.find((m) => m.name.toLowerCase() === name.toLowerCase());
-  if (byName) return byName;
-  // Name + source match
-  if (source) {
-    const byNameSource = MONSTER_LIST.find(
-      (m) => m.name.toLowerCase() === name.toLowerCase() && m.source.toLowerCase() === source.toLowerCase(),
-    );
-    if (byNameSource) return byNameSource;
-    // Try source-only match (monsterSource may store the bestiary name)
-    const bySource = MONSTER_LIST.find(
-      (m) => m.source.toLowerCase() === source.toLowerCase() && m.name.toLowerCase() === name.toLowerCase(),
-    );
-    if (bySource) return bySource;
-  }
-  return undefined;
-}
-
-// ---------------------------------------------------------------------------
-// Monster stat block renderer (shared pattern from MonstersTab)
-// ---------------------------------------------------------------------------
-
-function MonsterStatBlock({ monsterData }: { monsterData: MonsterInfo }) {
-  return (
-    <div
-      style={{
-        background: "rgba(0,0,0,0.3)",
-        border: "1px solid rgba(201,168,76,0.15)",
-        borderRadius: "8px",
-        padding: "16px 20px",
-        marginTop: "8px",
-        marginBottom: "4px",
-      }}
-    >
-      {/* Size, type, alignment */}
-      <p
-        style={{
-          color: GOLD_MUTED,
-          fontSize: "13px",
-          fontFamily: SERIF,
-          fontStyle: "italic",
-          marginBottom: "8px",
-        }}
-      >
-        {monsterData.size} {monsterData.type}
-        {monsterData.alignment ? `, ${monsterData.alignment}` : ""}
-      </p>
-
-      {/* AC, HP, Speed */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          marginBottom: "12px",
-          fontSize: "13px",
-          fontFamily: SERIF,
-        }}
-      >
-        <div>
-          <span style={{ color: GOLD, fontWeight: "bold" }}>Armor Class </span>
-          <span style={{ color: GOLD_BRIGHT }}>
-            {monsterData.ac ?? "\u2014"}
-            {monsterData.acNote ? ` (${monsterData.acNote})` : ""}
-          </span>
-        </div>
-        <div>
-          <span style={{ color: GOLD, fontWeight: "bold" }}>Hit Points </span>
-          <span style={{ color: GOLD_BRIGHT }}>
-            {monsterData.hp ?? "\u2014"}
-            {monsterData.hpFormula ? ` (${monsterData.hpFormula})` : ""}
-          </span>
-        </div>
-        <div>
-          <span style={{ color: GOLD, fontWeight: "bold" }}>Speed </span>
-          <span style={{ color: GOLD_BRIGHT }}>{monsterData.speed || "\u2014"}</span>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: "1px", background: "rgba(201,168,76,0.2)", margin: "8px 0" }} />
-
-      {/* Ability scores */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
-          gap: "8px",
-          textAlign: "center",
-          marginBottom: "12px",
-        }}
-      >
-        {(["str", "dex", "con", "int", "wis", "cha"] as const).map((ab) => (
-          <div key={ab}>
-            <div
-              style={{
-                color: GOLD,
-                fontSize: "10px",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-              }}
-            >
-              {ab}
-            </div>
-            <div style={{ color: GOLD_BRIGHT, fontSize: "14px", fontWeight: "bold" }}>
-              {monsterData[ab]}
-            </div>
-            <div style={{ color: TEXT_DIM, fontSize: "11px" }}>({abilityMod(monsterData[ab])})</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: "1px", background: "rgba(201,168,76,0.2)", margin: "8px 0" }} />
-
-      {/* Secondary stats */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          marginBottom: "12px",
-          fontSize: "13px",
-          fontFamily: SERIF,
-        }}
-      >
-        {monsterData.savingThrows && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Saving Throws </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.savingThrows}</span>
-          </div>
-        )}
-        {monsterData.skills && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Skills </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.skills}</span>
-          </div>
-        )}
-        {monsterData.damageResistances && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Damage Resistances </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.damageResistances}</span>
-          </div>
-        )}
-        {monsterData.damageImmunities && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Damage Immunities </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.damageImmunities}</span>
-          </div>
-        )}
-        {monsterData.conditionImmunities && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Condition Immunities </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.conditionImmunities}</span>
-          </div>
-        )}
-        {monsterData.senses && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Senses </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.senses}</span>
-          </div>
-        )}
-        {monsterData.languages && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Languages </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.languages}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Traits */}
-      {monsterData.traits.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          {monsterData.traits.map((t, ti) => (
-            <div key={ti} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {t.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(t.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Actions */}
-      {monsterData.actions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Actions
-          </h4>
-          {monsterData.actions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Bonus Actions */}
-      {monsterData.bonusActions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Bonus Actions
-          </h4>
-          {monsterData.bonusActions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Reactions */}
-      {monsterData.reactions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Reactions
-          </h4>
-          {monsterData.reactions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Legendary Actions */}
-      {monsterData.legendaryActions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Legendary Actions
-          </h4>
-          {monsterData.legendaryActions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -512,32 +156,241 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   // ---- Queries ----
   const { data: encounter, isLoading } = api.adventure.getEncounter.useQuery(
     { adventureId },
-    { refetchInterval: 3000 },
+    { refetchInterval: 1000 },
   );
 
   // ---- Mutations ----
+  type EncounterData = NonNullable<typeof encounter>;
+
   const invalidateEncounter = () => {
     void utils.adventure.getEncounter.invalidate({ adventureId });
   };
+
+  /** Snapshot the current cache and cancel in-flight queries for optimistic update. */
+  async function optimisticSetup() {
+    await utils.adventure.getEncounter.cancel({ adventureId });
+    return utils.adventure.getEncounter.getData({ adventureId }) ?? null;
+  }
+
+  /** Roll back to a previous snapshot on error. */
+  function optimisticRollback(_err: unknown, _input: unknown, context: { previous: EncounterData | null } | undefined) {
+    if (context?.previous) {
+      utils.adventure.getEncounter.setData({ adventureId }, context.previous);
+    }
+  }
 
   const createEncounter = api.adventure.createEncounter.useMutation({ onSuccess: invalidateEncounter });
   const endEncounter = api.adventure.endEncounter.useMutation({ onSuccess: invalidateEncounter });
   const addPlayer = api.adventure.addEncounterPlayer.useMutation({ onSuccess: invalidateEncounter });
   const addMonster = api.adventure.addEncounterMonster.useMutation({ onSuccess: invalidateEncounter });
   const removeParticipant = api.adventure.removeParticipant.useMutation({ onSuccess: invalidateEncounter });
-  const nextTurn = api.adventure.nextTurn.useMutation({ onSuccess: invalidateEncounter });
-  const updateHp = api.adventure.updateParticipantHp.useMutation({ onSuccess: invalidateEncounter });
-  const updateConditions = api.adventure.updateParticipantConditions.useMutation({ onSuccess: invalidateEncounter });
-  const updateDeathSaves = api.adventure.updateDeathSaves.useMutation({ onSuccess: invalidateEncounter });
   const togglePrivateDeathSaves = api.adventure.togglePrivateDeathSaves.useMutation({ onSuccess: invalidateEncounter });
-  const updateInitiative = api.adventure.updateInitiative.useMutation({ onSuccess: invalidateEncounter });
+
+  const nextTurn = api.adventure.nextTurn.useMutation({
+    onMutate: async () => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        const sorted = [...old.participants].sort((a, b) => {
+          if (b.initiativeRoll !== a.initiativeRoll) return b.initiativeRoll - a.initiativeRoll;
+          return a.sortOrder - b.sortOrder;
+        });
+        let nextIndex = old.currentTurnIndex;
+        let round = old.round;
+        let wrapped = false;
+        for (let i = 0; i < sorted.length; i++) {
+          nextIndex++;
+          if (nextIndex >= sorted.length) {
+            nextIndex = 0;
+            wrapped = true;
+          }
+          if (sorted[nextIndex].isActive) break;
+        }
+        if (wrapped) round++;
+        return { ...old, currentTurnIndex: nextIndex, round };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateHp = api.adventure.updateParticipantHp.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) => {
+            if (p.id !== input.participantId) return p;
+            let currentHp = p.currentHp ?? 0;
+            let tempHp = p.tempHp ?? 0;
+            const maxHp = p.maxHp ?? 0;
+            if (input.type === "heal") {
+              currentHp = Math.min(maxHp, currentHp + input.amount);
+            } else if (input.type === "damage") {
+              const remainingDamage = Math.max(0, input.amount - tempHp);
+              tempHp = Math.max(0, tempHp - input.amount);
+              currentHp = Math.max(0, currentHp - remainingDamage);
+            } else if (input.type === "setTempHp") {
+              tempHp = input.amount;
+            }
+            // Also update nested character HP for players
+            const adventurePlayer = p.adventurePlayer
+              ? {
+                  ...p.adventurePlayer,
+                  character: p.adventurePlayer.character
+                    ? { ...p.adventurePlayer.character, currentHp, tempHp }
+                    : p.adventurePlayer.character,
+                }
+              : p.adventurePlayer;
+            return { ...p, currentHp, tempHp, adventurePlayer };
+          }),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateConditions = api.adventure.updateParticipantConditions.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        const conditionsJson = JSON.stringify(input.conditions);
+        return {
+          ...old,
+          participants: old.participants.map((p) => {
+            if (p.id !== input.participantId) return p;
+            const adventurePlayer = p.adventurePlayer
+              ? {
+                  ...p.adventurePlayer,
+                  character: p.adventurePlayer.character
+                    ? { ...p.adventurePlayer.character, activeConditions: conditionsJson }
+                    : p.adventurePlayer.character,
+                }
+              : p.adventurePlayer;
+            return { ...p, conditions: conditionsJson, adventurePlayer };
+          }),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateDeathSaves = api.adventure.updateDeathSaves.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) =>
+            p.id === input.participantId
+              ? { ...p, deathSaveSuccesses: input.successes, deathSaveFailures: input.failures }
+              : p
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const updateInitiative = api.adventure.updateInitiative.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) =>
+            p.id === input.participantId
+              ? { ...p, initiativeRoll: input.initiativeRoll }
+              : p
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  const renameParticipant = api.adventure.renameParticipant.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) =>
+            p.id === input.participantId ? { ...p, name: input.name } : p
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
+  // ---- Template mutations ----
+  const saveAsTemplate = api.adventure.saveEncounterAsTemplate.useMutation({
+    onSuccess: () => {
+      void utils.adventure.listEncounterTemplates.invalidate();
+      setSaveTemplateOpen(false);
+      setTemplateName("");
+      setTemplateDescription("");
+      setTemplateFeedback("Template saved successfully!");
+      setTimeout(() => setTemplateFeedback(null), 3000);
+    },
+    onError: (err) => {
+      setTemplateFeedback(`Error: ${err.message}`);
+      setTimeout(() => setTemplateFeedback(null), 4000);
+    },
+  });
+
+  const createFromTemplate = api.adventure.createEncounterFromTemplate.useMutation({
+    onSuccess: () => {
+      invalidateEncounter();
+      setLoadTemplateOpen(false);
+    },
+  });
+
+  const deleteTemplate = api.adventure.deleteEncounterTemplate.useMutation({
+    onSuccess: () => {
+      void utils.adventure.listEncounterTemplates.invalidate();
+      setConfirmDeleteTemplateId(null);
+    },
+  });
 
   // ---- Local UI state ----
   const [confirmEnd, setConfirmEnd] = useState(false);
 
+  // Template state
+  const [saveTemplateOpen, setSaveTemplateOpen] = useState(false);
+  const [templateName, setTemplateName] = useState("");
+  const [templateDescription, setTemplateDescription] = useState("");
+  const [templateFeedback, setTemplateFeedback] = useState<string | null>(null);
+  const [loadTemplateOpen, setLoadTemplateOpen] = useState(false);
+  const [confirmDeleteTemplateId, setConfirmDeleteTemplateId] = useState<string | null>(null);
+
   // Add player form
   const [addPlayerId, setAddPlayerId] = useState("");
   const [addPlayerInit, setAddPlayerInit] = useState("");
+
+  // Familiars for the currently selected player (auto-add to encounter)
+  const { data: selectedPlayerFamiliars } = api.adventure.getFamiliars.useQuery(
+    { adventurePlayerId: addPlayerId },
+    { enabled: !!addPlayerId },
+  );
 
   // Add monster form
   const [monsterSearchText, setMonsterSearchText] = useState("");
@@ -547,6 +400,7 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   const [monsterMaxHp, setMonsterMaxHp] = useState("");
   const [monsterAc, setMonsterAc] = useState("");
   const [monsterInit, setMonsterInit] = useState("");
+  const [monsterDisplayName, setMonsterDisplayName] = useState("");
   const [customMonsterMode, setCustomMonsterMode] = useState(false);
   const [showMonsterDropdown, setShowMonsterDropdown] = useState(false);
 
@@ -562,8 +416,18 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   const [initEditId, setInitEditId] = useState<string | null>(null);
   const [initEditValue, setInitEditValue] = useState("");
 
+  // Rename monster
+  const [renameId, setRenameId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
+
   // Expanded monster stat block
   const [expandedMonsterId, setExpandedMonsterId] = useState<string | null>(null);
+
+  // ---- Template list (only when modal open) ----
+  const { data: templateList, isLoading: templatesLoading } = api.adventure.listEncounterTemplates.useQuery(
+    undefined,
+    { enabled: loadTemplateOpen },
+  );
 
   // ---- Monster search results ----
   const filteredMonsters = useMemo(() => {
@@ -683,11 +547,33 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   // ---- Handlers ----
   function handleAddPlayer() {
     if (!addPlayerId || !addPlayerInit) return;
-    addPlayer.mutate({
-      adventureId,
-      adventurePlayerId: addPlayerId,
-      initiativeRoll: Number(addPlayerInit),
-    });
+    const initRoll = Number(addPlayerInit);
+    const familiars = selectedPlayerFamiliars ?? [];
+    addPlayer.mutate(
+      {
+        adventureId,
+        adventurePlayerId: addPlayerId,
+        initiativeRoll: initRoll,
+      },
+      {
+        onSuccess: () => {
+          invalidateEncounter();
+          // Auto-add familiars as monster participants
+          for (const familiar of familiars) {
+            const monsterData = findMonsterData(familiar.monsterName, familiar.monsterSource);
+            addMonster.mutate({
+              adventureId,
+              name: familiar.monsterName,
+              displayName: familiar.displayName,
+              monsterSource: familiar.monsterSource ?? "",
+              maxHp: monsterData?.hp ?? 1,
+              armorClass: monsterData?.ac ? Number(monsterData.ac) : 10,
+              initiativeRoll: initRoll,
+            });
+          }
+        },
+      },
+    );
     setAddPlayerId("");
     setAddPlayerInit("");
   }
@@ -697,12 +583,14 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
     addMonster.mutate({
       adventureId,
       name: monsterName,
+      displayName: monsterDisplayName.trim() || undefined,
       monsterSource: monsterSource || "",
       maxHp: Number(monsterMaxHp),
       armorClass: Number(monsterAc),
       initiativeRoll: Number(monsterInit),
     });
     setMonsterName("");
+    setMonsterDisplayName("");
     setMonsterSource("");
     setMonsterMaxHp("");
     setMonsterAc("");
@@ -758,6 +646,17 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
     setInitEditValue("");
   }
 
+  function handleRename(participantId: string) {
+    if (!renameValue.trim()) {
+      setRenameId(null);
+      setRenameValue("");
+      return;
+    }
+    renameParticipant.mutate({ participantId, name: renameValue.trim() });
+    setRenameId(null);
+    setRenameValue("");
+  }
+
   // ---- Loading state ----
   if (isLoading) {
     return (
@@ -775,17 +674,204 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
           <p style={{ color: GOLD_MUTED, fontSize: "14px", fontFamily: SERIF, marginBottom: "20px" }}>
             No active encounter. Start one to begin combat tracking.
           </p>
-          <button
-            onClick={() => createEncounter.mutate({ adventureId })}
-            disabled={createEncounter.isPending}
-            style={{
-              ...goldButtonStyle,
-              opacity: createEncounter.isPending ? 0.6 : 1,
-              cursor: createEncounter.isPending ? "default" : "pointer",
-            }}
-          >
-            {createEncounter.isPending ? "Starting..." : "Start Encounter"}
-          </button>
+          <div style={{ display: "flex", justifyContent: "center", gap: "12px", flexWrap: "wrap" }}>
+            <button
+              onClick={() => createEncounter.mutate({ adventureId })}
+              disabled={createEncounter.isPending}
+              style={{
+                ...goldButtonStyle,
+                opacity: createEncounter.isPending ? 0.6 : 1,
+                cursor: createEncounter.isPending ? "default" : "pointer",
+              }}
+            >
+              {createEncounter.isPending ? "Starting..." : "Start Encounter"}
+            </button>
+            <button
+              onClick={() => setLoadTemplateOpen(true)}
+              style={{
+                ...smallButtonStyle,
+                padding: "10px 24px",
+                fontSize: "14px",
+                fontWeight: "bold",
+                letterSpacing: "0.5px",
+              }}
+            >
+              Load Template
+            </button>
+          </div>
+
+          {/* Load Template Modal */}
+          {loadTemplateOpen && (
+            <div
+              style={{
+                position: "fixed",
+                top: 0,
+                left: 0,
+                right: 0,
+                bottom: 0,
+                background: "rgba(0,0,0,0.75)",
+                zIndex: 1000,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "20px",
+              }}
+              onClick={() => { setLoadTemplateOpen(false); setConfirmDeleteTemplateId(null); }}
+            >
+              <div
+                style={{
+                  background: "rgba(15,8,3,0.97)",
+                  border: "2px solid #c9a84c",
+                  borderRadius: "12px",
+                  padding: "24px",
+                  maxWidth: "560px",
+                  width: "100%",
+                  maxHeight: "80vh",
+                  overflowY: "auto",
+                  textAlign: "left",
+                }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3
+                  style={{
+                    color: GOLD,
+                    fontSize: "16px",
+                    fontWeight: "bold",
+                    letterSpacing: "1px",
+                    textTransform: "uppercase",
+                    fontFamily: SERIF,
+                    margin: "0 0 16px 0",
+                  }}
+                >
+                  Encounter Templates
+                </h3>
+
+                {templatesLoading && (
+                  <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>
+                    Loading templates...
+                  </p>
+                )}
+
+                {!templatesLoading && (!templateList || templateList.length === 0) && (
+                  <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: SERIF }}>
+                    No saved templates yet. Start an encounter and save it as a template.
+                  </p>
+                )}
+
+                {!templatesLoading && templateList && templateList.length > 0 && (
+                  <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+                    {templateList.map((tpl) => (
+                      <div
+                        key={tpl.id}
+                        style={{
+                          background: "rgba(0,0,0,0.4)",
+                          border: "1px solid rgba(201,168,76,0.2)",
+                          borderRadius: "8px",
+                          padding: "12px 16px",
+                        }}
+                      >
+                        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "6px" }}>
+                          <span style={{ color: GOLD_BRIGHT, fontSize: "14px", fontFamily: SERIF, fontWeight: "bold" }}>
+                            {tpl.name}
+                          </span>
+                          <span
+                            style={{
+                              color: GOLD_MUTED,
+                              fontSize: "11px",
+                              fontFamily: SERIF,
+                              background: "rgba(201,168,76,0.1)",
+                              padding: "2px 8px",
+                              borderRadius: "4px",
+                            }}
+                          >
+                            {tpl._count?.participants ?? tpl.participants?.length ?? 0} monsters
+                          </span>
+                        </div>
+
+                        {tpl.description && (
+                          <p style={{ color: GOLD_MUTED, fontSize: "12px", fontFamily: SERIF, margin: "0 0 6px 0" }}>
+                            {tpl.description}
+                          </p>
+                        )}
+
+                        {/* Monster names preview */}
+                        {tpl.participants && tpl.participants.length > 0 && (
+                          <p style={{ color: TEXT_DIM, fontSize: "11px", fontFamily: SERIF, margin: "0 0 10px 0" }}>
+                            {tpl.participants.map((p: { name: string }) => p.name).join(", ")}
+                          </p>
+                        )}
+
+                        <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                          {confirmDeleteTemplateId === tpl.id ? (
+                            <>
+                              <span style={{ color: "#e74c3c", fontSize: "12px", fontFamily: SERIF }}>
+                                Delete this template?
+                              </span>
+                              <button
+                                onClick={() => deleteTemplate.mutate({ templateId: tpl.id })}
+                                disabled={deleteTemplate.isPending}
+                                style={{
+                                  ...dangerButtonStyle,
+                                  padding: "4px 12px",
+                                  fontSize: "11px",
+                                  opacity: deleteTemplate.isPending ? 0.6 : 1,
+                                }}
+                              >
+                                Yes
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteTemplateId(null)}
+                                style={{ ...smallButtonStyle, padding: "4px 12px", fontSize: "11px" }}
+                              >
+                                Cancel
+                              </button>
+                            </>
+                          ) : (
+                            <>
+                              <button
+                                onClick={() => createFromTemplate.mutate({ adventureId, templateId: tpl.id })}
+                                disabled={createFromTemplate.isPending}
+                                style={{
+                                  ...goldButtonStyle,
+                                  padding: "6px 16px",
+                                  fontSize: "12px",
+                                  opacity: createFromTemplate.isPending ? 0.6 : 1,
+                                  cursor: createFromTemplate.isPending ? "default" : "pointer",
+                                }}
+                              >
+                                {createFromTemplate.isPending ? "Creating..." : "Use"}
+                              </button>
+                              <button
+                                onClick={() => setConfirmDeleteTemplateId(tpl.id)}
+                                style={{
+                                  ...smallButtonStyle,
+                                  padding: "6px 12px",
+                                  fontSize: "11px",
+                                  color: "#e74c3c",
+                                  borderColor: "rgba(231,76,60,0.3)",
+                                }}
+                              >
+                                Delete
+                              </button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ marginTop: "16px", textAlign: "right" }}>
+                  <button
+                    onClick={() => { setLoadTemplateOpen(false); setConfirmDeleteTemplateId(null); }}
+                    style={{ ...smallButtonStyle, padding: "8px 20px", fontSize: "13px" }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       );
     }
@@ -862,6 +948,17 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
           {isOwner && (
             <>
               <button
+                onClick={() => setSaveTemplateOpen(true)}
+                style={{
+                  ...smallButtonStyle,
+                  padding: "8px 14px",
+                  fontSize: "12px",
+                }}
+              >
+                Save as Template
+              </button>
+
+              <button
                 onClick={() => togglePrivateDeathSaves.mutate({ adventureId })}
                 disabled={togglePrivateDeathSaves.isPending}
                 style={{
@@ -925,7 +1022,7 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
           const showHpDetails = !isMonster || isOwner;
           const isDown = currentHp <= 0 && p.isActive;
           const isMonsterExpanded = expandedMonsterId === p.id;
-          const monsterData = isMonster ? findMonsterData(p.name, p.monsterSource) : undefined;
+          const monsterData = isMonster ? findMonsterData(p.originalName ?? p.name, p.monsterSource) : undefined;
 
           let style: React.CSSProperties;
           if (!p.isActive) {
@@ -995,21 +1092,62 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                 {/* Main info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                    {/* Monster name: DM can click to expand */}
+                    {/* Monster name: DM can click to expand, double-click to rename */}
                     {isMonster && isOwner ? (
-                      <span
-                        style={{
-                          color: p.isActive ? GOLD_BRIGHT : GOLD_MUTED,
-                          fontSize: "14px",
-                          fontFamily: SERIF,
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setExpandedMonsterId(isMonsterExpanded ? null : p.id)}
-                        title="Click to expand stat block"
-                      >
-                        {isMonsterExpanded ? "\u25BC" : "\u25B6"} {getParticipantName(p)}
-                      </span>
+                      renameId === p.id ? (
+                        <input
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={() => handleRename(p.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleRename(p.id);
+                            if (e.key === "Escape") { setRenameId(null); setRenameValue(""); }
+                          }}
+                          autoFocus
+                          style={{
+                            ...inputStyle,
+                            width: "160px",
+                            padding: "2px 6px",
+                            fontSize: "14px",
+                            fontFamily: SERIF,
+                            fontWeight: "bold",
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            color: p.isActive ? GOLD_BRIGHT : GOLD_MUTED,
+                            fontSize: "14px",
+                            fontFamily: SERIF,
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setExpandedMonsterId(isMonsterExpanded ? null : p.id)}
+                          title="Click to expand stat block"
+                        >
+                          {isMonsterExpanded ? "\u25BC" : "\u25B6"} {getParticipantName(p)}
+                          <span
+                            role="button"
+                            title="Rename monster"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRenameId(p.id);
+                              setRenameValue(p.name ?? "");
+                            }}
+                            style={{
+                              cursor: "pointer",
+                              fontSize: "12px",
+                              opacity: 0.5,
+                              marginLeft: "2px",
+                            }}
+                          >
+                            ✎
+                          </span>
+                        </span>
+                      )
                     ) : (
                       <span
                         style={{
@@ -1665,8 +1803,15 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                   placeholder="Initiative"
                   value={monsterInit}
                   onChange={(e) => setMonsterInit(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
                   style={{ ...inputStyle, width: "90px" }}
+                />
+                <input
+                  type="text"
+                  placeholder="Display Name (optional)"
+                  value={monsterDisplayName}
+                  onChange={(e) => setMonsterDisplayName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
+                  style={{ ...inputStyle, width: "150px" }}
                 />
                 <button
                   onClick={handleAddMonster}
@@ -1867,9 +2012,16 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                       placeholder="Initiative"
                       value={monsterInit}
                       onChange={(e) => setMonsterInit(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
                       autoFocus
                       style={{ ...inputStyle, width: "90px" }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Display Name (optional)"
+                      value={monsterDisplayName}
+                      onChange={(e) => setMonsterDisplayName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
+                      style={{ ...inputStyle, width: "150px" }}
                     />
                     <button
                       onClick={handleAddMonster}
@@ -1888,6 +2040,128 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Template feedback message */}
+      {templateFeedback && (
+        <div
+          style={{
+            marginTop: "12px",
+            padding: "10px 16px",
+            borderRadius: "8px",
+            background: templateFeedback.startsWith("Error")
+              ? "rgba(192,57,43,0.15)"
+              : "rgba(74,140,63,0.15)",
+            border: `1px solid ${templateFeedback.startsWith("Error") ? "rgba(192,57,43,0.4)" : "rgba(74,140,63,0.4)"}`,
+            color: templateFeedback.startsWith("Error") ? "#e74c3c" : "#4a8c3f",
+            fontSize: "13px",
+            fontFamily: SERIF,
+          }}
+        >
+          {templateFeedback}
+        </div>
+      )}
+
+      {/* Save as Template Modal */}
+      {saveTemplateOpen && (
+        <div
+          style={{
+            position: "fixed",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: "rgba(0,0,0,0.75)",
+            zIndex: 1000,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: "20px",
+          }}
+          onClick={() => setSaveTemplateOpen(false)}
+        >
+          <div
+            style={{
+              background: "rgba(15,8,3,0.97)",
+              border: "2px solid #c9a84c",
+              borderRadius: "12px",
+              padding: "24px",
+              maxWidth: "420px",
+              width: "100%",
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3
+              style={{
+                color: GOLD,
+                fontSize: "16px",
+                fontWeight: "bold",
+                letterSpacing: "1px",
+                textTransform: "uppercase",
+                fontFamily: SERIF,
+                margin: "0 0 16px 0",
+              }}
+            >
+              Save Encounter as Template
+            </h3>
+            <p style={{ color: GOLD_MUTED, fontSize: "12px", fontFamily: SERIF, marginBottom: "16px" }}>
+              This will save the current encounter&apos;s monsters as a reusable template.
+            </p>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              <div>
+                <label style={{ ...sectionLabelStyle, display: "block" }}>Template Name *</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Goblin Ambush"
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" && templateName.trim()) {
+                      saveAsTemplate.mutate({ adventureId, name: templateName.trim(), description: templateDescription.trim() || undefined });
+                    }
+                  }}
+                  autoFocus
+                  style={{ ...inputStyle, width: "100%" }}
+                />
+              </div>
+              <div>
+                <label style={{ ...sectionLabelStyle, display: "block" }}>Description (optional)</label>
+                <input
+                  type="text"
+                  placeholder="Brief description..."
+                  value={templateDescription}
+                  onChange={(e) => setTemplateDescription(e.target.value)}
+                  style={{ ...inputStyle, width: "100%" }}
+                />
+              </div>
+              <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end", marginTop: "8px" }}>
+                <button
+                  onClick={() => { setSaveTemplateOpen(false); setTemplateName(""); setTemplateDescription(""); }}
+                  style={{ ...smallButtonStyle, padding: "8px 20px", fontSize: "13px" }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => {
+                    if (templateName.trim()) {
+                      saveAsTemplate.mutate({ adventureId, name: templateName.trim(), description: templateDescription.trim() || undefined });
+                    }
+                  }}
+                  disabled={!templateName.trim() || saveAsTemplate.isPending}
+                  style={{
+                    ...goldButtonStyle,
+                    padding: "8px 20px",
+                    fontSize: "13px",
+                    opacity: !templateName.trim() || saveAsTemplate.isPending ? 0.5 : 1,
+                    cursor: !templateName.trim() || saveAsTemplate.isPending ? "default" : "pointer",
+                  }}
+                >
+                  {saveAsTemplate.isPending ? "Saving..." : "Save Template"}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

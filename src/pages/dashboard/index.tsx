@@ -11,6 +11,7 @@ import { QuickActionsWidget } from "@/components/dashboard/QuickActionsWidget";
 import { MyAdventuresWidget } from "@/components/dashboard/MyAdventuresWidget";
 import { MyCampaignsWidget } from "@/components/dashboard/MyCampaignsWidget";
 import { AdminDmRequestsWidget } from "@/components/dashboard/AdminDmRequestsWidget";
+import { UpcomingSessionsWidget } from "@/components/dashboard/UpcomingSessionsWidget";
 
 type WidgetConfig = {
   key: string;
@@ -25,18 +26,19 @@ function getWidgetsForRole(role: UserRoleType): WidgetConfig[] {
   const quickActions = { key: "quick-actions", component: <QuickActionsWidget />, colSpan: 1 };
   const adventures = { key: "adventures", component: <MyAdventuresWidget />, colSpan: 2 };
   const dmRequests = { key: "dm-requests", component: <AdminDmRequestsWidget />, colSpan: 1 };
+  const upcomingSessions = { key: "upcoming-sessions", component: <UpcomingSessionsWidget />, colSpan: 1 };
 
   switch (role) {
     case "ADMIN":
-      // Row 1: Welcome(3) | Row 2: DmRequests(1)+Campaigns(2) | Row 3: Characters(2)+QuickActions(1) | Row 4: Adventures(2)
-      return [welcome, dmRequests, campaigns, characters, quickActions, adventures];
+      // Row 1: Welcome(3) | Row 2: DmRequests(1)+Campaigns(2) | Row 3: Characters(2)+Sessions(1) | Row 4: Adventures(2)+QuickActions(1)
+      return [welcome, dmRequests, campaigns, characters, upcomingSessions, adventures, quickActions];
     case "DUNGEON_MASTER":
-      // Row 1: Welcome(3) | Row 2: Campaigns(2)+QuickActions(1) | Row 3: Characters(2) | Row 4: Adventures(2)
-      return [welcome, campaigns, quickActions, characters, adventures];
+      // Row 1: Welcome(3) | Row 2: Campaigns(2)+Sessions(1) | Row 3: Characters(2)+QuickActions(1) | Row 4: Adventures(2)
+      return [welcome, campaigns, upcomingSessions, characters, quickActions, adventures];
     case "PLAYER":
     default:
-      // Row 1: Welcome(3) | Row 2: Characters(2)+QuickActions(1) | Row 3: Adventures(2)
-      return [welcome, characters, quickActions, adventures];
+      // Row 1: Welcome(3) | Row 2: Characters(2)+Sessions(1) | Row 3: Adventures(2)+QuickActions(1)
+      return [welcome, characters, upcomingSessions, adventures, quickActions];
   }
 }
 

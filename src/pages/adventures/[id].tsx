@@ -16,12 +16,15 @@ import {
   StoryTab,
   MonstersTab,
   ItemsTab,
+  SpellsTab,
   PlayersTab,
   SessionNotesTab,
+  SessionsTab,
   MyCharacterTab,
   InventoryTab,
   PlayerDmNotesTab,
   EncounterTab,
+  NpcsTab,
 } from "@/components/adventure";
 
 // ---------------------------------------------------------------------------
@@ -316,6 +319,15 @@ function AdventureDetailContent() {
           }}
         />
       )}
+      {resolvedTab === "spells" && isOwner && (
+        <SpellsTab
+          adventureId={adventure.id}
+          spells={(adventure as unknown as { spells: Array<{ id: string; name: string; source: string }> }).spells ?? []}
+        />
+      )}
+      {resolvedTab === "npcs" && (
+        <NpcsTab adventureId={adventure.id} isOwner={isOwner} />
+      )}
       {resolvedTab === "players" && isOwner && (
         <PlayersTab adventureId={adventure.id} adventureItems={adventure.items} unreadReactionByCharacter={unreadReactionMap.byCharacter} />
       )}
@@ -330,6 +342,9 @@ function AdventureDetailContent() {
           }
           adventureMonsters={adventure.monsters}
         />
+      )}
+      {resolvedTab === "sessions" && (
+        <SessionsTab adventureId={adventure.id} isOwner={isOwner} />
       )}
       {resolvedTab === "sessionnotes" && (
         <SessionNotesTab adventureId={adventure.id} />

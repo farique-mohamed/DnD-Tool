@@ -1,22 +1,10 @@
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { createTRPCRouter, protectedProcedure } from "../trpc";
+import { createTRPCRouter, mergeRouters, protectedProcedure } from "../trpc";
+import { characterImportExportRouter } from "./characterImportExport";
+import { ALIGNMENTS, abilityScore } from "./characterConstants";
 
-const ALIGNMENTS = [
-  "Lawful Good",
-  "Neutral Good",
-  "Chaotic Good",
-  "Lawful Neutral",
-  "True Neutral",
-  "Chaotic Neutral",
-  "Lawful Evil",
-  "Neutral Evil",
-  "Chaotic Evil",
-] as const;
-
-const abilityScore = z.number().int().min(1).max(20);
-
-export const characterRouter = createTRPCRouter({
+const baseCharacterRouter = createTRPCRouter({
   create: protectedProcedure
     .input(
       z.object({
@@ -471,6 +459,29 @@ export const characterRouter = createTRPCRouter({
       });
     }),
 
+  updateActiveDiseases: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        activeDiseases: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { activeDiseases: JSON.stringify(input.activeDiseases) },
+      });
+    }),
+
   updateFeats: protectedProcedure
     .input(
       z.object({
@@ -517,3 +528,8 @@ export const characterRouter = createTRPCRouter({
       });
     }),
 });
+
+export const characterRouter = mergeRouters(
+  baseCharacterRouter,
+  characterImportExportRouter,
+);
