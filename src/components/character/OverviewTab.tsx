@@ -1,6 +1,7 @@
 import { type CharacterData, proficiencyBonus, mod, modStr, SAVING_THROW_PROFICIENCIES, SKILLS, ABILITY_NAMES } from "./shared";
-import { getRaceByName, getRaceByNameAndSource } from "@/lib/raceData";
+import { useRaces } from "@/hooks/useStaticData";
 import type { RaceInfo } from "@/lib/raceData";
+import { LoadingSkeleton } from "@/components/ui";
 import { FeatCard } from "./FeatCard";
 
 function RaceFeaturesSection({
@@ -10,6 +11,11 @@ function RaceFeaturesSection({
   character: CharacterData;
   sectionTitle: React.CSSProperties;
 }) {
+  const { data: raceHookData, isLoading: racesHookLoading } = useRaces();
+
+  if (racesHookLoading || !raceHookData) return <LoadingSkeleton />;
+  const { getRaceByNameAndSource, getRaceByName } = raceHookData;
+
   const raceInfo: RaceInfo | undefined =
     getRaceByNameAndSource(character.race, character.rulesSource ?? "PHB") ??
     getRaceByName(character.race);

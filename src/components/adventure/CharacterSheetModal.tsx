@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
-import { getConditionsBySource, DISEASES } from "@/lib/conditionData";
+import { useConditions } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import {
   GOLD,
   GOLD_MUTED,
@@ -41,7 +42,11 @@ export function CharacterSheetModal({
   onClose: () => void;
 }) {
   const isMobile = useIsMobile();
+  const { data: condData, isLoading: condLoading } = useConditions();
   const [charSheetTab, setCharSheetTab] = useState<CharSheetTab>("sheet");
+
+  if (condLoading || !condData) return <LoadingSkeleton />;
+  const { getConditionsBySource, DISEASES } = condData;
 
   const name = character.name as string | undefined;
   const race = character.race as string | undefined;
@@ -676,6 +681,11 @@ function DmConditionsSection({
   sectionTitle: React.CSSProperties;
 }) {
   const utils = api.useUtils();
+  const { data: condHookData, isLoading: condHookLoading } = useConditions();
+
+  if (condHookLoading || !condHookData) return <LoadingSkeleton />;
+  const { getConditionsBySource } = condHookData;
+
   const allConditions = getConditionsBySource(
     classSource === "XPHB" ? "XPHB" : "PHB",
   );
@@ -854,11 +864,15 @@ function DmDiseasesSection({
 }) {
   const utils = api.useUtils();
 
+  const { data: condHookData2, isLoading: condHookLoading2 } = useConditions();
   const updateDiseases = api.adventure.updatePlayerDiseases.useMutation({
     onSuccess: async () => {
       await utils.adventure.getAcceptedPlayers.invalidate({ adventureId });
     },
   });
+
+  if (condHookLoading2 || !condHookData2) return <LoadingSkeleton />;
+  const { DISEASES } = condHookData2;
 
   const addDisease = (name: string) => {
     if (!name || activeDiseases.includes(name)) return;

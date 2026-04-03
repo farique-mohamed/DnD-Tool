@@ -3,12 +3,9 @@ import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import {
-  DMG_2014_DATA,
-  DMG_2024_DATA,
-  type BookSection,
-  type BookEntry,
-} from "@/lib/bookData";
+import { useBooks } from "@/hooks/useStaticData";
+import type { BookSection, BookEntry } from "@/lib/bookData";
+import { LoadingSkeleton } from "@/components/ui";
 import { parseTaggedText } from "@/lib/dndTagParser";
 import { getInternalImageUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
@@ -469,7 +466,11 @@ function BookViewer({ data, isMobile }: { data: BookSection[]; isMobile?: boolea
 
 function DmgContent() {
   const isMobile = useIsMobile();
+  const { data: bookHookData, isLoading: booksHookLoading } = useBooks();
   const [edition, setEdition] = useState<Edition>("2014");
+
+  if (booksHookLoading || !bookHookData) return <LoadingSkeleton />;
+  const { DMG_2014_DATA, DMG_2024_DATA } = bookHookData;
 
   const currentData: BookSection[] = edition === "2014" ? DMG_2014_DATA : DMG_2024_DATA;
 

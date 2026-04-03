@@ -1,5 +1,7 @@
 import { useState } from "react";
-import { SPELLS } from "@/lib/spellsData";
+import { useSpells } from "@/hooks/useStaticData";
+import type { Spell } from "@/lib/spellsData";
+import { LoadingSkeleton } from "@/components/ui";
 import { type CharacterData } from "./shared";
 import { SpellDetailPanel } from "./SpellDetailPanel";
 import { SpellBrowseMode } from "./SpellBrowseMode";
@@ -18,7 +20,7 @@ export interface SpellSelectionSectionProps {
   setSpellSearch: (v: string) => void;
   spellLevelFilter: number | null;
   setSpellLevelFilter: (v: number | null) => void;
-  filteredSpells: typeof SPELLS;
+  filteredSpells: Spell[];
   toggleSpell: (name: string) => void;
   cantripsMax: number;
   spellsMax: number | null;
@@ -30,7 +32,7 @@ export interface SpellSelectionSectionProps {
 // Cantrip / Leveled spell grouping helper
 // ---------------------------------------------------------------------------
 
-function splitByLevel(spellNames: string[]) {
+function splitByLevel(spellNames: string[], SPELLS: Spell[]) {
   const cantrips: string[] = [];
   const leveled: string[] = [];
   for (const name of spellNames) {
@@ -63,9 +65,13 @@ export function SpellSelectionSection({
   spellManagement,
   autoCantrips = [],
 }: SpellSelectionSectionProps) {
+  const { data: spellHookData, isLoading: spellsHookLoading } = useSpells();
   const [selectedPreparedSpell, setSelectedPreparedSpell] = useState<
     string | null
   >(null);
+
+  if (spellsHookLoading || !spellHookData) return <LoadingSkeleton />;
+  const { SPELLS } = spellHookData;
 
   // Source badge style (matching /spells compendium page)
   const sourceBadgeStyle: React.CSSProperties = {
@@ -82,7 +88,7 @@ export function SpellSelectionSection({
 
   // Split current prepared spells into cantrips vs leveled
   const { cantrips: preparedCantrips, leveled: preparedLeveled } =
-    splitByLevel(localPrepared);
+    splitByLevel(localPrepared, SPELLS);
 
   // Split filtered (browsable) spells into cantrips vs leveled
   const filteredCantrips = filteredSpells.filter((s) => s.level === 0);

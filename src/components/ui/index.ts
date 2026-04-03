@@ -7,6 +7,7 @@ export { Badge } from "./Badge";
 export { Modal } from "./Modal";
 export { Alert } from "./Alert";
 export { EntityImage } from "./EntityImage";
+export { LoadingSkeleton } from "./LoadingSkeleton";
 
 export {
   // Gold palette

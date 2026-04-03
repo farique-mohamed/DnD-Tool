@@ -3,7 +3,9 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { LANGUAGES, LANGUAGE_SOURCES, LANGUAGE_TYPES, type LanguageInfo } from "@/lib/languageData";
+import { useLanguages } from "@/hooks/useStaticData";
+import type { LanguageInfo } from "@/lib/languageData";
+import { LoadingSkeleton } from "@/components/ui";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -369,10 +371,14 @@ function LanguageDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 
 function LanguagesContent() {
   const isMobile = useIsMobile();
+  const { data: langData, isLoading: langLoading } = useLanguages();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedType, setSelectedType] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<LanguageInfo | null>(null);
+
+  if (langLoading || !langData) return <LoadingSkeleton />;
+  const { LANGUAGES, LANGUAGE_SOURCES, LANGUAGE_TYPES } = langData;
 
   const filteredLanguages = useMemo(() => {
     return LANGUAGES.filter((lang) => {

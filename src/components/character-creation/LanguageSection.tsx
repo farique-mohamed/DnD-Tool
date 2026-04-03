@@ -5,13 +5,9 @@ import {
   inputStyle,
   chipBaseStyle,
 } from "./shared";
-import {
-  STANDARD_LANGUAGES,
-  EXOTIC_LANGUAGES,
-  RARE_LANGUAGES,
-  ALL_LANGUAGES,
-} from "@/lib/languageData";
+import { useLanguages } from "@/hooks/useStaticData";
 import type { RaceInfo } from "@/lib/raceData";
+import { LoadingSkeleton } from "@/components/ui";
 
 // Patterns that indicate a language choice rather than a fixed language
 const CHOICE_PATTERNS = [
@@ -49,6 +45,11 @@ export function LanguageSection({
   selectedLanguages,
   onLanguagesChange,
 }: LanguageSectionProps) {
+  const { data: langHookData, isLoading: langHookLoading } = useLanguages();
+
+  if (langHookLoading || !langHookData) return <LoadingSkeleton />;
+  const { STANDARD_LANGUAGES, EXOTIC_LANGUAGES, RARE_LANGUAGES, ALL_LANGUAGES } = langHookData;
+
   const raceLanguages = raceInfo?.languages ?? [];
   const fixedLanguages = useMemo(() => getFixedLanguages(raceLanguages), [raceLanguages]);
   const choiceCount = useMemo(() => getChoiceCount(raceLanguages), [raceLanguages]);

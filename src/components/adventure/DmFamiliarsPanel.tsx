@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
+import { useMonsters } from "@/hooks/useStaticData";
+import type { MonsterInfo } from "@/lib/bestiaryData";
+import { LoadingSkeleton } from "@/components/ui";
 import {
   GOLD,
   GOLD_MUTED,
@@ -57,6 +59,11 @@ export function DmFamiliarsPanel({
       void utils.adventure.getFamiliars.invalidate({ adventurePlayerId });
     },
   });
+
+  const { data: monsterHookData, isLoading: monstersHookLoading } = useMonsters();
+
+  if (monstersHookLoading || !monsterHookData) return <LoadingSkeleton />;
+  const { MONSTER_LIST } = monsterHookData;
 
   // Already-assigned familiar names for dimming in modal
   const assignedNames = useMemo(

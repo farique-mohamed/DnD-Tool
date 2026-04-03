@@ -4,13 +4,15 @@ import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
-import { ADVENTURE_LIST } from "@/lib/adventureData";
+import { useAdventureList } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import { getCoverImageUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
 
 function AdventureBooksContent() {
   const { user } = useAuth();
   const router = useRouter();
+  const { data: advData, isLoading: advLoading } = useAdventureList();
   const [hoveredSource, setHoveredSource] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,6 +20,9 @@ function AdventureBooksContent() {
       void router.replace("/unauthorized");
     }
   }, [user, router]);
+
+  if (advLoading || !advData) return <LoadingSkeleton />;
+  const { ADVENTURE_LIST } = advData;
 
   return (
     <>

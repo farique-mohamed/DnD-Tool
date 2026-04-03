@@ -4,11 +4,9 @@ import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import {
-  BOOK_LIST,
-  BOOK_DATA_MAP,
-  type BookEntry,
-} from "@/lib/bookData";
+import { useBooks } from "@/hooks/useStaticData";
+import type { BookEntry } from "@/lib/bookData";
+import { LoadingSkeleton } from "@/components/ui";
 import { parseTaggedText } from "@/lib/dndTagParser";
 import { getInternalImageUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
@@ -351,13 +349,17 @@ function renderEntries(
 function BookDetailContent() {
   const isMobile = useIsMobile();
   const router = useRouter();
+  const { data: bookHookData, isLoading: booksHookLoading } = useBooks();
   const source =
     typeof router.query.source === "string" ? router.query.source : "";
 
+  const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
+
+  if (booksHookLoading || !bookHookData) return <LoadingSkeleton />;
+  const { BOOK_LIST, BOOK_DATA_MAP } = bookHookData;
+
   const bookInfo = BOOK_LIST.find((b) => b.source === source);
   const bookData = source in BOOK_DATA_MAP ? BOOK_DATA_MAP[source] ?? null : null;
-
-  const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
 
   const selectedSection = bookData?.[selectedSectionIndex] ?? null;
 

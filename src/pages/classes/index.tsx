@@ -3,13 +3,14 @@ import { useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import {
-  getClassesBySource,
-  type ClassInfo,
-  type SubclassInfo,
-  type FeatureEntry,
-  type FeatureDescription,
+import { useClasses } from "@/hooks/useStaticData";
+import type {
+  ClassInfo,
+  SubclassInfo,
+  FeatureEntry,
+  FeatureDescription,
 } from "@/lib/classData";
+import { LoadingSkeleton } from "@/components/ui";
 
 type ActiveTab = "overview" | "progression";
 
@@ -839,9 +840,15 @@ function ClassDetailPanel({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean
 
 function ClassCompendiumContent() {
   const isMobile = useIsMobile();
+  const { data: classData, isLoading: classesLoading } = useClasses();
   const [selectedSource, setSelectedSource] = useState<"PHB" | "XPHB">("PHB");
+  const [selected, setSelected] = useState<ClassInfo | null>(null);
+
+  if (classesLoading || !classData) return <LoadingSkeleton />;
+  const { getClassesBySource } = classData;
+
   const filteredClasses = getClassesBySource(selectedSource);
-  const [selected, setSelected] = useState<ClassInfo>(filteredClasses[0]!);
+  const resolvedSelected = selected && filteredClasses.some(c => c.name === selected.name) ? selected : filteredClasses[0]!;
 
   const handleSelect = (cls: ClassInfo) => {
     setSelected(cls);
@@ -923,8 +930,8 @@ function ClassCompendiumContent() {
         />
 
         <div style={{ display: "flex", gap: isMobile ? "16px" : "24px", alignItems: "flex-start", flexDirection: isMobile ? "column" : "row" }}>
-          <ClassListPanel classes={filteredClasses} selected={selected} onSelect={handleSelect} isMobile={isMobile} />
-          <ClassDetailPanel key={`${selected.name}-${selected.source}`} cls={selected} isMobile={isMobile} />
+          <ClassListPanel classes={filteredClasses} selected={resolvedSelected} onSelect={handleSelect} isMobile={isMobile} />
+          <ClassDetailPanel key={`${resolvedSelected.name}-${resolvedSelected.source}`} cls={resolvedSelected} isMobile={isMobile} />
         </div>
       </div>
     </>

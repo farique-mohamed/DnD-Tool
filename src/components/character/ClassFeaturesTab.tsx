@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
-import { getClassByName, getClassByNameAndSource } from "@/lib/classData";
+import { useClasses } from "@/hooks/useStaticData";
 import type { FeatureDescription } from "@/lib/classData";
+import { LoadingSkeleton } from "@/components/ui";
 import { type CharacterData, FEATURE_USAGE_CONFIG } from "./shared";
 import { RenderFeatureEntry } from "./RenderFeatureEntry";
 import { SpellProgressionTable } from "./SpellProgressionTable";
@@ -11,7 +12,11 @@ import { WarlockInvocationsSection } from "./WarlockInvocationsSection";
 
 export function ClassFeaturesTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
+  const { data: classData, isLoading: classesLoading } = useClasses();
   const [expandedKeys, setExpandedKeys] = useState<Set<string>>(new Set());
+
+  if (classesLoading || !classData) return <LoadingSkeleton />;
+  const { getClassByName, getClassByNameAndSource } = classData;
 
   const [localFeatureUses, setLocalFeatureUses] = useState<
     Record<string, number>

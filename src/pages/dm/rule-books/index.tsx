@@ -5,7 +5,8 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { BOOK_LIST } from "@/lib/bookData";
+import { useBooks } from "@/hooks/useStaticData";
+import { LoadingSkeleton } from "@/components/ui";
 import { getCoverImageUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
 
@@ -13,6 +14,7 @@ function RuleBooksContent() {
   const { user } = useAuth();
   const router = useRouter();
   const isMobile = useIsMobile();
+  const { data: bookData, isLoading: booksLoading } = useBooks();
   const [hoveredSource, setHoveredSource] = useState<string | null>(null);
 
   useEffect(() => {
@@ -20,6 +22,9 @@ function RuleBooksContent() {
       void router.replace("/unauthorized");
     }
   }, [user, router]);
+
+  if (booksLoading || !bookData) return <LoadingSkeleton />;
+  const { BOOK_LIST } = bookData;
 
   const handleCardClick = (source: string) => {
     void router.push(`/dm/rule-books/${source}`);

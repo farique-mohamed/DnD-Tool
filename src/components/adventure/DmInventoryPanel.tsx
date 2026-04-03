@@ -1,6 +1,8 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { ITEMS, type Item } from "@/lib/itemsData";
+import { useItems } from "@/hooks/useStaticData";
+import type { Item } from "@/lib/itemsData";
+import { LoadingSkeleton } from "@/components/ui";
 import {
   GOLD,
   GOLD_MUTED,
@@ -65,6 +67,11 @@ export function DmInventoryPanel({
       setEditingQtyId(null);
     },
   });
+
+  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
+
+  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
+  const { ITEMS } = itemHookData;
 
   type InventoryItem = {
     id: string;
