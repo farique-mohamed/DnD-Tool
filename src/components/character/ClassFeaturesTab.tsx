@@ -4,6 +4,7 @@ import { getClassByName, getClassByNameAndSource } from "@/lib/classData";
 import type { FeatureDescription } from "@/lib/classData";
 import { type CharacterData, FEATURE_USAGE_CONFIG } from "./shared";
 import { RenderFeatureEntry } from "./RenderFeatureEntry";
+import { SpellProgressionTable } from "./SpellProgressionTable";
 
 export function ClassFeaturesTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
@@ -158,6 +159,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
 
   return (
     <div>
+      <SpellProgressionTable character={character} />
       {levels.map((level) => (
         <div key={level} style={{ marginBottom: "24px" }}>
           <p style={sectionTitle}>Level {level}</p>
