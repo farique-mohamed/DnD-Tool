@@ -3,9 +3,12 @@ import Head from "next/head";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useBooks } from "@/hooks/useStaticData";
-import type { BookSection, BookEntry } from "@/lib/bookData";
-import { LoadingSkeleton } from "@/components/ui";
+import {
+  PHB_2014_DATA,
+  PHB_2024_DATA,
+  type BookSection,
+  type BookEntry,
+} from "@/lib/bookData";
 import { parseTaggedText } from "@/lib/dndTagParser";
 
 type Edition = "2014" | "2024";
@@ -429,11 +432,7 @@ function BookViewer({ data, isMobile }: { data: BookSection[]; isMobile?: boolea
 
 function PhbContent() {
   const isMobile = useIsMobile();
-  const { data: bookHookData, isLoading: booksHookLoading } = useBooks();
   const [edition, setEdition] = useState<Edition>("2014");
-
-  if (booksHookLoading || !bookHookData) return <LoadingSkeleton />;
-  const { PHB_2014_DATA, PHB_2024_DATA } = bookHookData;
 
   const currentData: BookSection[] = edition === "2014" ? PHB_2014_DATA : PHB_2024_DATA;
 

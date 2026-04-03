@@ -1,18 +1,13 @@
 import { useRouter } from "next/router";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/utils/api";
-import { useAdventureList } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { ADVENTURE_LIST } from "@/lib/adventureData";
 import { DashboardCard } from "./DashboardCard";
 
 export function MyAdventuresWidget() {
   const router = useRouter();
   const { user } = useAuth();
   const { data: adventures = [], isLoading } = api.adventure.list.useQuery();
-  const { data: advData, isLoading: advListLoading } = useAdventureList();
-
-  if (advListLoading || !advData) return <LoadingSkeleton />;
-  const { ADVENTURE_LIST } = advData;
 
   const joined = adventures.filter(
     (a) =>

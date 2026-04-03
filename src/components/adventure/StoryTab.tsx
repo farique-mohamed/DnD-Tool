@@ -1,7 +1,5 @@
-import type { AdventureSection } from "@/lib/adventureData";
+import { ADVENTURE_DATA_MAP, type AdventureSection } from "@/lib/adventureData";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useAdventureContent } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
 import { renderEntries } from "./shared";
 
 export function StoryTab({
@@ -14,13 +12,8 @@ export function StoryTab({
   onSectionIndexChange: (i: number) => void;
 }) {
   const isMobile = useIsMobile();
-  const { data: advContentData, isLoading: advContentLoading } = useAdventureContent();
   const selectedSectionIndex = sectionIndex;
   const setSelectedSectionIndex = onSectionIndexChange;
-
-  if (advContentLoading || !advContentData) return <LoadingSkeleton />;
-  const { ADVENTURE_DATA_MAP } = advContentData;
-
   const adventureData =
     source in ADVENTURE_DATA_MAP ? ADVENTURE_DATA_MAP[source] ?? null : null;
 

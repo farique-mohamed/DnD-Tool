@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { useSpells } from "@/hooks/useStaticData";
-import type { Spell } from "@/lib/spellsData";
-import { LoadingSkeleton } from "@/components/ui";
+import { SPELLS, type Spell } from "@/lib/spellsData";
 import {
   GOLD,
   GOLD_MUTED,
@@ -65,11 +63,6 @@ export function DmSpellsPanel({
       void utils.adventure.getPlayerSpells.invalidate({ adventurePlayerId });
     },
   });
-
-  const { data: spellHookData, isLoading: spellsHookLoading } = useSpells();
-
-  if (spellsHookLoading || !spellHookData) return <LoadingSkeleton />;
-  const { SPELLS } = spellHookData;
 
   // Already-assigned spell names for dimming in modal
   const assignedNames = useMemo(

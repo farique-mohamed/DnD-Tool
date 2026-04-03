@@ -3,10 +3,8 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useSpells } from "@/hooks/useStaticData";
-import type { Spell } from "@/lib/spellsData";
+import { SPELLS, SPELL_SOURCES, type Spell } from "@/lib/spellsData";
 import { SPELL_CLASSES, type SpellClass } from "@/lib/spellClassMap";
-import { LoadingSkeleton } from "@/components/ui";
 
 
 // ---------------------------------------------------------------------------
@@ -563,19 +561,15 @@ function SpellDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 
 function SpellsContent() {
   const isMobile = useIsMobile();
-  const { data: spellData, isLoading: spellsLoading } = useSpells();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [selectedLevel, setSelectedLevel] = useState<number | null>(null);
   const [selectedClass, setSelectedClass] = useState<SpellClass | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedSpell, setSelectedSpell] = useState<Spell | null>(null);
 
-  if (spellsLoading || !spellData) return <LoadingSkeleton />;
-  const { SPELLS, SPELL_SOURCES } = spellData;
-
   const availableLevels = useMemo(() => {
     return Array.from(new Set(SPELLS.map((s) => s.level))).sort((a, b) => a - b);
-  }, [SPELLS]);
+  }, []);
 
   const filteredSpells = useMemo(() => {
     return SPELLS.filter((spell) => {

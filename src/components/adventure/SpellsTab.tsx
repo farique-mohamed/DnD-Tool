@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { api } from "@/utils/api";
-import { useSpells } from "@/hooks/useStaticData";
-import type { Spell } from "@/lib/spellsData";
-import { LoadingSkeleton } from "@/components/ui";
+import { SPELLS, type Spell } from "@/lib/spellsData";
 import {
   GOLD,
   GOLD_MUTED,
@@ -34,6 +32,15 @@ function spellLevelLabel(level: number): string {
   return LEVEL_LABELS[level] ?? `${level}th`;
 }
 
+// Collect unique class names from the full spell list (sorted)
+const ALL_SPELL_CLASSES = (() => {
+  const set = new Set<string>();
+  for (const s of SPELLS) {
+    for (const c of s.classes) set.add(c);
+  }
+  return Array.from(set).sort();
+})();
+
 // ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
@@ -46,7 +53,6 @@ export function SpellsTab({
   spells: { id: string; name: string; source: string }[];
 }) {
   const utils = api.useUtils();
-  const { data: spellData, isLoading: spellsLoading } = useSpells();
   const [showModal, setShowModal] = useState(false);
   const [searchText, setSearchText] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
@@ -66,18 +72,6 @@ export function SpellsTab({
       void utils.adventure.getById.invalidate({ id: adventureId });
     },
   });
-
-  if (spellsLoading || !spellData) return <LoadingSkeleton />;
-  const { SPELLS } = spellData;
-
-  // Collect unique class names from the full spell list (sorted)
-  const ALL_SPELL_CLASSES = useMemo(() => {
-    const set = new Set<string>();
-    for (const s of SPELLS) {
-      for (const c of s.classes) set.add(c);
-    }
-    return Array.from(set).sort();
-  }, [SPELLS]);
 
   // Search & filter spells for the modal
   const filteredSpells = useMemo(() => {

@@ -1,5 +1,5 @@
-import { useClasses, useBackgrounds } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { getClassByNameAndSource, getClassesBySource } from "@/lib/classData";
+import { BACKGROUND_NAMES } from "@/lib/backgroundData";
 import {
   CHARACTER_RACES,
   ALIGNMENTS,
@@ -25,16 +25,9 @@ export function IdentitySection({
   onRulesSourceChange,
 }: IdentitySectionProps) {
   const isMobile = useIsMobile();
-  const { data: classHookData, isLoading: classHookLoading } = useClasses();
-  const { data: bgHookData, isLoading: bgHookLoading } = useBackgrounds();
-
-  if (classHookLoading || bgHookLoading || !classHookData || !bgHookData) return <LoadingSkeleton />;
-  const { getClassesBySource, getClassByNameAndSource } = classHookData;
-  const { BACKGROUND_NAMES } = bgHookData;
-
   const filteredClasses = useMemo(
     () => getClassesBySource(form.rulesSource),
-    [form.rulesSource, getClassesBySource],
+    [form.rulesSource],
   );
 
   return (

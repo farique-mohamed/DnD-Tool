@@ -3,9 +3,7 @@ import { useState } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useLife } from "@/hooks/useStaticData";
-import type { LifeClass } from "@/lib/lifeData";
-import { LoadingSkeleton } from "@/components/ui";
+import { LIFE_CLASSES, type LifeClass } from "@/lib/lifeData";
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -413,11 +411,7 @@ function LifeDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 
 function LifeContent() {
   const isMobile = useIsMobile();
-  const { data: lifeData, isLoading: lifeLoading } = useLife();
   const [selectedClass, setSelectedClass] = useState<LifeClass | null>(null);
-
-  if (lifeLoading || !lifeData) return <LoadingSkeleton />;
-  const { LIFE_CLASSES } = lifeData;
 
   return (
     <>

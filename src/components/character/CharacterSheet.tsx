@@ -1,34 +1,25 @@
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import dynamic from "next/dynamic";
 import { isSpellcaster } from "@/lib/spellSlotData";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { type CharacterData, type TabId, proficiencyBonus, mod } from "./shared";
 import { HpManager } from "./HpManager";
+import { LevelUpPanel } from "./LevelUpPanel";
+import { ClassFeaturesTab } from "./ClassFeaturesTab";
+import { ActionsTab } from "./ActionsTab";
+import { SpellsTab } from "./SpellsTab";
+import { OverviewTab } from "./OverviewTab";
+import { CharacterInventoryTab } from "./InventoryTab";
+import { FamiliarsTab } from "./FamiliarsTab";
+import { NotesTab } from "./NotesTab";
 import { EquipmentSummary } from "./EquipmentSummary";
 import { type EquippedItems, calculateEquippedAC } from "@/lib/equipmentData";
-import { useItems } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
-
-// Dynamic imports for tab components and panels — only loads when rendered
-const LevelUpPanel = dynamic(() => import("./LevelUpPanel").then(m => ({ default: m.LevelUpPanel })));
-const ClassFeaturesTab = dynamic(() => import("./ClassFeaturesTab").then(m => ({ default: m.ClassFeaturesTab })));
-const ActionsTab = dynamic(() => import("./ActionsTab").then(m => ({ default: m.ActionsTab })));
-const SpellsTab = dynamic(() => import("./SpellsTab").then(m => ({ default: m.SpellsTab })));
-const OverviewTab = dynamic(() => import("./OverviewTab").then(m => ({ default: m.OverviewTab })));
-const CharacterInventoryTab = dynamic(() => import("./InventoryTab").then(m => ({ default: m.CharacterInventoryTab })));
-const FamiliarsTab = dynamic(() => import("./FamiliarsTab").then(m => ({ default: m.FamiliarsTab })));
-const NotesTab = dynamic(() => import("./NotesTab").then(m => ({ default: m.NotesTab })));
+import { ITEMS } from "@/lib/itemsData";
 
 export function CharacterSheet({ character }: { character: CharacterData }) {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
-
-  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
-  const { ITEMS } = itemHookData;
-
   const prof = proficiencyBonus(character.level);
   const initiative = mod(character.dexterity);
   const passivePerception = 10 + mod(character.wisdom);

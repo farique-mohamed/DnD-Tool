@@ -3,9 +3,7 @@ import { useState, useMemo } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
-import { useVehicles } from "@/hooks/useStaticData";
-import { stripTags, type VehicleInfo } from "@/lib/vehicleData";
-import { LoadingSkeleton } from "@/components/ui";
+import { VEHICLES, VEHICLE_SOURCES, stripTags, type VehicleInfo } from "@/lib/vehicleData";
 import { getVehicleTokenUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
 
@@ -723,13 +721,9 @@ function VehicleDetailEmpty({ isMobile }: { isMobile?: boolean }) {
 
 function VehiclesContent() {
   const isMobile = useIsMobile();
-  const { data: vehicleData, isLoading: vehiclesLoading } = useVehicles();
   const [selectedSource, setSelectedSource] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedVehicle, setSelectedVehicle] = useState<VehicleInfo | null>(null);
-
-  if (vehiclesLoading || !vehicleData) return <LoadingSkeleton />;
-  const { VEHICLES, VEHICLE_SOURCES } = vehicleData;
 
   const filteredVehicles = useMemo(() => {
     return VEHICLES.filter((vehicle) => {

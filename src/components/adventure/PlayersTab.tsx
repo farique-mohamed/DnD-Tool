@@ -1,13 +1,11 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, SERIF, parseJsonArray } from "./shared";
-import { useRaces } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { getRaceByName } from "@/lib/raceData";
 import { CharacterSheetModal } from "./CharacterSheetModal";
 
 export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharacter }: { adventureId: string; adventureItems: { id: string; name: string; source: string }[]; unreadReactionByCharacter?: Record<string, number> }) {
   const utils = api.useUtils();
-  const { data: raceData, isLoading: racesLoading } = useRaces();
   const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null);
   const [sheetModalPlayer, setSheetModalPlayer] = useState<{
     character: Record<string, unknown>;
@@ -29,9 +27,6 @@ export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharac
       void utils.adventure.getById.invalidate({ id: adventureId });
     },
   });
-
-  if (racesLoading || !raceData) return <LoadingSkeleton />;
-  const { getRaceByName } = raceData;
 
   const renderCharacterSummary = (character: Record<string, unknown> | null | undefined) => {
     if (!character) return null;

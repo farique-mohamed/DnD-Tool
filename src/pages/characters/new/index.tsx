@@ -6,9 +6,11 @@ import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { ThisIsYourLifeGenerator } from "@/components/ThisIsYourLifeGenerator";
 import { api } from "@/utils/api";
-import { useClasses, useBackgrounds, useRaces, useExpertise } from "@/hooks/useStaticData";
+import { getClassByNameAndSource } from "@/lib/classData";
+import { BACKGROUNDS } from "@/lib/backgroundData";
 import type { Background } from "@/lib/backgroundData";
-import { LoadingSkeleton } from "@/components/ui";
+import { classHasExpertise, getExpertiseCountAtLevel } from "@/lib/expertiseData";
+import { getRaceByNameAndSource, getRaceByName } from "@/lib/raceData";
 import {
   IdentitySection,
   LanguageSection,
@@ -25,10 +27,6 @@ import {
 function CreateCharacterContent() {
   const router = useRouter();
   const isMobile = useIsMobile();
-  const { data: classData, isLoading: classesLoading } = useClasses();
-  const { data: bgData, isLoading: bgLoading } = useBackgrounds();
-  const { data: raceData, isLoading: racesLoading } = useRaces();
-  const { data: expertiseData, isLoading: expertiseLoading } = useExpertise();
   const [form, setForm] = useState<FormState>({
     name: "",
     rulesSource: "PHB",
@@ -69,22 +67,15 @@ function CreateCharacterContent() {
     },
   });
 
-  const anyLoading = classesLoading || bgLoading || racesLoading || expertiseLoading;
-  if (anyLoading || !classData || !bgData || !raceData || !expertiseData) return <LoadingSkeleton />;
-  const { getClassByNameAndSource } = classData;
-  const { BACKGROUNDS } = bgData;
-  const { getRaceByNameAndSource, getRaceByName } = raceData;
-  const { classHasExpertise, getExpertiseCountAtLevel } = expertiseData;
-
   // Resolve current background and class info
   const backgroundInfo: Background | undefined = useMemo(
     () => BACKGROUNDS.find((b) => b.name === form.background),
-    [form.background, BACKGROUNDS],
+    [form.background],
   );
 
   const classInfo = useMemo(
     () => (form.characterClass ? getClassByNameAndSource(form.characterClass, form.rulesSource) : undefined),
-    [form.characterClass, form.rulesSource, getClassByNameAndSource],
+    [form.characterClass, form.rulesSource],
   );
 
   // Look up the selected race's structured data
@@ -97,7 +88,7 @@ function CreateCharacterContent() {
       // Fall back to any source (for races from VGM, MPMM, VRGR, etc.)
       return getRaceByName(form.race);
     },
-    [form.race, form.rulesSource, getRaceByNameAndSource, getRaceByName],
+    [form.race, form.rulesSource],
   );
 
   // Compute racial ability score bonuses per ability

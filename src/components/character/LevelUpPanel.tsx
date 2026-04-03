@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { api } from "@/utils/api";
-import { useClasses, useExpertise, useFeats } from "@/hooks/useStaticData";
+import { getClassByName, getClassByNameAndSource } from "@/lib/classData";
+import { getNewExpertiseAtLevel } from "@/lib/expertiseData";
+import { getFeatsBySource } from "@/lib/featData";
 import type { Feat } from "@/lib/featData";
-import { LoadingSkeleton } from "@/components/ui";
 import {
   type CharacterData,
   mod,
@@ -20,9 +21,6 @@ export function LevelUpPanel({
   onClose: () => void;
 }) {
   const utils = api.useUtils();
-  const { data: classHookData, isLoading: classHookLoading } = useClasses();
-  const { data: expertiseHookData, isLoading: expertiseHookLoading } = useExpertise();
-  const { data: featsHookData, isLoading: featsHookLoading } = useFeats();
   const conMod = mod(character.constitution);
   const hitDieAvg = HIT_DIE_AVERAGE[character.characterClass] ?? 5;
   const suggestedHp = character.maxHp + hitDieAvg + conMod;
@@ -39,23 +37,6 @@ export function LevelUpPanel({
   const [selectedFeat, setSelectedFeat] = useState<string>("");
   const [featSearch, setFeatSearch] = useState<string>("");
   const [featAbilityChoices, setFeatAbilityChoices] = useState<string[]>([]);
-
-  const updateSubclass = api.character.updateSubclass.useMutation();
-  const updateSkillExpertise = api.character.updateSkillExpertise.useMutation();
-  const updateAbilityScores = api.character.updateAbilityScores.useMutation();
-  const updateFeats = api.character.updateFeats.useMutation();
-
-  const levelUp = api.character.levelUp.useMutation({
-    onSuccess: async () => {
-      await utils.character.getById.invalidate({ id: character.id });
-      onClose();
-    },
-  });
-
-  if (classHookLoading || expertiseHookLoading || featsHookLoading || !classHookData || !expertiseHookData || !featsHookData) return <LoadingSkeleton />;
-  const { getClassByName, getClassByNameAndSource } = classHookData;
-  const { getNewExpertiseAtLevel } = expertiseHookData;
-  const { getFeatsBySource } = featsHookData;
 
   const newLevel = character.level + 1;
   const subclassUnlockLevel =
@@ -122,6 +103,18 @@ export function LevelUpPanel({
       )
     : availableFeats;
   const selectedFeatData = availableFeats.find((f) => f.name === selectedFeat);
+
+  const updateSubclass = api.character.updateSubclass.useMutation();
+  const updateSkillExpertise = api.character.updateSkillExpertise.useMutation();
+  const updateAbilityScores = api.character.updateAbilityScores.useMutation();
+  const updateFeats = api.character.updateFeats.useMutation();
+
+  const levelUp = api.character.levelUp.useMutation({
+    onSuccess: async () => {
+      await utils.character.getById.invalidate({ id: character.id });
+      onClose();
+    },
+  });
 
   const toggleExpertiseSkill = (skill: string) => {
     setSelectedExpertise((prev) => {

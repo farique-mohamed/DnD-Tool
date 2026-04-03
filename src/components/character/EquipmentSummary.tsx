@@ -5,8 +5,7 @@ import {
   WEAPON_PROPERTY_DESCRIPTIONS,
   getArmorProficiencyPenalties,
 } from "@/lib/equipmentData";
-import { useItems } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { ITEMS } from "@/lib/itemsData";
 import { type CharacterData } from "./shared";
 
 const EQUIP_SLOT_LABELS: Record<string, string> = {
@@ -17,11 +16,6 @@ const EQUIP_SLOT_LABELS: Record<string, string> = {
 };
 
 export function EquipmentSummary({ character }: { character: CharacterData }) {
-  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
-
-  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
-  const { ITEMS } = itemHookData;
-
   const equippedItems: EquippedItems | null = (() => {
     if (!character.equippedItems) return null;
     try {

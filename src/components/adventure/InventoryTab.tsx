@@ -1,8 +1,7 @@
 import { useMemo, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { api } from "@/utils/api";
-import { useItems } from "@/hooks/useStaticData";
-import { LoadingSkeleton } from "@/components/ui";
+import { ITEMS } from "@/lib/itemsData";
 import {
   GOLD,
   GOLD_MUTED,
@@ -46,11 +45,6 @@ export function InventoryTab({
       { adventureId: adventure.id, adventurePlayerId },
       { enabled: !!adventurePlayerId },
     );
-
-  const { data: itemHookData, isLoading: itemsHookLoading } = useItems();
-
-  if (itemsHookLoading || !itemHookData) return <LoadingSkeleton />;
-  const { ITEMS } = itemHookData;
 
   type InventoryItem = {
     id: string;

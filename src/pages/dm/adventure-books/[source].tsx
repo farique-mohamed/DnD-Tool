@@ -7,9 +7,11 @@ import { Layout } from "@/components/Layout";
 import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
-import { useAdventureContent } from "@/hooks/useStaticData";
-import type { AdventureSection } from "@/lib/adventureData";
-import { LoadingSkeleton } from "@/components/ui";
+import {
+  ADVENTURE_LIST,
+  ADVENTURE_DATA_MAP,
+  type AdventureSection,
+} from "@/lib/adventureData";
 import { parseTaggedText } from "@/lib/dndTagParser";
 import { getInternalImageUrl } from "@/lib/imageUtils";
 import { EntityImage } from "@/components/ui/EntityImage";
@@ -348,7 +350,6 @@ function AdventureDetailContent() {
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const router = useRouter();
-  const { data: advContentData, isLoading: advContentLoading } = useAdventureContent();
   const source =
     typeof router.query.source === "string" ? router.query.source : "";
 
@@ -357,6 +358,9 @@ function AdventureDetailContent() {
       void router.replace("/unauthorized");
     }
   }, [user, router]);
+
+  const adventureInfo = ADVENTURE_LIST.find((a) => a.source === source);
+  const adventureData = source in ADVENTURE_DATA_MAP ? ADVENTURE_DATA_MAP[source] ?? null : null;
 
   const [showModal, setShowModal] = useState(false);
   const [adventureName, setAdventureName] = useState("");
@@ -369,12 +373,6 @@ function AdventureDetailContent() {
   });
 
   const [selectedSectionIndex, setSelectedSectionIndex] = useState(0);
-
-  if (advContentLoading || !advContentData) return <LoadingSkeleton />;
-  const { ADVENTURE_LIST, ADVENTURE_DATA_MAP } = advContentData;
-
-  const adventureInfo = ADVENTURE_LIST.find((a) => a.source === source);
-  const adventureData = source in ADVENTURE_DATA_MAP ? ADVENTURE_DATA_MAP[source] ?? null : null;
 
   const selectedSection = adventureData?.[selectedSectionIndex] ?? null;
 
