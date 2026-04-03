@@ -23,6 +23,7 @@ export interface SpellSelectionSectionProps {
   cantripsMax: number;
   spellsMax: number | null;
   spellManagement: "known" | "prepared" | null;
+  autoCantrips?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -60,6 +61,7 @@ export function SpellSelectionSection({
   cantripsMax,
   spellsMax,
   spellManagement,
+  autoCantrips = [],
 }: SpellSelectionSectionProps) {
   const [selectedPreparedSpell, setSelectedPreparedSpell] = useState<
     string | null
@@ -86,9 +88,11 @@ export function SpellSelectionSection({
   const filteredCantrips = filteredSpells.filter((s) => s.level === 0);
   const filteredLeveled = filteredSpells.filter((s) => s.level > 0);
 
-  // Limit checks
-  const cantripsAtLimit =
-    cantripsMax > 0 && preparedCantrips.length >= cantripsMax;
+  // Limit checks — auto-known cantrips don't count against the limit
+  const manualCantripsCount = preparedCantrips.filter(
+    (n) => !autoCantrips.includes(n),
+  ).length;
+  const cantripsAtLimit = cantripsMax > 0 && manualCantripsCount >= cantripsMax;
   const leveledAtLimit =
     spellsMax !== null && preparedLeveled.length >= spellsMax;
 
@@ -172,6 +176,7 @@ export function SpellSelectionSection({
           cantripsAtLimit={cantripsAtLimit}
           leveledAtLimit={leveledAtLimit}
           sourceBadgeStyle={sourceBadgeStyle}
+          autoCantrips={autoCantrips}
         />
       ) : localPrepared.length === 0 ? (
         <p
@@ -204,7 +209,7 @@ export function SpellSelectionSection({
               <>
                 <SectionCounter
                   label="Cantrips"
-                  current={preparedCantrips.length}
+                  current={manualCantripsCount}
                   max={cantripsMax > 0 ? cantripsMax : null}
                   type="known"
                 />
@@ -221,6 +226,7 @@ export function SpellSelectionSection({
                     toggleSpell={toggleSpell}
                     sourceBadgeStyle={sourceBadgeStyle}
                     isCantrip={true}
+                    isAutoKnown={autoCantrips.includes(spellName)}
                   />
                 ))}
               </>

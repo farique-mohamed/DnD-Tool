@@ -23,6 +23,7 @@ export function SpellBrowseMode({
   cantripsAtLimit,
   leveledAtLimit,
   sourceBadgeStyle,
+  autoCantrips = [],
 }: {
   spellSearch: string;
   setSpellSearch: (v: string) => void;
@@ -41,7 +42,12 @@ export function SpellBrowseMode({
   cantripsAtLimit: boolean;
   leveledAtLimit: boolean;
   sourceBadgeStyle: React.CSSProperties;
+  autoCantrips?: string[];
 }) {
+  const manualCantripsCount = preparedCantrips.filter(
+    (n) => !autoCantrips.includes(n),
+  ).length;
+
   // If a specific level filter is active, show flat list; otherwise group
   const showGrouped =
     spellLevelFilter === null &&
@@ -117,7 +123,7 @@ export function SpellBrowseMode({
             {/* Cantrips group */}
             <SectionCounter
               label="Cantrips"
-              current={preparedCantrips.length}
+              current={manualCantripsCount}
               max={cantripsMax > 0 ? cantripsMax : null}
               type="known"
             />

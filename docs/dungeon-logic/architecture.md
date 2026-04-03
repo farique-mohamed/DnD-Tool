@@ -12,7 +12,7 @@ src/server/routers/_app.ts   — Root router (AppRouter type exported from here)
        └── user              — userRouter (user.requestDungeonMaster)
        └── dice              — diceRouter (dice.roll, dice.history, dice.globalHistory)
        └── admin             — adminRouter (admin.getDmRequests, admin.approveDmRequest, admin.rejectDmRequest, admin.getStats, admin.getUsers, admin.updateUserRole, admin.deleteUser, admin.getAdventures)
-       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.updatePlayerConditions, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.getUnreadReactionCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote, adventure.equipItem, adventure.unequipItem, adventure.getEquipmentStatus, adventure.createEncounter, adventure.getEncounter, adventure.endEncounter, adventure.addEncounterPlayer, adventure.addEncounterMonster, adventure.removeParticipant, adventure.nextTurn, adventure.updateParticipantHp, adventure.updateParticipantConditions, adventure.updateDeathSaves, adventure.togglePrivateDeathSaves, adventure.updateInitiative, adventure.saveEncounterAsTemplate, adventure.createEncounterTemplate, adventure.listEncounterTemplates, adventure.getEncounterTemplate, adventure.deleteEncounterTemplate, adventure.createEncounterFromTemplate, adventure.createSession, adventure.listSessions, adventure.getSession, adventure.updateSession, adventure.updateSessionStatus, adventure.deleteSession, adventure.getUpcomingSessions)
+       └── adventure         — adventureRouter (adventure.create, adventure.list, adventure.getById, adventure.addMonster, adventure.removeMonster, adventure.addItem, adventure.removeItem, adventure.addSpell, adventure.removeSpell, adventure.getSpells, adventure.getInviteCode, adventure.joinByCode, adventure.getPendingPlayers, adventure.resolvePlayer, adventure.getAcceptedPlayers, adventure.updatePlayerConditions, adventure.sendNote, adventure.getNotes, adventure.reactToNote, adventure.getUnreadNoteCount, adventure.getUnreadReactionCount, adventure.createSessionNote, adventure.getSessionNotes, adventure.updateSessionNote, adventure.equipItem, adventure.unequipItem, adventure.getEquipmentStatus, adventure.createEncounter, adventure.getEncounter, adventure.endEncounter, adventure.addEncounterPlayer, adventure.addEncounterMonster, adventure.removeParticipant, adventure.nextTurn, adventure.updateParticipantHp, adventure.updateParticipantConditions, adventure.updateDeathSaves, adventure.togglePrivateDeathSaves, adventure.updateInitiative, adventure.saveEncounterAsTemplate, adventure.createEncounterTemplate, adventure.listEncounterTemplates, adventure.getEncounterTemplate, adventure.deleteEncounterTemplate, adventure.createEncounterFromTemplate, adventure.createSession, adventure.listSessions, adventure.getSession, adventure.updateSession, adventure.updateSessionStatus, adventure.deleteSession, adventure.getUpcomingSessions)
        └── (future routers)  — add here and re-export AppRouter type
 
 src/pages/api/trpc/[trpc].ts — Next.js API route that handles all tRPC calls
@@ -113,11 +113,22 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | ------------------ | -------- | ---------------------------------------------------------------------------------------------------- |
 | `adventure.create`        | mutation | Create a new adventure for the authenticated user; restricted to DUNGEON_MASTER and ADMIN roles. Automatically extracts all `{@creature}` and `{@item}` references from the adventure book content via `extractAdventureReferences` and bulk-inserts them as `AdventureMonster` and `AdventureItem` records |
 | `adventure.list`          | query    | List adventures owned by the authenticated user AND adventures where the user is an ACCEPTED player; includes `user` relation (`{ id, username }`) for ownership check and `_count.players` for pending request count on owned adventures |
-| `adventure.getById`       | query    | Fetch a single adventure by id (owner or accepted player), includes associated monsters, items, and players array with user and character relations |
+| `adventure.getById`       | query    | Fetch a single adventure by id (owner or accepted player), includes associated monsters, items, spells, npcs, and players array with user and character relations |
 | `adventure.addMonster`    | mutation | Add a monster to an adventure by name and source (from MONSTER_LIST); unique per adventure           |
 | `adventure.removeMonster` | mutation | Remove a monster from an adventure by name and source                                                |
+| `adventure.addNpc`        | mutation | DM creates/saves an NPC to the adventure with name, race, gender, alignment, occupation, personality traits, appearance, voice mannerism, background, motivation, secret, and notes |
+| `adventure.updateNpc`     | mutation | DM updates an existing NPC; partial update of all editable fields; verifies DM ownership via adventure relation |
+| `adventure.removeNpc`     | mutation | DM deletes an NPC from the adventure; verifies DM ownership via adventure relation                   |
+| `adventure.getNpcs`       | query    | Get all NPCs for an adventure ordered by createdAt asc; DM sees all NPCs including secret; players only see visible NPCs (isVisible=true) with secret as empty string |
+| `adventure.toggleNpcVisibility` | mutation | Toggle NPC visibility for players; DM-only |
 | `adventure.addItem`       | mutation | Add an item to an adventure by name and source (from ITEMS); unique per adventure                    |
 | `adventure.removeItem`    | mutation | Remove an item from an adventure by name and source                                                  |
+| `adventure.addSpell`      | mutation | DM adds a spell to the adventure by name and source; unique per adventure                            |
+| `adventure.removeSpell`   | mutation | DM removes a spell from the adventure                                                                |
+| `adventure.getSpells`     | query    | Get all spells for an adventure; accessible by owner or accepted players                             |
+| `adventure.addPlayerSpell`    | mutation | DM assigns a spell to a specific player; creates AdventurePlayerSpell with assignedByUserId; unique per [adventurePlayerId, spellName, spellSource] |
+| `adventure.removePlayerSpell` | mutation | DM removes an assigned spell from a player; DM-only                                                  |
+| `adventure.getPlayerSpells`   | query    | Get spells assigned to a specific player; accessible by the DM or the owning player; ordered by createdAt asc |
 | `adventure.getInviteCode`     | query    | Get the unique invite code for a DM's adventure (owner only)                                         |
 | `adventure.joinByCode`        | mutation | User requests to join an adventure via invite code and selected character; validates character ownership; rejects if the character is already in another adventure (PENDING or ACCEPTED status); creates PENDING AdventurePlayer record with characterId |
 | `adventure.getPendingPlayers` | query    | List pending join requests for an adventure (DM only); includes user and character data               |
@@ -154,6 +165,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.updateDeathSaves`   | mutation | Set death save successes (0–3) and failures (0–3); DM or owning player |
 | `adventure.togglePrivateDeathSaves` | mutation | Toggle privateDeathSaves flag on the encounter; DM-only |
 | `adventure.updateInitiative`   | mutation | Change a participant's initiative roll; DM-only |
+| `adventure.renameParticipant`  | mutation | Rename a monster participant in an encounter; DM-only |
 | `adventure.saveEncounterAsTemplate` | mutation | Save monster participants from an active encounter as a reusable template; DM-only (adventure owner) |
 | `adventure.createEncounterTemplate` | mutation | Manually create an encounter template with monster participants; requires DUNGEON_MASTER or ADMIN role |
 | `adventure.listEncounterTemplates` | query | List all encounter templates owned by the current user, ordered by createdAt desc; includes participant count and participants |
@@ -167,6 +179,10 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.updateSessionStatus` | mutation | Update session status to SCHEDULED, COMPLETED, or CANCELLED; DM-only |
 | `adventure.deleteSession` | mutation | Delete a session; DM-only |
 | `adventure.getUpcomingSessions` | query | Fetch up to 20 upcoming SCHEDULED sessions across all adventures the user is involved in; ordered by scheduledAt ascending |
+| `adventure.getFamiliars` | query | Get familiars for a specific adventure player ordered by createdAt asc; accessible by the DM or the owning player; includes assignedByUser relation |
+| `adventure.addFamiliar` | mutation | DM attaches a familiar to a player with monsterName, displayName, monsterSource, and optional notes; sets assignedByUserId; unique per [adventurePlayerId, displayName] |
+| `adventure.removeFamiliar` | mutation | DM removes a familiar from a player; DM-only |
+| `adventure.updateFamiliar` | mutation | DM updates a familiar's displayName and/or notes; DM-only |
 
 ### Admin tRPC procedures
 

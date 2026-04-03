@@ -183,6 +183,7 @@ export function PreparedSpellRow({
   toggleSpell,
   sourceBadgeStyle,
   isCantrip,
+  isAutoKnown = false,
 }: {
   spellName: string;
   isSelected: boolean;
@@ -190,6 +191,7 @@ export function PreparedSpellRow({
   toggleSpell: (name: string) => void;
   sourceBadgeStyle: React.CSSProperties;
   isCantrip: boolean;
+  isAutoKnown?: boolean;
 }) {
   const spellData = SPELLS.find((s) => s.name === spellName);
 
@@ -221,6 +223,24 @@ export function PreparedSpellRow({
       >
         {spellName}
       </span>
+      {isAutoKnown && (
+        <span
+          style={{
+            fontSize: "9px",
+            padding: "1px 6px",
+            borderRadius: "3px",
+            background: "rgba(74,124,42,0.15)",
+            border: "1px solid rgba(74,124,42,0.35)",
+            color: "#6aad45",
+            fontFamily: "'Georgia', serif",
+            letterSpacing: "0.5px",
+            textTransform: "uppercase",
+            fontWeight: "bold",
+          }}
+        >
+          Auto
+        </span>
+      )}
       {spellData && (
         <>
           <span style={sourceBadgeStyle}>{spellData.source}</span>
@@ -264,24 +284,26 @@ export function PreparedSpellRow({
           </span>
         </>
       )}
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          toggleSpell(spellName);
-        }}
-        style={{
-          background: "transparent",
-          border: "none",
-          color: "#a89060",
-          cursor: "pointer",
-          fontSize: "14px",
-          padding: "0 4px",
-          lineHeight: 1,
-        }}
-        title="Remove spell"
-      >
-        ×
-      </button>
+      {!isAutoKnown && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleSpell(spellName);
+          }}
+          style={{
+            background: "transparent",
+            border: "none",
+            color: "#a89060",
+            cursor: "pointer",
+            fontSize: "14px",
+            padding: "0 4px",
+            lineHeight: 1,
+          }}
+          title="Remove spell"
+        >
+          ×
+        </button>
+      )}
     </div>
   );
 }

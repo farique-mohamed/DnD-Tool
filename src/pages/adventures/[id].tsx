@@ -16,6 +16,7 @@ import {
   StoryTab,
   MonstersTab,
   ItemsTab,
+  SpellsTab,
   PlayersTab,
   SessionNotesTab,
   SessionsTab,
@@ -23,6 +24,7 @@ import {
   InventoryTab,
   PlayerDmNotesTab,
   EncounterTab,
+  NpcsTab,
 } from "@/components/adventure";
 
 // ---------------------------------------------------------------------------
@@ -316,6 +318,15 @@ function AdventureDetailContent() {
             setActiveTab("story");
           }}
         />
+      )}
+      {resolvedTab === "spells" && isOwner && (
+        <SpellsTab
+          adventureId={adventure.id}
+          spells={(adventure as unknown as { spells: Array<{ id: string; name: string; source: string }> }).spells ?? []}
+        />
+      )}
+      {resolvedTab === "npcs" && (
+        <NpcsTab adventureId={adventure.id} isOwner={isOwner} />
       )}
       {resolvedTab === "players" && isOwner && (
         <PlayersTab adventureId={adventure.id} adventureItems={adventure.items} unreadReactionByCharacter={unreadReactionMap.byCharacter} />

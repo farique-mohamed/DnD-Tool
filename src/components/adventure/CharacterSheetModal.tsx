@@ -16,8 +16,10 @@ import {
 } from "./shared";
 import { DmNotesSection } from "./DmNotesSection";
 import { DmInventoryPanel } from "./DmInventoryPanel";
+import { DmSpellsPanel } from "./DmSpellsPanel";
+import { DmFamiliarsPanel } from "./DmFamiliarsPanel";
 
-type CharSheetTab = "sheet" | "notes" | "inventory";
+type CharSheetTab = "sheet" | "notes" | "inventory" | "spells" | "familiars";
 
 export function CharacterSheetModal({
   character,
@@ -100,6 +102,8 @@ export function CharacterSheetModal({
     { key: "sheet", label: "Character Sheet" },
     { key: "notes", label: "Notes" },
     { key: "inventory", label: "Inventory" },
+    { key: "spells", label: "Spells" },
+    { key: "familiars", label: "Familiars" },
   ];
 
   return (
@@ -634,6 +638,20 @@ export function CharacterSheetModal({
             classSource={classSource}
             background={background ?? ""}
           />
+        )}
+
+        {/* Spells tab */}
+        {charSheetTab === "spells" && (
+          <DmSpellsPanel
+            adventurePlayerId={adventurePlayerId}
+            adventureId={adventureId}
+            characterClass={charClass ?? ""}
+          />
+        )}
+
+        {/* Familiars tab */}
+        {charSheetTab === "familiars" && (
+          <DmFamiliarsPanel adventurePlayerId={adventurePlayerId} />
         )}
       </div>
     </div>

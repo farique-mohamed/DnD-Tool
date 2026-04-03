@@ -11,6 +11,7 @@ import { ActionsTab } from "./ActionsTab";
 import { SpellsTab } from "./SpellsTab";
 import { OverviewTab } from "./OverviewTab";
 import { CharacterInventoryTab } from "./InventoryTab";
+import { FamiliarsTab } from "./FamiliarsTab";
 import { NotesTab } from "./NotesTab";
 import { EquipmentSummary } from "./EquipmentSummary";
 import { type EquippedItems, calculateEquippedAC } from "@/lib/equipmentData";
@@ -63,6 +64,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
     { id: "actions", label: "Actions" },
     ...(spellcaster ? [{ id: "spells" as TabId, label: "Spells" }] : []),
     ...(hasAcceptedAdventure ? [{ id: "inventory" as TabId, label: "Inventory" }] : []),
+    ...(hasAcceptedAdventure ? [{ id: "familiars" as TabId, label: "Familiars" }] : []),
     { id: "notes" as TabId, label: "Notes" },
   ];
 
@@ -313,6 +315,9 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
       )}
       {activeTab === "inventory" && hasAcceptedAdventure && (
         <CharacterInventoryTab character={character} />
+      )}
+      {activeTab === "familiars" && hasAcceptedAdventure && (
+        <FamiliarsTab character={character} />
       )}
       {activeTab === "notes" && <NotesTab character={character} />}
 

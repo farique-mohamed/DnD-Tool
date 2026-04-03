@@ -5,6 +5,9 @@ import type { FeatureDescription } from "@/lib/classData";
 import { type CharacterData, FEATURE_USAGE_CONFIG } from "./shared";
 import { RenderFeatureEntry } from "./RenderFeatureEntry";
 import { SpellProgressionTable } from "./SpellProgressionTable";
+import { TinkersMagicSection } from "./TinkersMagicSection";
+import { ArtificerInfusionsSection } from "./ArtificerInfusionsSection";
+import { WarlockInvocationsSection } from "./WarlockInvocationsSection";
 
 export function ClassFeaturesTab({ character }: { character: CharacterData }) {
   const utils = api.useUtils();
@@ -157,9 +160,21 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
     fontFamily: "'Georgia', serif",
   };
 
+  const isArtificer =
+    character.characterClass.toLowerCase() === "artificer";
+  const isWarlock =
+    character.characterClass.toLowerCase() === "warlock";
+
   return (
     <div>
       <SpellProgressionTable character={character} />
+      {isArtificer && <TinkersMagicSection character={character} />}
+      {isArtificer && character.level >= 2 && (
+        <ArtificerInfusionsSection character={character} />
+      )}
+      {isWarlock && (
+        <WarlockInvocationsSection character={character} />
+      )}
       {levels.map((level) => (
         <div key={level} style={{ marginBottom: "24px" }}>
           <p style={sectionTitle}>Level {level}</p>

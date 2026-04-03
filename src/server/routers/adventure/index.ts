@@ -1,7 +1,16 @@
 import { createTRPCRouter } from "../../trpc";
 import { create, list, getById } from "./core";
 import { addMonster, removeMonster } from "./monsters";
+import { addNpc, updateNpc, removeNpc, getNpcs, toggleNpcVisibility } from "./npcs";
 import { addItem, removeItem } from "./items";
+import {
+  addSpell,
+  removeSpell,
+  getSpells,
+  addPlayerSpell,
+  removePlayerSpell,
+  getPlayerSpells,
+} from "./spells";
 import {
   getInviteCode,
   joinByCode,
@@ -33,6 +42,12 @@ import {
 } from "./inventory";
 import { equipItem, unequipItem, getEquipmentStatus } from "./equipment";
 import {
+  getFamiliars,
+  addFamiliar,
+  removeFamiliar,
+  updateFamiliar,
+} from "./familiars";
+import {
   createEncounter,
   getEncounter,
   endEncounter,
@@ -45,6 +60,7 @@ import {
   updateDeathSaves,
   togglePrivateDeathSaves,
   updateInitiative,
+  renameParticipant,
 } from "./encounter";
 import {
   saveEncounterAsTemplate,
@@ -74,9 +90,24 @@ export const adventureRouter = createTRPCRouter({
   addMonster,
   removeMonster,
 
+  // NPCs
+  addNpc,
+  updateNpc,
+  removeNpc,
+  getNpcs,
+  toggleNpcVisibility,
+
   // Items
   addItem,
   removeItem,
+
+  // Spells
+  addSpell,
+  removeSpell,
+  getSpells,
+  addPlayerSpell,
+  removePlayerSpell,
+  getPlayerSpells,
 
   // Players
   getInviteCode,
@@ -112,6 +143,12 @@ export const adventureRouter = createTRPCRouter({
   unequipItem,
   getEquipmentStatus,
 
+  // Familiars
+  getFamiliars,
+  addFamiliar,
+  removeFamiliar,
+  updateFamiliar,
+
   // Encounter
   createEncounter,
   getEncounter,
@@ -119,6 +156,7 @@ export const adventureRouter = createTRPCRouter({
   addEncounterPlayer,
   addEncounterMonster,
   removeParticipant,
+  renameParticipant,
   nextTurn,
   updateParticipantHp,
   updateParticipantConditions,

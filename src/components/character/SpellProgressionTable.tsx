@@ -9,6 +9,24 @@ import {
   getSpellSlots,
 } from "@/lib/spellSlotData";
 
+// Warlock Eldritch Invocations Known per level (index 0 = level 1)
+const WARLOCK_INVOCATIONS_PHB = [
+  0, 2, 2, 2, 3, 3, 4, 4, 5, 5, 5, 6, 6, 6, 7, 7, 7, 8, 8, 8,
+];
+const WARLOCK_INVOCATIONS_XPHB = [
+  1, 3, 3, 3, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 9, 9, 10, 10, 10, 10,
+];
+
+// Artificer Infusions Known per level (index 0 = level 1)
+const ARTIFICER_INFUSIONS_KNOWN = [
+  0, 4, 4, 4, 4, 6, 6, 6, 6, 8, 8, 8, 8, 10, 10, 10, 10, 12, 12, 12,
+];
+
+// Artificer Infused Items per level (index 0 = level 1)
+const ARTIFICER_INFUSED_ITEMS = [
+  0, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 6, 6, 6,
+];
+
 const SPELLCASTING_ABILITY: Record<string, keyof CharacterData> = {
   Artificer: "intelligence",
   Bard: "charisma",
@@ -53,6 +71,8 @@ export function SpellProgressionTable({
   const abilityMod = mod(abilityScore);
   const hasCantrips = classHasCantrips(className, character.rulesSource);
 
+  const isArtificer = className === "Artificer";
+
   const knownOrPreparedLabel =
     managementType === "known" ? "Spells Known" : "Spells Prepared";
 
@@ -65,6 +85,10 @@ export function SpellProgressionTable({
     // Warlock-specific
     pactSlotCount?: number;
     pactSlotLevel?: number;
+    invocations?: number;
+    // Artificer-specific
+    infusionsKnown?: number;
+    infusedItems?: number;
   }[] = [];
 
   for (let lv = 1; lv <= 20; lv++) {
@@ -78,6 +102,10 @@ export function SpellProgressionTable({
     const slots = getSpellSlots(className, lv);
 
     if (warlockMode) {
+      const invocations =
+        character.rulesSource === "XPHB"
+          ? WARLOCK_INVOCATIONS_XPHB[lv - 1]
+          : WARLOCK_INVOCATIONS_PHB[lv - 1];
       rows.push({
         level: lv,
         cantrips,
@@ -85,6 +113,16 @@ export function SpellProgressionTable({
         slots,
         pactSlotCount: slots[0],
         pactSlotLevel: slots[1],
+        invocations,
+      });
+    } else if (isArtificer) {
+      rows.push({
+        level: lv,
+        cantrips,
+        knownOrPrepared,
+        slots,
+        infusionsKnown: ARTIFICER_INFUSIONS_KNOWN[lv - 1],
+        infusedItems: ARTIFICER_INFUSED_ITEMS[lv - 1],
       });
     } else {
       rows.push({ level: lv, cantrips, knownOrPrepared, slots });
@@ -162,7 +200,7 @@ export function SpellProgressionTable({
             style={{
               width: "100%",
               borderCollapse: "collapse",
-              minWidth: warlockMode ? "400px" : "600px",
+              minWidth: warlockMode ? "500px" : isArtificer ? "650px" : "600px",
             }}
           >
             <thead>
@@ -170,10 +208,27 @@ export function SpellProgressionTable({
                 <th style={{ ...thStyle, textAlign: "left", paddingLeft: "14px" }}>
                   Lv
                 </th>
+                {isArtificer && (
+                  <>
+                    <th style={thStyle}>Infusions Known</th>
+                    <th style={thStyle}>Infused Items</th>
+                  </>
+                )}
                 {hasCantrips && <th style={thStyle}>Cantrips</th>}
                 <th style={thStyle}>{knownOrPreparedLabel}</th>
                 {warlockMode ? (
-                  <th style={thStyle}>Pact Slots</th>
+                  <>
+                    <th style={thStyle}>Pact Slots</th>
+                    <th style={thStyle}>Invocations</th>
+                  </>
+                ) : isArtificer ? (
+                  <>
+                    <th style={thStyle}>1st</th>
+                    <th style={thStyle}>2nd</th>
+                    <th style={thStyle}>3rd</th>
+                    <th style={thStyle}>4th</th>
+                    <th style={thStyle}>5th</th>
+                  </>
                 ) : (
                   <>
                     <th style={thStyle}>1st</th>
@@ -212,6 +267,26 @@ export function SpellProgressionTable({
                     >
                       {row.level}
                     </td>
+                    {isArtificer && (
+                      <>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontWeight: isCurrent ? "bold" : "normal",
+                          }}
+                        >
+                          {cell(row.infusionsKnown)}
+                        </td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontWeight: isCurrent ? "bold" : "normal",
+                          }}
+                        >
+                          {cell(row.infusedItems)}
+                        </td>
+                      </>
+                    )}
                     {hasCantrips && (
                       <td
                         style={{
@@ -233,16 +308,44 @@ export function SpellProgressionTable({
                         : "\u2014"}
                     </td>
                     {warlockMode ? (
-                      <td
-                        style={{
-                          ...tdStyle,
-                          fontWeight: isCurrent ? "bold" : "normal",
-                        }}
-                      >
-                        {row.pactSlotCount && row.pactSlotLevel
-                          ? `${row.pactSlotCount} \u00D7 Lv${row.pactSlotLevel}`
-                          : "\u2014"}
-                      </td>
+                      <>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontWeight: isCurrent ? "bold" : "normal",
+                          }}
+                        >
+                          {row.pactSlotCount && row.pactSlotLevel
+                            ? `${row.pactSlotCount} \u00D7 Lv${row.pactSlotLevel}`
+                            : "\u2014"}
+                        </td>
+                        <td
+                          style={{
+                            ...tdStyle,
+                            fontWeight: isCurrent ? "bold" : "normal",
+                          }}
+                        >
+                          {cell(row.invocations)}
+                        </td>
+                      </>
+                    ) : isArtificer ? (
+                      row.slots.slice(0, 5).map((slotCount, idx) => (
+                        <td
+                          key={idx}
+                          style={{
+                            ...tdStyle,
+                            fontWeight: isCurrent ? "bold" : "normal",
+                            color:
+                              slotCount > 0
+                                ? isCurrent
+                                  ? "#c9a84c"
+                                  : "#e8d5a3"
+                                : "#a89060",
+                          }}
+                        >
+                          {cell(slotCount)}
+                        </td>
+                      ))
                     ) : (
                       row.slots.map((slotCount, idx) => (
                         <td

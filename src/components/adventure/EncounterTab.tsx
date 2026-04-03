@@ -2,9 +2,9 @@ import { useState, useMemo } from "react";
 import { api } from "@/utils/api";
 import { useAuth } from "@/hooks/useAuth";
 import { CONDITIONS } from "@/lib/conditionData";
-import { MONSTER_LIST, type MonsterInfo, abilityMod } from "@/lib/bestiaryData";
-import { parseTaggedText } from "@/lib/dndTagParser";
+import { MONSTER_LIST, type MonsterInfo } from "@/lib/bestiaryData";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, TEXT_DIM, SERIF, SourceBadge } from "./shared";
+import { findMonsterData, MonsterStatBlock } from "./MonsterStatBlock";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -144,362 +144,6 @@ const UNIQUE_CONDITION_NAMES: string[] = (() => {
   }
   return result.sort();
 })();
-
-// ---------------------------------------------------------------------------
-// Monster lookup helper
-// ---------------------------------------------------------------------------
-
-function findMonsterData(name: string | null | undefined, source: string | null | undefined): MonsterInfo | undefined {
-  if (!name) return undefined;
-  // Exact name match
-  const byName = MONSTER_LIST.find((m) => m.name.toLowerCase() === name.toLowerCase());
-  if (byName) return byName;
-  // Name + source match
-  if (source) {
-    const byNameSource = MONSTER_LIST.find(
-      (m) => m.name.toLowerCase() === name.toLowerCase() && m.source.toLowerCase() === source.toLowerCase(),
-    );
-    if (byNameSource) return byNameSource;
-    // Try source-only match (monsterSource may store the bestiary name)
-    const bySource = MONSTER_LIST.find(
-      (m) => m.source.toLowerCase() === source.toLowerCase() && m.name.toLowerCase() === name.toLowerCase(),
-    );
-    if (bySource) return bySource;
-  }
-  return undefined;
-}
-
-// ---------------------------------------------------------------------------
-// Monster stat block renderer (shared pattern from MonstersTab)
-// ---------------------------------------------------------------------------
-
-function MonsterStatBlock({ monsterData }: { monsterData: MonsterInfo }) {
-  return (
-    <div
-      style={{
-        background: "rgba(0,0,0,0.3)",
-        border: "1px solid rgba(201,168,76,0.15)",
-        borderRadius: "8px",
-        padding: "16px 20px",
-        marginTop: "8px",
-        marginBottom: "4px",
-      }}
-    >
-      {/* Size, type, alignment */}
-      <p
-        style={{
-          color: GOLD_MUTED,
-          fontSize: "13px",
-          fontFamily: SERIF,
-          fontStyle: "italic",
-          marginBottom: "8px",
-        }}
-      >
-        {monsterData.size} {monsterData.type}
-        {monsterData.alignment ? `, ${monsterData.alignment}` : ""}
-      </p>
-
-      {/* AC, HP, Speed */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          marginBottom: "12px",
-          fontSize: "13px",
-          fontFamily: SERIF,
-        }}
-      >
-        <div>
-          <span style={{ color: GOLD, fontWeight: "bold" }}>Armor Class </span>
-          <span style={{ color: GOLD_BRIGHT }}>
-            {monsterData.ac ?? "\u2014"}
-            {monsterData.acNote ? ` (${monsterData.acNote})` : ""}
-          </span>
-        </div>
-        <div>
-          <span style={{ color: GOLD, fontWeight: "bold" }}>Hit Points </span>
-          <span style={{ color: GOLD_BRIGHT }}>
-            {monsterData.hp ?? "\u2014"}
-            {monsterData.hpFormula ? ` (${monsterData.hpFormula})` : ""}
-          </span>
-        </div>
-        <div>
-          <span style={{ color: GOLD, fontWeight: "bold" }}>Speed </span>
-          <span style={{ color: GOLD_BRIGHT }}>{monsterData.speed || "\u2014"}</span>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: "1px", background: "rgba(201,168,76,0.2)", margin: "8px 0" }} />
-
-      {/* Ability scores */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(6, 1fr)",
-          gap: "8px",
-          textAlign: "center",
-          marginBottom: "12px",
-        }}
-      >
-        {(["str", "dex", "con", "int", "wis", "cha"] as const).map((ab) => (
-          <div key={ab}>
-            <div
-              style={{
-                color: GOLD,
-                fontSize: "10px",
-                textTransform: "uppercase",
-                letterSpacing: "1px",
-              }}
-            >
-              {ab}
-            </div>
-            <div style={{ color: GOLD_BRIGHT, fontSize: "14px", fontWeight: "bold" }}>
-              {monsterData[ab]}
-            </div>
-            <div style={{ color: TEXT_DIM, fontSize: "11px" }}>({abilityMod(monsterData[ab])})</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: "1px", background: "rgba(201,168,76,0.2)", margin: "8px 0" }} />
-
-      {/* Secondary stats */}
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          gap: "4px",
-          marginBottom: "12px",
-          fontSize: "13px",
-          fontFamily: SERIF,
-        }}
-      >
-        {monsterData.savingThrows && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Saving Throws </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.savingThrows}</span>
-          </div>
-        )}
-        {monsterData.skills && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Skills </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.skills}</span>
-          </div>
-        )}
-        {monsterData.damageResistances && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Damage Resistances </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.damageResistances}</span>
-          </div>
-        )}
-        {monsterData.damageImmunities && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Damage Immunities </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.damageImmunities}</span>
-          </div>
-        )}
-        {monsterData.conditionImmunities && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Condition Immunities </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.conditionImmunities}</span>
-          </div>
-        )}
-        {monsterData.senses && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Senses </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.senses}</span>
-          </div>
-        )}
-        {monsterData.languages && (
-          <div>
-            <span style={{ color: GOLD, fontWeight: "bold" }}>Languages </span>
-            <span style={{ color: GOLD_BRIGHT }}>{monsterData.languages}</span>
-          </div>
-        )}
-      </div>
-
-      {/* Traits */}
-      {monsterData.traits.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          {monsterData.traits.map((t, ti) => (
-            <div key={ti} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {t.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(t.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Actions */}
-      {monsterData.actions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Actions
-          </h4>
-          {monsterData.actions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Bonus Actions */}
-      {monsterData.bonusActions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Bonus Actions
-          </h4>
-          {monsterData.bonusActions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Reactions */}
-      {monsterData.reactions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Reactions
-          </h4>
-          {monsterData.reactions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* Legendary Actions */}
-      {monsterData.legendaryActions.length > 0 && (
-        <div style={{ marginBottom: "12px" }}>
-          <h4
-            style={{
-              color: GOLD,
-              fontSize: "14px",
-              fontFamily: SERIF,
-              fontWeight: "bold",
-              borderBottom: "1px solid rgba(201,168,76,0.3)",
-              paddingBottom: "4px",
-              marginBottom: "8px",
-            }}
-          >
-            Legendary Actions
-          </h4>
-          {monsterData.legendaryActions.map((a, ai) => (
-            <div key={ai} style={{ marginBottom: "6px" }}>
-              <span
-                style={{
-                  color: GOLD_BRIGHT,
-                  fontWeight: "bold",
-                  fontStyle: "italic",
-                  fontFamily: SERIF,
-                  fontSize: "13px",
-                }}
-              >
-                {a.name}.{" "}
-              </span>
-              <span
-                style={{ color: GOLD_BRIGHT, fontFamily: SERIF, fontSize: "13px" }}
-                dangerouslySetInnerHTML={{ __html: parseTaggedText(a.text) }}
-              />
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-}
 
 // ---------------------------------------------------------------------------
 // Component
@@ -679,6 +323,24 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
     onSettled: invalidateEncounter,
   });
 
+  const renameParticipant = api.adventure.renameParticipant.useMutation({
+    onMutate: async (input) => {
+      const previous = await optimisticSetup();
+      utils.adventure.getEncounter.setData({ adventureId }, (old) => {
+        if (!old) return old;
+        return {
+          ...old,
+          participants: old.participants.map((p) =>
+            p.id === input.participantId ? { ...p, name: input.name } : p
+          ),
+        };
+      });
+      return { previous };
+    },
+    onError: optimisticRollback,
+    onSettled: invalidateEncounter,
+  });
+
   // ---- Template mutations ----
   const saveAsTemplate = api.adventure.saveEncounterAsTemplate.useMutation({
     onSuccess: () => {
@@ -724,6 +386,12 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   const [addPlayerId, setAddPlayerId] = useState("");
   const [addPlayerInit, setAddPlayerInit] = useState("");
 
+  // Familiars for the currently selected player (auto-add to encounter)
+  const { data: selectedPlayerFamiliars } = api.adventure.getFamiliars.useQuery(
+    { adventurePlayerId: addPlayerId },
+    { enabled: !!addPlayerId },
+  );
+
   // Add monster form
   const [monsterSearchText, setMonsterSearchText] = useState("");
   const [selectedMonster, setSelectedMonster] = useState<MonsterInfo | null>(null);
@@ -732,6 +400,7 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   const [monsterMaxHp, setMonsterMaxHp] = useState("");
   const [monsterAc, setMonsterAc] = useState("");
   const [monsterInit, setMonsterInit] = useState("");
+  const [monsterDisplayName, setMonsterDisplayName] = useState("");
   const [customMonsterMode, setCustomMonsterMode] = useState(false);
   const [showMonsterDropdown, setShowMonsterDropdown] = useState(false);
 
@@ -746,6 +415,10 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   // Initiative edit
   const [initEditId, setInitEditId] = useState<string | null>(null);
   const [initEditValue, setInitEditValue] = useState("");
+
+  // Rename monster
+  const [renameId, setRenameId] = useState<string | null>(null);
+  const [renameValue, setRenameValue] = useState("");
 
   // Expanded monster stat block
   const [expandedMonsterId, setExpandedMonsterId] = useState<string | null>(null);
@@ -874,11 +547,33 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
   // ---- Handlers ----
   function handleAddPlayer() {
     if (!addPlayerId || !addPlayerInit) return;
-    addPlayer.mutate({
-      adventureId,
-      adventurePlayerId: addPlayerId,
-      initiativeRoll: Number(addPlayerInit),
-    });
+    const initRoll = Number(addPlayerInit);
+    const familiars = selectedPlayerFamiliars ?? [];
+    addPlayer.mutate(
+      {
+        adventureId,
+        adventurePlayerId: addPlayerId,
+        initiativeRoll: initRoll,
+      },
+      {
+        onSuccess: () => {
+          invalidateEncounter();
+          // Auto-add familiars as monster participants
+          for (const familiar of familiars) {
+            const monsterData = findMonsterData(familiar.monsterName, familiar.monsterSource);
+            addMonster.mutate({
+              adventureId,
+              name: familiar.monsterName,
+              displayName: familiar.displayName,
+              monsterSource: familiar.monsterSource ?? "",
+              maxHp: monsterData?.hp ?? 1,
+              armorClass: monsterData?.ac ? Number(monsterData.ac) : 10,
+              initiativeRoll: initRoll,
+            });
+          }
+        },
+      },
+    );
     setAddPlayerId("");
     setAddPlayerInit("");
   }
@@ -888,12 +583,14 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
     addMonster.mutate({
       adventureId,
       name: monsterName,
+      displayName: monsterDisplayName.trim() || undefined,
       monsterSource: monsterSource || "",
       maxHp: Number(monsterMaxHp),
       armorClass: Number(monsterAc),
       initiativeRoll: Number(monsterInit),
     });
     setMonsterName("");
+    setMonsterDisplayName("");
     setMonsterSource("");
     setMonsterMaxHp("");
     setMonsterAc("");
@@ -947,6 +644,17 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
     updateInitiative.mutate({ participantId, initiativeRoll: val });
     setInitEditId(null);
     setInitEditValue("");
+  }
+
+  function handleRename(participantId: string) {
+    if (!renameValue.trim()) {
+      setRenameId(null);
+      setRenameValue("");
+      return;
+    }
+    renameParticipant.mutate({ participantId, name: renameValue.trim() });
+    setRenameId(null);
+    setRenameValue("");
   }
 
   // ---- Loading state ----
@@ -1314,7 +1022,7 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
           const showHpDetails = !isMonster || isOwner;
           const isDown = currentHp <= 0 && p.isActive;
           const isMonsterExpanded = expandedMonsterId === p.id;
-          const monsterData = isMonster ? findMonsterData(p.name, p.monsterSource) : undefined;
+          const monsterData = isMonster ? findMonsterData(p.originalName ?? p.name, p.monsterSource) : undefined;
 
           let style: React.CSSProperties;
           if (!p.isActive) {
@@ -1384,21 +1092,62 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                 {/* Main info */}
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap" }}>
-                    {/* Monster name: DM can click to expand */}
+                    {/* Monster name: DM can click to expand, double-click to rename */}
                     {isMonster && isOwner ? (
-                      <span
-                        style={{
-                          color: p.isActive ? GOLD_BRIGHT : GOLD_MUTED,
-                          fontSize: "14px",
-                          fontFamily: SERIF,
-                          fontWeight: "bold",
-                          cursor: "pointer",
-                        }}
-                        onClick={() => setExpandedMonsterId(isMonsterExpanded ? null : p.id)}
-                        title="Click to expand stat block"
-                      >
-                        {isMonsterExpanded ? "\u25BC" : "\u25B6"} {getParticipantName(p)}
-                      </span>
+                      renameId === p.id ? (
+                        <input
+                          value={renameValue}
+                          onChange={(e) => setRenameValue(e.target.value)}
+                          onBlur={() => handleRename(p.id)}
+                          onKeyDown={(e) => {
+                            if (e.key === "Enter") handleRename(p.id);
+                            if (e.key === "Escape") { setRenameId(null); setRenameValue(""); }
+                          }}
+                          autoFocus
+                          style={{
+                            ...inputStyle,
+                            width: "160px",
+                            padding: "2px 6px",
+                            fontSize: "14px",
+                            fontFamily: SERIF,
+                            fontWeight: "bold",
+                          }}
+                        />
+                      ) : (
+                        <span
+                          style={{
+                            display: "inline-flex",
+                            alignItems: "center",
+                            gap: "6px",
+                            color: p.isActive ? GOLD_BRIGHT : GOLD_MUTED,
+                            fontSize: "14px",
+                            fontFamily: SERIF,
+                            fontWeight: "bold",
+                            cursor: "pointer",
+                          }}
+                          onClick={() => setExpandedMonsterId(isMonsterExpanded ? null : p.id)}
+                          title="Click to expand stat block"
+                        >
+                          {isMonsterExpanded ? "\u25BC" : "\u25B6"} {getParticipantName(p)}
+                          <span
+                            role="button"
+                            title="Rename monster"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setRenameId(p.id);
+                              setRenameValue(p.name ?? "");
+                            }}
+                            style={{
+                              cursor: "pointer",
+                              fontSize: "12px",
+                              opacity: 0.5,
+                              marginLeft: "2px",
+                            }}
+                          >
+                            ✎
+                          </span>
+                        </span>
+                      )
                     ) : (
                       <span
                         style={{
@@ -2054,8 +1803,15 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                   placeholder="Initiative"
                   value={monsterInit}
                   onChange={(e) => setMonsterInit(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
                   style={{ ...inputStyle, width: "90px" }}
+                />
+                <input
+                  type="text"
+                  placeholder="Display Name (optional)"
+                  value={monsterDisplayName}
+                  onChange={(e) => setMonsterDisplayName(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
+                  style={{ ...inputStyle, width: "150px" }}
                 />
                 <button
                   onClick={handleAddMonster}
@@ -2256,9 +2012,16 @@ export function EncounterTab({ adventureId, isOwner, acceptedPlayers, adventureM
                       placeholder="Initiative"
                       value={monsterInit}
                       onChange={(e) => setMonsterInit(e.target.value)}
-                      onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
                       autoFocus
                       style={{ ...inputStyle, width: "90px" }}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Display Name (optional)"
+                      value={monsterDisplayName}
+                      onChange={(e) => setMonsterDisplayName(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter") handleAddMonster(); }}
+                      style={{ ...inputStyle, width: "150px" }}
                     />
                     <button
                       onClick={handleAddMonster}
