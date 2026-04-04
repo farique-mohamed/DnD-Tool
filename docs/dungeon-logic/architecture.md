@@ -161,6 +161,7 @@ See `dice-roller.md` for the full `DiceRoll` schema. See `characters.md` for the
 | `adventure.nextTurn`           | mutation | Advance to the next active participant; increments round on wrap; DM always, players only on their turn |
 | `adventure.updateParticipantHp`| mutation | Apply damage (absorbed by tempHp first), healing (capped at maxHp), or set tempHp; syncs to character sheet for players; DM or own character |
 | `adventure.updatePlayerConditions` | mutation | DM sets active conditions on a player's character outside of encounters; validates adventure ownership and that the character is an accepted player |
+| `adventure.updatePlayerLanguages` | mutation | DM sets the full language list on a player's character; validates adventure ownership and that the adventurePlayer is ACCEPTED; updates the character's `languages` JSON field |
 | `adventure.updateParticipantConditions` | mutation | Set conditions for a participant; syncs to character sheet for players; DM or own character |
 | `adventure.updateDeathSaves`   | mutation | Set death save successes (0–3) and failures (0–3); DM or owning player |
 | `adventure.togglePrivateDeathSaves` | mutation | Toggle privateDeathSaves flag on the encounter; DM-only |

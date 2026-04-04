@@ -3,10 +3,12 @@ import { api } from "@/utils/api";
 import { GOLD, GOLD_MUTED, GOLD_BRIGHT, SERIF, parseJsonArray } from "./shared";
 import { getRaceByName } from "@/lib/raceData";
 import { CharacterSheetModal } from "./CharacterSheetModal";
+import { PlayerLanguageManager } from "./PlayerLanguageManager";
 
 export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharacter }: { adventureId: string; adventureItems: { id: string; name: string; source: string }[]; unreadReactionByCharacter?: Record<string, number> }) {
   const utils = api.useUtils();
   const [expandedPendingId, setExpandedPendingId] = useState<string | null>(null);
+  const [languageEditPlayerId, setLanguageEditPlayerId] = useState<string | null>(null);
   const [sheetModalPlayer, setSheetModalPlayer] = useState<{
     character: Record<string, unknown>;
     username: string;
@@ -27,6 +29,7 @@ export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharac
       void utils.adventure.getById.invalidate({ id: adventureId });
     },
   });
+
 
   const renderCharacterSummary = (character: Record<string, unknown> | null | undefined) => {
     if (!character) return null;
@@ -381,6 +384,7 @@ export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharac
             const userId = (player as unknown as { userId: string }).userId;
             const characterId = (character as { id?: string } | null)?.id;
             const reactionCount = characterId ? (unreadReactionByCharacter?.[characterId] ?? 0) : 0;
+            const isLanguageEditing = languageEditPlayerId === player.id;
             return (
               <div
                 key={player.id}
@@ -388,81 +392,118 @@ export function PlayersTab({ adventureId, adventureItems, unreadReactionByCharac
                   background: "rgba(0,0,0,0.4)",
                   border: "1px solid rgba(201,168,76,0.2)",
                   borderRadius: "8px",
-                  padding: "12px 16px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
-                  cursor: character ? "pointer" : "default",
-                  transition: "border-color 0.15s",
-                }}
-                onClick={() => {
-                  if (character) {
-                    setSheetModalPlayer({
-                      character,
-                      username: player.user.username,
-                      userId,
-                      adventurePlayerId: player.id,
-                      playerNote: (player as unknown as { playerNote?: string }).playerNote,
-                    });
-                  }
-                }}
-                onMouseEnter={(e) => {
-                  if (character) {
-                    (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(201,168,76,0.5)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  (e.currentTarget as HTMLDivElement).style.borderColor = "rgba(201,168,76,0.2)";
+                  overflow: "hidden",
                 }}
               >
-                <div>
-                  <span
-                    style={{
-                      color: GOLD_BRIGHT,
-                      fontSize: "14px",
-                      fontFamily: SERIF,
-                      fontWeight: "bold",
-                    }}
-                  >
-                    {player.user.username}
-                  </span>
-                  {renderCharacterSummary(character)}
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <span
-                    style={{
-                      color: GOLD_MUTED,
-                      fontSize: "11px",
-                      fontFamily: SERIF,
-                    }}
-                  >
-                    Joined{" "}
-                    {new Date(player.joinedAt).toLocaleDateString("en-US", {
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                    })}
-                  </span>
-                  {reactionCount > 0 && (
+                <div
+                  style={{
+                    padding: "12px 16px",
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    cursor: character ? "pointer" : "default",
+                    transition: "border-color 0.15s",
+                  }}
+                  onClick={() => {
+                    if (character) {
+                      setSheetModalPlayer({
+                        character,
+                        username: player.user.username,
+                        userId,
+                        adventurePlayerId: player.id,
+                        playerNote: (player as unknown as { playerNote?: string }).playerNote,
+                      });
+                    }
+                  }}
+                  onMouseEnter={(e) => {
+                    if (character) {
+                      (e.currentTarget as HTMLDivElement).style.background = "rgba(201,168,76,0.05)";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.background = "transparent";
+                  }}
+                >
+                  <div>
                     <span
                       style={{
-                        background: "#c9a84c",
-                        color: "#1a1a2e",
-                        borderRadius: "50%",
-                        width: "20px",
-                        height: "20px",
-                        display: "inline-flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        fontSize: "11px",
+                        color: GOLD_BRIGHT,
+                        fontSize: "14px",
+                        fontFamily: SERIF,
                         fontWeight: "bold",
                       }}
-                      title={`${reactionCount} new reaction${reactionCount > 1 ? "s" : ""}`}
                     >
-                      {reactionCount}
+                      {player.user.username}
                     </span>
-                  )}
+                    {renderCharacterSummary(character)}
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                    {character && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLanguageEditPlayerId(isLanguageEditing ? null : player.id);
+                        }}
+                        style={{
+                          background: isLanguageEditing ? "rgba(201,168,76,0.15)" : "none",
+                          border: "1px solid rgba(201,168,76,0.3)",
+                          color: GOLD_MUTED,
+                          borderRadius: "4px",
+                          padding: "4px 10px",
+                          fontFamily: SERIF,
+                          fontSize: "11px",
+                          cursor: "pointer",
+                          transition: "background 0.15s",
+                        }}
+                        title="Manage languages"
+                      >
+                        Languages
+                      </button>
+                    )}
+                    <span
+                      style={{
+                        color: GOLD_MUTED,
+                        fontSize: "11px",
+                        fontFamily: SERIF,
+                      }}
+                    >
+                      Joined{" "}
+                      {new Date(player.joinedAt).toLocaleDateString("en-US", {
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                      })}
+                    </span>
+                    {reactionCount > 0 && (
+                      <span
+                        style={{
+                          background: "#c9a84c",
+                          color: "#1a1a2e",
+                          borderRadius: "50%",
+                          width: "20px",
+                          height: "20px",
+                          display: "inline-flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          fontSize: "11px",
+                          fontWeight: "bold",
+                        }}
+                        title={`${reactionCount} new reaction${reactionCount > 1 ? "s" : ""}`}
+                      >
+                        {reactionCount}
+                      </span>
+                    )}
+                  </div>
                 </div>
+
+                {/* Language Management Section */}
+                {isLanguageEditing && character && (
+                  <PlayerLanguageManager
+                    adventureId={adventureId}
+                    adventurePlayerId={player.id}
+                    character={character}
+                  />
+                )}
               </div>
             );
           })}

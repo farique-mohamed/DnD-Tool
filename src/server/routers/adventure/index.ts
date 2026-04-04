@@ -19,6 +19,7 @@ import {
   getAcceptedPlayers,
   updatePlayerConditions,
   updatePlayerDiseases,
+  updatePlayerLanguages,
 } from "./players";
 import {
   sendNote,
@@ -117,6 +118,7 @@ export const adventureRouter = createTRPCRouter({
   getAcceptedPlayers,
   updatePlayerConditions,
   updatePlayerDiseases,
+  updatePlayerLanguages,
 
   // Notes
   sendNote,

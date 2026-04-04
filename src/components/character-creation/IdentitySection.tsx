@@ -1,5 +1,6 @@
 import { getClassByNameAndSource, getClassesBySource } from "@/lib/classData";
-import { BACKGROUND_NAMES } from "@/lib/backgroundData";
+import { BACKGROUND_NAMES, BACKGROUNDS } from "@/lib/backgroundData";
+import type { Background } from "@/lib/backgroundData";
 import {
   CHARACTER_RACES,
   ALIGNMENTS,
@@ -28,6 +29,11 @@ export function IdentitySection({
   const filteredClasses = useMemo(
     () => getClassesBySource(form.rulesSource),
     [form.rulesSource],
+  );
+
+  const backgroundInfo: Background | undefined = useMemo(
+    () => BACKGROUNDS.find((b) => b.name === form.background),
+    [form.background],
   );
 
   return (
@@ -130,6 +136,81 @@ export function IdentitySection({
           </select>
         </div>
       </div>
+
+      {/* Background info panel */}
+      {backgroundInfo && (() => {
+        const chipStyle: React.CSSProperties = {
+          background: "rgba(201,168,76,0.15)",
+          border: "1px solid rgba(201,168,76,0.3)",
+          borderRadius: "4px",
+          padding: "3px 10px",
+          color: "#e8d5a3",
+          fontSize: "12px",
+          fontFamily: "'Georgia', serif",
+        };
+        const featureName = backgroundInfo.entries
+          ?.filter((e): e is { name: string; type: string } => typeof e === 'object' && e !== null && 'name' in e)
+          ?.find(e => typeof e.name === 'string' && e.name.startsWith('Feature:'))
+          ?.name;
+        const isXPHB = backgroundInfo.edition === "XPHB" || backgroundInfo.source === "XPHB";
+        const hasToolProfs = backgroundInfo.toolProficiencies && backgroundInfo.toolProficiencies.length > 0;
+        const hasFeats = backgroundInfo.feats && backgroundInfo.feats.length > 0;
+        const hasLangChoices = (backgroundInfo.languageChoiceCount ?? 0) > 0;
+        const hasFixedLangs = backgroundInfo.fixedLanguages && backgroundInfo.fixedLanguages.length > 0;
+        const hasEquipment = backgroundInfo.startingEquipment && backgroundInfo.startingEquipment.length > 0;
+        const hasAnything = hasToolProfs || featureName || hasFeats || hasLangChoices || hasFixedLangs || hasEquipment;
+        if (!hasAnything) return null;
+        return (
+          <div style={{
+            background: "rgba(201,168,76,0.06)",
+            border: "1px solid rgba(201,168,76,0.25)",
+            borderRadius: "8px",
+            padding: "16px 18px",
+            marginTop: "16px",
+            display: "flex",
+            flexDirection: "column",
+            gap: "10px",
+          }}>
+            <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif", margin: 0 }}>
+              {backgroundInfo.name} — Background Benefits
+            </p>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
+              {hasToolProfs && (
+                <span style={chipStyle}>
+                  Tools: {backgroundInfo.toolProficiencies!.join(", ")}
+                </span>
+              )}
+              {featureName && !isXPHB && (
+                <span style={chipStyle}>
+                  {featureName}
+                </span>
+              )}
+              {hasFeats && isXPHB && (
+                <span style={chipStyle}>
+                  Feat: {backgroundInfo.feats!.join("; ")}
+                </span>
+              )}
+              {hasFixedLangs && (
+                <span style={chipStyle}>
+                  Languages: {backgroundInfo.fixedLanguages!.join(", ")}
+                </span>
+              )}
+              {hasLangChoices && (
+                <span style={chipStyle}>
+                  {backgroundInfo.languageChoiceCount === 1
+                    ? "One additional language"
+                    : `${backgroundInfo.languageChoiceCount} additional languages`}
+                </span>
+              )}
+              {hasEquipment && (
+                <span style={chipStyle}>
+                  Has starting equipment
+                </span>
+              )}
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Class info panel */}
       {form.characterClass && (() => {

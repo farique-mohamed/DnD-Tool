@@ -17,6 +17,8 @@ export interface Background {
   entries?: unknown[];
   edition?: string;
   startingEquipment?: unknown[];
+  languageChoiceCount?: number;
+  fixedLanguages?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -69,6 +71,7 @@ interface RawBackground {
   _copy?: RawCopy;
   feats?: Array<Record<string, unknown>>;
   toolProficiencies?: Array<Record<string, unknown>>;
+  languageProficiencies?: Array<Record<string, unknown>>;
   entries?: unknown[];
   edition?: string;
   startingEquipment?: unknown[];
@@ -132,6 +135,37 @@ function parseToolProficiencies(rawTools?: Array<Record<string, unknown>>): stri
 }
 
 // ---------------------------------------------------------------------------
+// Parse language proficiencies from raw array
+// ---------------------------------------------------------------------------
+
+function parseLanguageProficiencies(langProfs?: Array<Record<string, unknown>>): { fixedLanguages?: string[]; languageChoiceCount?: number } {
+  if (!langProfs || langProfs.length === 0) return {};
+
+  const fixed: string[] = [];
+  let choiceCount = 0;
+
+  for (const entry of langProfs) {
+    for (const [key, value] of Object.entries(entry)) {
+      if (key === "anyStandard" || key === "any") {
+        choiceCount += typeof value === "number" ? value : 1;
+      } else if (key === "choose") {
+        const choose = value as { count?: number };
+        choiceCount += choose?.count ?? 1;
+      } else if (value === true) {
+        // Fixed language like "dwarvish": true
+        const capitalized = key.charAt(0).toUpperCase() + key.slice(1);
+        fixed.push(capitalized);
+      }
+    }
+  }
+
+  return {
+    fixedLanguages: fixed.length > 0 ? fixed : undefined,
+    languageChoiceCount: choiceCount > 0 ? choiceCount : undefined,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Parse a single background entry
 // ---------------------------------------------------------------------------
 
@@ -168,6 +202,8 @@ function parseBackground(raw: RawBackground): Background {
     }
   }
 
+  const langData = parseLanguageProficiencies(raw.languageProficiencies);
+
   return {
     name: raw.name,
     source: raw.source,
@@ -178,6 +214,8 @@ function parseBackground(raw: RawBackground): Background {
     entries: raw.entries,
     edition: raw.edition,
     startingEquipment: raw.startingEquipment,
+    languageChoiceCount: langData.languageChoiceCount,
+    fixedLanguages: langData.fixedLanguages,
   };
 }
 
@@ -193,32 +231,35 @@ function resolveCopySkills(backgrounds: RawBackground[]): void {
     lookup.set(key, bg);
   }
 
-  // Recursively resolve skillProficiencies through _copy chains
+  // Recursively resolve skillProficiencies and languageProficiencies through _copy chains
   const resolving = new Set<string>(); // cycle guard
 
-  function resolve(bg: RawBackground): RawSkillProfEntry[] | undefined {
-    if (bg.skillProficiencies) return bg.skillProficiencies;
-    if (!bg._copy) return undefined;
+  function resolve(bg: RawBackground): void {
+    if (!bg._copy) return;
 
     const key = `${bg.name}|${bg.source}`;
-    if (resolving.has(key)) return undefined; // prevent infinite loops
+    if (resolving.has(key)) return; // prevent infinite loops
     resolving.add(key);
 
     const parentKey = `${bg._copy.name}|${bg._copy.source}`;
     const parent = lookup.get(parentKey);
     if (parent) {
-      const inherited = resolve(parent);
-      if (inherited) {
-        bg.skillProficiencies = inherited;
+      // Ensure parent is resolved first
+      resolve(parent);
+
+      if (!bg.skillProficiencies && parent.skillProficiencies) {
+        bg.skillProficiencies = parent.skillProficiencies;
+      }
+      if (!bg.languageProficiencies && parent.languageProficiencies) {
+        bg.languageProficiencies = parent.languageProficiencies;
       }
     }
 
     resolving.delete(key);
-    return bg.skillProficiencies;
   }
 
   for (const bg of backgrounds) {
-    if (bg._copy && !bg.skillProficiencies) {
+    if (bg._copy) {
       resolve(bg);
     }
   }
