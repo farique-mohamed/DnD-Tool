@@ -14,6 +14,7 @@ import { downloadCharacterPdf } from "@/lib/characterPdfExport";
 // ---------------------------------------------------------------------------
 
 function ExportBar({ character }: { character: CharacterData }) {
+  const router = useRouter();
   const [exporting, setExporting] = useState<"json" | "pdf" | null>(null);
 
   const exportQuery = api.character.export.useQuery(
@@ -57,6 +58,13 @@ function ExportBar({ character }: { character: CharacterData }) {
     transition: "border-color 0.2s, color 0.2s",
   };
 
+  const editButtonStyle: React.CSSProperties = {
+    ...buttonStyle,
+    borderColor: "rgba(201,168,76,0.6)",
+    color: "#c9a84c",
+    fontWeight: "bold",
+  };
+
   return (
     <div
       style={{
@@ -66,6 +74,14 @@ function ExportBar({ character }: { character: CharacterData }) {
         marginBottom: "12px",
       }}
     >
+      <button
+        onClick={() => void router.push(`/characters/${character.id}/edit`)}
+        style={editButtonStyle}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = "#c9a84c"; e.currentTarget.style.background = "rgba(201,168,76,0.1)"; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.6)"; e.currentTarget.style.background = "none"; }}
+      >
+        Edit
+      </button>
       <button
         onClick={() => void handleJsonExport()}
         disabled={exporting === "json"}

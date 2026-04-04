@@ -34,6 +34,7 @@ export type CharacterData = {
   notes?: string;
   background?: string | null;
   languages?: string; // JSON string[]
+  levelUpSelections?: string; // JSON Record<string, string[]>
   equippedItems?: string; // JSON EquippedItems
   adventurePlayers?: Array<{
     id: string;

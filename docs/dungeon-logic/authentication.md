@@ -148,6 +148,39 @@ The `role` field is a `UserRoleType` string (`"PLAYER"`, `"DUNGEON_MASTER"`, or 
 
 ---
 
+## Account Settings
+
+Users can update their username or password from the `/settings` page. Both operations issue a new JWT so that downstream claims stay in sync.
+
+### tRPC Procedures
+
+| Procedure | Type | Auth | Input | Returns |
+|-----------|------|------|-------|---------|
+| `user.updateUsername` | `protectedProcedure` (JWT) | Yes | `{ username: string }` (min 3 chars) | `{ success, user, token }` |
+| `user.updatePassword` | `protectedProcedure` (JWT) | Yes | `{ currentPassword: string, newPassword: string }` (new min 6 chars) | `{ success, user, token }` |
+
+### Business Rules
+
+- **updateUsername**: Validates minimum 3 characters, checks uniqueness against the database, and returns a fresh JWT containing the new username.
+- **updatePassword**: Verifies the current password with bcrypt before accepting the change. New password must be at least 6 characters.
+- Submitting a value identical to the current one returns `BAD_REQUEST`.
+
+### Error Codes
+
+| Scenario | tRPC Error Code | Message |
+|----------|----------------|---------|
+| Username already taken | `CONFLICT` | "Username already taken" |
+| Wrong current password | `UNAUTHORIZED` | "Current password is incorrect" |
+| Same-as-current value | `BAD_REQUEST` | Field-level error |
+
+### Client Flow
+
+1. Call the mutation via tRPC.
+2. On success, write the returned `token` to `localStorage` (`dnd_token` key).
+3. Reload the page so that `useAuth` picks up the new JWT claims.
+
+---
+
 ## How to Add a New Protected Page
 
 1. Create the page file, e.g. `src/pages/characters/index.tsx`

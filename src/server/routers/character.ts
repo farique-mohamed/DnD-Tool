@@ -41,6 +41,59 @@ const baseCharacterRouter = createTRPCRouter({
       return character;
     }),
 
+  update: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        name: z.string().min(1).max(100),
+        race: z.string().min(1),
+        characterClass: z.string().min(1),
+        rulesSource: z.enum(["PHB", "XPHB"]).optional(),
+        alignment: z.enum(ALIGNMENTS).optional(),
+        background: z.string().optional(),
+        backstory: z.string().optional(),
+        languages: z.string().optional(),
+        skillProficiencies: z.string().optional(),
+        skillExpertise: z.string().optional(),
+        strength: abilityScore,
+        dexterity: abilityScore,
+        constitution: abilityScore,
+        intelligence: abilityScore,
+        wisdom: abilityScore,
+        charisma: abilityScore,
+        maxHp: z.number().int().min(1),
+        armorClass: z.number().int().min(1),
+        speed: z.number().int().min(0),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+
+      const { id, ...data } = input;
+
+      // If maxHp changed and currentHp exceeds new maxHp, clamp it
+      const currentHpUpdate =
+        character.currentHp > input.maxHp
+          ? { currentHp: input.maxHp }
+          : {};
+
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: {
+          ...data,
+          ...currentHpUpdate,
+        },
+      });
+    }),
+
   list: protectedProcedure.query(async ({ ctx }) => {
     return ctx.db.character.findMany({
       where: { userId: ctx.user.userId },
@@ -502,6 +555,52 @@ const baseCharacterRouter = createTRPCRouter({
       return ctx.db.character.update({
         where: { id: input.id },
         data: { feats: JSON.stringify(input.feats) },
+      });
+    }),
+
+  updateLanguages: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        languages: z.array(z.string()),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { languages: JSON.stringify(input.languages) },
+      });
+    }),
+
+  updateLevelUpSelections: protectedProcedure
+    .input(
+      z.object({
+        id: z.string(),
+        levelUpSelections: z.record(z.string(), z.array(z.string())),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: {
+          levelUpSelections: JSON.stringify(input.levelUpSelections),
+        },
       });
     }),
 

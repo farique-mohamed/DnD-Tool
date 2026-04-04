@@ -153,6 +153,16 @@ function parseAbilityString(abilityArr?: RawAbility[]): string {
   return parts.join(", ");
 }
 
+/** Map JSON abbreviations ("str", "dex", …) → full ability names ("strength", …) */
+const ABBR_TO_FULL: Record<string, string> = {
+  str: "strength",
+  dex: "dexterity",
+  con: "constitution",
+  int: "intelligence",
+  wis: "wisdom",
+  cha: "charisma",
+};
+
 function parseAbilityBonuses(abilityArr?: RawAbility[]): AbilityScoreBonus[] | undefined {
   if (!abilityArr || abilityArr.length === 0) return undefined;
   const bonuses: AbilityScoreBonus[] = [];
@@ -160,7 +170,34 @@ function parseAbilityBonuses(abilityArr?: RawAbility[]): AbilityScoreBonus[] | u
     for (const [key, value] of Object.entries(entry)) {
       if (key === "choose") continue;
       if (typeof value === "number") {
-        bonuses.push({ ability: key, amount: value });
+        bonuses.push({ ability: ABBR_TO_FULL[key] ?? key, amount: value });
+      }
+    }
+    // Handle "choose" objects (e.g. Half-Elf: choose 2 from a list)
+    const choose = (entry as Record<string, unknown>).choose as
+      | { from?: string[]; count?: number; amount?: number }
+      | undefined;
+    if (choose) {
+      const count = choose.count ?? 1;
+      const amount = choose.amount ?? 1;
+      if (choose.from && choose.from.length > 0) {
+        // "from" = abilities you CAN choose. Convert to excludeAbilities
+        // (abilities NOT in the from list) for the UI filter.
+        const ALL_ABILITIES = ["strength", "dexterity", "constitution", "intelligence", "wisdom", "charisma"];
+        const allowed = new Set(choose.from.map((a) => ABBR_TO_FULL[a] ?? a));
+        const excluded = ALL_ABILITIES.filter((a) => !allowed.has(a));
+        bonuses.push({
+          ability: "choice",
+          amount,
+          choiceCount: count,
+          excludeAbilities: excluded,
+        });
+      } else {
+        bonuses.push({
+          ability: "choice",
+          amount,
+          choiceCount: count,
+        });
       }
     }
   }
