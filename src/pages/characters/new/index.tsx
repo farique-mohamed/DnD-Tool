@@ -137,19 +137,23 @@ function CreateCharacterContent() {
     setXphbAsiChoices({});
   }, [prevRaceRef]);
 
-  // Auto-populate fixed languages when race changes
+  // Auto-populate fixed languages when race or background changes
   useEffect(() => {
-    if (!raceInfo) {
+    if (!raceInfo && !backgroundInfo) {
       setForm((prev) => ({ ...prev, languages: [] }));
       return;
     }
-    const fixed = raceInfo.languages.filter(
+    const raceFixed = raceInfo?.languages.filter(
       (l) =>
         !l.toLowerCase().includes("extra language") &&
         !l.toLowerCase().includes("other languages"),
-    );
-    setForm((prev) => ({ ...prev, languages: [...fixed] }));
-  }, [raceInfo]);
+    ) ?? [];
+    const bgFixed = backgroundInfo?.fixedLanguages ?? [];
+
+    // Merge, deduplicate
+    const allFixed = Array.from(new Set([...raceFixed, ...bgFixed]));
+    setForm((prev) => ({ ...prev, languages: [...allFixed] }));
+  }, [raceInfo, backgroundInfo]);
 
   // Racial fixed skill proficiencies
   const racialFixedSkills = useMemo(() => raceInfo?.skillProficiencies ?? [], [raceInfo]);
@@ -372,6 +376,9 @@ function CreateCharacterContent() {
             {/* Languages */}
             <LanguageSection
               raceInfo={raceInfo}
+              backgroundLanguageChoiceCount={backgroundInfo?.languageChoiceCount}
+              backgroundFixedLanguages={backgroundInfo?.fixedLanguages}
+              backgroundName={backgroundInfo?.name}
               selectedLanguages={form.languages}
               onLanguagesChange={handleLanguagesChange}
             />

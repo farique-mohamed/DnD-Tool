@@ -459,6 +459,24 @@ function buildRaces(): RaceInfo[] {
       // Build a composite name for subraces: "Racename (Subracename)"
       const parentName = sub.raceName ?? "";
       const compositeName = parentName ? `${parentName} (${sub.name})` : sub.name;
+
+      // Inherit missing fields from the parent (base) race
+      if (parentName) {
+        const parentSource = sub.raceSource ?? sub.source;
+        const parent = file.race.find(
+          (r) => r.name === parentName && r.source === parentSource,
+        );
+        if (parent) {
+          if (!sub.languageProficiencies && parent.languageProficiencies)
+            sub.languageProficiencies = parent.languageProficiencies;
+          if (!sub.size && parent.size) sub.size = parent.size;
+          if (sub.speed === undefined && parent.speed !== undefined)
+            sub.speed = parent.speed;
+          if (sub.darkvision === undefined && parent.darkvision !== undefined)
+            sub.darkvision = parent.darkvision;
+        }
+      }
+
       allRaw.push({ ...sub, name: compositeName });
     }
   }

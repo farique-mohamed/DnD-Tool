@@ -297,3 +297,55 @@ export const updatePlayerDiseases = protectedProcedure
       data: { activeDiseases: JSON.stringify(input.activeDiseases) },
     });
   });
+
+export const updatePlayerLanguages = protectedProcedure
+  .input(
+    z.object({
+      adventureId: z.string(),
+      adventurePlayerId: z.string(),
+      languages: z.array(z.string()),
+    }),
+  )
+  .mutation(async ({ ctx, input }) => {
+    const adventure = await ctx.db.adventure.findUnique({
+      where: { id: input.adventureId },
+    });
+    if (!adventure) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Adventure not found",
+      });
+    }
+    if (adventure.userId !== ctx.user.userId) {
+      throw new TRPCError({
+        code: "FORBIDDEN",
+        message: "Only the DM can update player languages",
+      });
+    }
+
+    // Verify the adventurePlayer belongs to this adventure and is ACCEPTED
+    const adventurePlayer = await ctx.db.adventurePlayer.findUnique({
+      where: { id: input.adventurePlayerId },
+    });
+    if (
+      !adventurePlayer ||
+      adventurePlayer.adventureId !== input.adventureId ||
+      adventurePlayer.status !== "ACCEPTED"
+    ) {
+      throw new TRPCError({
+        code: "NOT_FOUND",
+        message: "Player is not an accepted member of this adventure",
+      });
+    }
+    if (!adventurePlayer.characterId) {
+      throw new TRPCError({
+        code: "BAD_REQUEST",
+        message: "Player has no character assigned",
+      });
+    }
+
+    return ctx.db.character.update({
+      where: { id: adventurePlayer.characterId },
+      data: { languages: JSON.stringify(input.languages) },
+    });
+  });

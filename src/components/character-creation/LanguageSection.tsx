@@ -40,33 +40,46 @@ function getFixedLanguages(raceLanguages: string[]): string[] {
 
 interface LanguageSectionProps {
   raceInfo: RaceInfo | undefined;
+  backgroundLanguageChoiceCount?: number;
+  backgroundFixedLanguages?: string[];
+  backgroundName?: string;
   selectedLanguages: string[];
   onLanguagesChange: (languages: string[]) => void;
 }
 
 export function LanguageSection({
   raceInfo,
+  backgroundLanguageChoiceCount = 0,
+  backgroundFixedLanguages = [],
+  backgroundName,
   selectedLanguages,
   onLanguagesChange,
 }: LanguageSectionProps) {
   const raceLanguages = raceInfo?.languages ?? [];
   const fixedLanguages = useMemo(() => getFixedLanguages(raceLanguages), [raceLanguages]);
-  const choiceCount = useMemo(() => getChoiceCount(raceLanguages), [raceLanguages]);
+  const raceChoiceCount = useMemo(() => getChoiceCount(raceLanguages), [raceLanguages]);
+  const choiceCount = raceChoiceCount + backgroundLanguageChoiceCount;
+
+  // All fixed languages (race + background)
+  const allFixedLanguages = useMemo(
+    () => Array.from(new Set([...fixedLanguages, ...backgroundFixedLanguages])),
+    [fixedLanguages, backgroundFixedLanguages],
+  );
 
   // The chosen (non-fixed) languages the user has picked
   const chosenLanguages = useMemo(
-    () => selectedLanguages.filter((l) => !fixedLanguages.includes(l)),
-    [selectedLanguages, fixedLanguages],
+    () => selectedLanguages.filter((l) => !allFixedLanguages.includes(l)),
+    [selectedLanguages, allFixedLanguages],
   );
 
   // Languages that are already taken (fixed + chosen) — used to prevent duplicates
   const takenSet = useMemo(
-    () => new Set([...fixedLanguages, ...chosenLanguages]),
-    [fixedLanguages, chosenLanguages],
+    () => new Set([...allFixedLanguages, ...chosenLanguages]),
+    [allFixedLanguages, chosenLanguages],
   );
 
   // When the race grants no choices but has fixed languages, allow 1 optional (DM discretion)
-  const isDmDiscretion = choiceCount === 0 && fixedLanguages.length > 0;
+  const isDmDiscretion = choiceCount === 0 && allFixedLanguages.length > 0;
   const effectiveChoiceCount = isDmDiscretion ? 1 : choiceCount;
   const canChooseMore = chosenLanguages.length < effectiveChoiceCount;
 
@@ -86,7 +99,7 @@ export function LanguageSection({
 
   // Also allow any non-standard languages from the race's fixed list that might not be
   // in our canonical lists (e.g. "Auran", "Quori") to appear as fixed chips
-  const hasAnyLanguage = fixedLanguages.length > 0 || choiceCount > 0;
+  const hasAnyLanguage = allFixedLanguages.length > 0 || choiceCount > 0;
 
   const handleAddLanguage = (lang: string) => {
     if (!lang || takenSet.has(lang)) return;
@@ -96,7 +109,7 @@ export function LanguageSection({
 
   const handleRemoveLanguage = (lang: string) => {
     // Only allow removing chosen languages, not fixed ones
-    if (fixedLanguages.includes(lang)) return;
+    if (allFixedLanguages.includes(lang)) return;
     onLanguagesChange(selectedLanguages.filter((l) => l !== lang));
   };
 
@@ -117,7 +130,7 @@ export function LanguageSection({
 
       {/* Fixed race languages */}
       {fixedLanguages.length > 0 && (
-        <div style={{ marginBottom: (choiceCount > 0 || isDmDiscretion) ? "16px" : "0" }}>
+        <div style={{ marginBottom: (backgroundFixedLanguages.length > 0 || choiceCount > 0 || isDmDiscretion) ? "16px" : "0" }}>
           <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
             <span style={{ color: "#c9a84c" }}>From Race</span>{" "}
             ({raceInfo.name}) — granted automatically
@@ -126,6 +139,33 @@ export function LanguageSection({
             {fixedLanguages.map((lang) => (
               <span
                 key={`fixed-${lang}`}
+                style={{
+                  ...chipBaseStyle,
+                  background: "rgba(201,168,76,0.12)",
+                  borderColor: "rgba(201,168,76,0.35)",
+                  color: "#a89060",
+                  cursor: "default",
+                  opacity: 0.85,
+                }}
+              >
+                {lang}
+              </span>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Fixed background languages */}
+      {backgroundFixedLanguages.length > 0 && (
+        <div style={{ marginBottom: (choiceCount > 0 || isDmDiscretion) ? "16px" : "0" }}>
+          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            <span style={{ color: "#c9a84c" }}>From Background</span>{" "}
+            {backgroundName ? `(${backgroundName})` : ""} — granted automatically
+          </p>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
+            {backgroundFixedLanguages.filter((lang) => !fixedLanguages.includes(lang)).map((lang) => (
+              <span
+                key={`bg-fixed-${lang}`}
                 style={{
                   ...chipBaseStyle,
                   background: "rgba(201,168,76,0.12)",
