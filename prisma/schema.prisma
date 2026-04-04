@@ -143,6 +143,7 @@ model Character {
   activeDiseases      String  @default("[]")           // JSON: string[] of active disease names
   feats              String  @default("[]")           // JSON: string[] of taken feat names
   notes              String  @default("")             // Free-text notes for the character
+  levelUpSelections  String  @default("{}")           // JSON: Record<string, string[]> — fighting styles, tool profs, metamagic, invocations, etc.
   equippedItems      String  @default("{\"mainHand\":null,\"offHand\":null,\"armor\":null,\"shield\":null}") // JSON: EquippedItems
 
   adventurePlayers AdventurePlayer[]

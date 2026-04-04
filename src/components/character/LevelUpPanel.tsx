@@ -4,6 +4,13 @@ import { getClassByName, getClassByNameAndSource } from "@/lib/classData";
 import { getNewExpertiseAtLevel } from "@/lib/expertiseData";
 import { getFeatsBySource } from "@/lib/featData";
 import type { Feat } from "@/lib/featData";
+import { getLevelUpChoices } from "@/lib/levelUpChoicesData";
+import {
+  LevelUpFeatureChoices,
+  validateFeatureChoices,
+  categorizeSelections,
+  type FeatureSelections,
+} from "./LevelUpFeatureChoices";
 import {
   type CharacterData,
   mod,
@@ -37,6 +44,10 @@ export function LevelUpPanel({
   const [selectedFeat, setSelectedFeat] = useState<string>("");
   const [featSearch, setFeatSearch] = useState<string>("");
   const [featAbilityChoices, setFeatAbilityChoices] = useState<string[]>([]);
+  const [featureSelections, setFeatureSelections] = useState<FeatureSelections>(
+    {},
+  );
+  const [featureChoiceError, setFeatureChoiceError] = useState<string>("");
 
   const newLevel = character.level + 1;
   const subclassUnlockLevel =
@@ -82,6 +93,25 @@ export function LevelUpPanel({
 
   const showAsi = isAsiLevel(character.characterClass, newLevel);
 
+  // Level-up feature choices (languages, skills, fighting styles, etc.)
+  // Use selectedSubclass if just picked, otherwise existing subclass
+  const effectiveSubclass = selectedSubclass || character.subclass;
+  const levelUpChoices = getLevelUpChoices(
+    character.characterClass,
+    newLevel,
+    rulesSource,
+    effectiveSubclass,
+  );
+  const existingLanguages: string[] = (() => {
+    try {
+      return character.languages
+        ? (JSON.parse(character.languages) as string[])
+        : [];
+    } catch {
+      return [];
+    }
+  })();
+
   // Feat data for feat browser
   const existingFeats: string[] = (() => {
     try {
@@ -108,6 +138,11 @@ export function LevelUpPanel({
   const updateSkillExpertise = api.character.updateSkillExpertise.useMutation();
   const updateAbilityScores = api.character.updateAbilityScores.useMutation();
   const updateFeats = api.character.updateFeats.useMutation();
+  const updateLanguages = api.character.updateLanguages.useMutation();
+  const updateSkillProficiencies =
+    api.character.updateSkillProficiencies.useMutation();
+  const updateLevelUpSelections =
+    api.character.updateLevelUpSelections.useMutation();
 
   const levelUp = api.character.levelUp.useMutation({
     onSuccess: async () => {
@@ -280,6 +315,17 @@ export function LevelUpPanel({
         }
       }
     }
+    // Validate feature choices
+    if (levelUpChoices.length > 0) {
+      const choiceErr = validateFeatureChoices(
+        levelUpChoices,
+        featureSelections,
+      );
+      if (choiceErr) {
+        setFeatureChoiceError(choiceErr);
+        return;
+      }
+    }
     if (shouldPickSubclass && selectedSubclass) {
       await updateSubclass.mutateAsync({
         id: character.id,
@@ -293,6 +339,48 @@ export function LevelUpPanel({
         skillExpertise: combined,
       });
     }
+    // Save feature choices (languages, skills, other selections)
+    if (levelUpChoices.length > 0) {
+      const { languages, skills, others } = categorizeSelections(
+        levelUpChoices,
+        featureSelections,
+      );
+      if (languages.length > 0) {
+        const combined = [...existingLanguages, ...languages];
+        await updateLanguages.mutateAsync({
+          id: character.id,
+          languages: combined,
+        });
+      }
+      if (skills.length > 0) {
+        const combined = [...proficientSkills, ...skills];
+        await updateSkillProficiencies.mutateAsync({
+          id: character.id,
+          skillProficiencies: combined,
+        });
+      }
+      if (Object.keys(others).length > 0) {
+        // Merge with existing level-up selections
+        let existing: Record<string, string[]> = {};
+        try {
+          existing = character.levelUpSelections
+            ? (JSON.parse(character.levelUpSelections) as Record<
+                string,
+                string[]
+              >)
+            : {};
+        } catch {
+          /* empty */
+        }
+        for (const [k, v] of Object.entries(others)) {
+          existing[k] = [...(existing[k] ?? []), ...v];
+        }
+        await updateLevelUpSelections.mutateAsync({
+          id: character.id,
+          levelUpSelections: existing,
+        });
+      }
+    }
     levelUp.mutate({ id: character.id, newMaxHp: hp });
   };
 
@@ -301,7 +389,10 @@ export function LevelUpPanel({
     updateSubclass.isPending ||
     updateSkillExpertise.isPending ||
     updateAbilityScores.isPending ||
-    updateFeats.isPending;
+    updateFeats.isPending ||
+    updateLanguages.isPending ||
+    updateSkillProficiencies.isPending ||
+    updateLevelUpSelections.isPending;
 
   return (
     <div
@@ -511,6 +602,34 @@ export function LevelUpPanel({
                 }}
               >
                 {expertiseError}
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Feature choices (languages, skills, fighting styles, etc.) */}
+        {levelUpChoices.length > 0 && (
+          <div style={{ marginBottom: "20px" }}>
+            <LevelUpFeatureChoices
+              choices={levelUpChoices}
+              existingLanguages={existingLanguages}
+              existingSkills={proficientSkills}
+              selections={featureSelections}
+              onSelectionChange={(s) => {
+                setFeatureSelections(s);
+                setFeatureChoiceError("");
+              }}
+            />
+            {featureChoiceError && (
+              <p
+                style={{
+                  color: "#e74c3c",
+                  fontSize: "12px",
+                  fontFamily: "'Georgia', serif",
+                  marginTop: "6px",
+                }}
+              >
+                {featureChoiceError}
               </p>
             )}
           </div>
@@ -1398,6 +1517,30 @@ export function LevelUpPanel({
             }}
           >
             {updateFeats.error.message}
+          </p>
+        )}
+        {updateLanguages.error && (
+          <p
+            style={{
+              color: "#e74c3c",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              marginTop: "12px",
+            }}
+          >
+            {updateLanguages.error.message}
+          </p>
+        )}
+        {updateLevelUpSelections.error && (
+          <p
+            style={{
+              color: "#e74c3c",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              marginTop: "12px",
+            }}
+          >
+            {updateLevelUpSelections.error.message}
           </p>
         )}
       </div>

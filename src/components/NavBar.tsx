@@ -22,6 +22,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Global Settings", href: "/admin/settings" },
         { label: "Session Calendar", href: "/sessions" },
         { label: "NPC Generator", href: "/npc-generator" },
+        { label: "Settings", href: "/settings" },
       ];
     case "DUNGEON_MASTER":
       return [
@@ -45,6 +46,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "NPC Generator", href: "/npc-generator" },
         { label: "My Characters", href: "/characters" },
         { label: "Create New Character", href: "/characters/new" },
+        { label: "Settings", href: "/settings" },
       ];
     case "PLAYER":
     default:
@@ -64,6 +66,7 @@ function getNavItems(role: string): NavItem[] {
         { label: "Rules For Players", href: "/rules" },
         { label: "My Characters", href: "/characters" },
         { label: "Create New Character", href: "/characters/new" },
+        { label: "Settings", href: "/settings" },
       ];
   }
 }
