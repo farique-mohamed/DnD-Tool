@@ -19,16 +19,39 @@ export interface AbilityScoreBonus {
   excludeAbilities?: string[];
 }
 
+export interface SkillProficiencyChoice {
+  from: string[];
+  count: number;
+}
+
+export interface ToolProficiency {
+  name?: string;        // Fixed tool (e.g., "Poisoner's Kit")
+  choiceType?: string;  // "any" | "anyArtisansTool" | "anyMusicalInstrument"
+  choiceCount?: number; // Number of choices to make
+  choiceFrom?: string[]; // Specific list to choose from
+}
+
 export interface RaceInfo {
   name: string;
   source: string;
   speed: number;
+  flySpeed?: number;
+  swimSpeed?: number;
+  climbSpeed?: number;
   size: string;
+  darkvision?: number;
   languages: string[];
   traits: RacialTrait[];
   abilityScoreIncrease?: string;
   abilityBonuses?: AbilityScoreBonus[];
   skillProficiencies?: string[];
+  skillProficiencyChoices?: SkillProficiencyChoice;
+  toolProficiencies?: ToolProficiency[];
+  weaponProficiencies?: string[];
+  armorProficiencies?: string[];
+  damageResistances?: string[];
+  damageResistanceChoices?: { from: string[]; count: number };
+  conditionImmunities?: string[];
 }
 
 // ---------------------------------------------------------------------------
@@ -72,6 +95,11 @@ interface RawRace {
   darkvision?: number;
   raceName?: string;
   raceSource?: string;
+  toolProficiencies?: Array<Record<string, unknown>>;
+  weaponProficiencies?: Array<Record<string, unknown>>;
+  armorProficiencies?: Array<Record<string, unknown>>;
+  resist?: unknown[];
+  conditionImmune?: string[];
   [key: string]: unknown;
 }
 
@@ -104,11 +132,25 @@ function parseSize(sizeArr?: string[]): string {
 // Speed parsing
 // ---------------------------------------------------------------------------
 
-function parseSpeed(speed?: number | { walk?: number; [key: string]: unknown }): number {
-  if (speed === undefined || speed === null) return 30;
-  if (typeof speed === "number") return speed;
-  if (typeof speed === "object" && speed.walk !== undefined) return speed.walk as number;
-  return 30;
+interface ParsedSpeed {
+  walk: number;
+  fly?: number;
+  swim?: number;
+  climb?: number;
+}
+
+function parseSpeed(speed?: number | { walk?: number; fly?: number; swim?: number; climb?: number; [key: string]: unknown }): ParsedSpeed {
+  if (speed === undefined || speed === null) return { walk: 30 };
+  if (typeof speed === "number") return { walk: speed };
+  if (typeof speed === "object") {
+    return {
+      walk: (speed.walk as number) ?? 30,
+      fly: typeof speed.fly === "number" ? speed.fly : undefined,
+      swim: typeof speed.swim === "number" ? speed.swim : undefined,
+      climb: typeof speed.climb === "number" ? speed.climb : undefined,
+    };
+  }
+  return { walk: 30 };
 }
 
 // ---------------------------------------------------------------------------
@@ -231,8 +273,13 @@ function parseLanguages(langProfs?: Array<Record<string, unknown>>): string[] {
           languages.push("One extra language of your choice");
         }
       } else if (key === "choose") {
-        // Skip choose entries — too complex to display simply
-        continue;
+        const choose = value as { from?: string[]; count?: number };
+        const count = choose.count ?? 1;
+        languages.push(
+          count === 1
+            ? "One extra language of your choice"
+            : `${count} extra languages of your choice`,
+        );
       } else if (value === true) {
         languages.push(capitalizeWord(key));
       }
@@ -415,6 +462,127 @@ function parseSkillProficiencies(skillProfs?: Array<Record<string, unknown>>): s
   return skills.length > 0 ? skills : undefined;
 }
 
+function parseSkillProficiencyChoices(skillProfs?: Array<Record<string, unknown>>): SkillProficiencyChoice | undefined {
+  if (!skillProfs || skillProfs.length === 0) return undefined;
+  for (const entry of skillProfs) {
+    const choose = entry.choose as { from?: string[]; count?: number } | undefined;
+    if (choose?.from) {
+      return {
+        from: choose.from.map((s) =>
+          s.split(" ").map((w) => w.charAt(0).toUpperCase() + w.slice(1)).join(" "),
+        ),
+        count: choose.count ?? 1,
+      };
+    }
+    // "any": N means choose N from all skills
+    if (typeof entry.any === "number") {
+      return { from: [], count: entry.any as number }; // empty from = any skill
+    }
+  }
+  return undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Parse tool proficiencies
+// ---------------------------------------------------------------------------
+
+function parseToolProficiencies(toolProfs?: Array<Record<string, unknown>>): ToolProficiency[] | undefined {
+  if (!toolProfs || toolProfs.length === 0) return undefined;
+  const tools: ToolProficiency[] = [];
+  for (const entry of toolProfs) {
+    for (const [key, value] of Object.entries(entry)) {
+      if (key === "any" && typeof value === "number") {
+        tools.push({ choiceType: "any", choiceCount: value });
+      } else if (key === "anyArtisansTool" && typeof value === "number") {
+        tools.push({ choiceType: "anyArtisansTool", choiceCount: value });
+      } else if (key === "anyMusicalInstrument" && typeof value === "number") {
+        tools.push({ choiceType: "anyMusicalInstrument", choiceCount: value });
+      } else if (key === "choose") {
+        const choose = value as { from?: string[]; count?: number };
+        if (choose.from) {
+          tools.push({ choiceFrom: choose.from.map(capitalizeWord), choiceCount: choose.count ?? 1 });
+        }
+      } else if (value === true) {
+        tools.push({ name: key.split(" ").map(capitalizeWord).join(" ") });
+      }
+    }
+  }
+  return tools.length > 0 ? tools : undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Parse weapon proficiencies
+// ---------------------------------------------------------------------------
+
+function parseWeaponProficiencies(weaponProfs?: Array<Record<string, unknown>>): string[] | undefined {
+  if (!weaponProfs || weaponProfs.length === 0) return undefined;
+  const weapons: string[] = [];
+  for (const entry of weaponProfs) {
+    for (const [key, value] of Object.entries(entry)) {
+      if (key === "choose") continue; // Skip complex choose filters
+      if (value === true) {
+        // Keys are like "battleaxe|phb" — strip the source suffix
+        const name = key.split("|")[0]!;
+        weapons.push(name.split(" ").map(capitalizeWord).join(" "));
+      }
+    }
+  }
+  return weapons.length > 0 ? weapons : undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Parse armor proficiencies
+// ---------------------------------------------------------------------------
+
+function parseArmorProficiencies(armorProfs?: Array<Record<string, unknown>>): string[] | undefined {
+  if (!armorProfs || armorProfs.length === 0) return undefined;
+  const armor: string[] = [];
+  for (const entry of armorProfs) {
+    for (const [key, value] of Object.entries(entry)) {
+      if (value === true) {
+        armor.push(capitalizeWord(key));
+      }
+    }
+  }
+  return armor.length > 0 ? armor : undefined;
+}
+
+// ---------------------------------------------------------------------------
+// Parse damage resistances
+// ---------------------------------------------------------------------------
+
+interface ParsedResistances {
+  fixed?: string[];
+  choice?: { from: string[]; count: number };
+}
+
+function parseDamageResistances(resist?: unknown[]): ParsedResistances | undefined {
+  if (!resist || resist.length === 0) return undefined;
+  const fixed: string[] = [];
+  let choice: { from: string[]; count: number } | undefined;
+  for (const entry of resist) {
+    if (typeof entry === "string") {
+      fixed.push(capitalizeWord(entry));
+    } else if (typeof entry === "object" && entry !== null) {
+      const obj = entry as { choose?: { from?: string[]; count?: number } };
+      if (obj.choose?.from) {
+        choice = { from: obj.choose.from.map(capitalizeWord), count: obj.choose.count ?? 1 };
+      }
+    }
+  }
+  if (fixed.length === 0 && !choice) return undefined;
+  return { fixed: fixed.length > 0 ? fixed : undefined, choice };
+}
+
+// ---------------------------------------------------------------------------
+// Parse condition immunities
+// ---------------------------------------------------------------------------
+
+function parseConditionImmunities(condImmune?: string[]): string[] | undefined {
+  if (!condImmune || condImmune.length === 0) return undefined;
+  return condImmune.map(capitalizeWord);
+}
+
 // ---------------------------------------------------------------------------
 // Resolve _copy references
 // ---------------------------------------------------------------------------
@@ -451,6 +619,16 @@ function resolveCopy(races: RawRace[]): void {
         race.skillProficiencies = parent.skillProficiencies;
       if (race.darkvision === undefined && parent.darkvision !== undefined)
         race.darkvision = parent.darkvision;
+      if (!race.toolProficiencies && parent.toolProficiencies)
+        race.toolProficiencies = parent.toolProficiencies;
+      if (!race.weaponProficiencies && parent.weaponProficiencies)
+        race.weaponProficiencies = parent.weaponProficiencies;
+      if (!race.armorProficiencies && parent.armorProficiencies)
+        race.armorProficiencies = parent.armorProficiencies;
+      if (!race.resist && parent.resist)
+        race.resist = parent.resist;
+      if (!race.conditionImmune && parent.conditionImmune)
+        race.conditionImmune = parent.conditionImmune;
     }
 
     resolving.delete(key);
@@ -467,16 +645,29 @@ function resolveCopy(races: RawRace[]): void {
 
 function parseRace(raw: RawRace): RaceInfo {
   const abilityStr = parseAbilityString(raw.ability);
+  const speeds = parseSpeed(raw.speed as number | { walk?: number; fly?: number; swim?: number; climb?: number });
+  const resistances = parseDamageResistances(raw.resist);
   return {
     name: raw.name,
     source: raw.source,
-    speed: parseSpeed(raw.speed as number | { walk?: number }),
+    speed: speeds.walk,
+    flySpeed: speeds.fly,
+    swimSpeed: speeds.swim,
+    climbSpeed: speeds.climb,
     size: parseSize(raw.size),
+    darkvision: raw.darkvision,
     languages: parseLanguages(raw.languageProficiencies),
     traits: parseTraits(raw.entries as (string | RawEntry)[] | undefined),
     abilityScoreIncrease: abilityStr || undefined,
     abilityBonuses: parseAbilityBonuses(raw.ability),
     skillProficiencies: parseSkillProficiencies(raw.skillProficiencies),
+    skillProficiencyChoices: parseSkillProficiencyChoices(raw.skillProficiencies),
+    toolProficiencies: parseToolProficiencies(raw.toolProficiencies),
+    weaponProficiencies: parseWeaponProficiencies(raw.weaponProficiencies),
+    armorProficiencies: parseArmorProficiencies(raw.armorProficiencies),
+    damageResistances: resistances?.fixed,
+    damageResistanceChoices: resistances?.choice,
+    conditionImmunities: parseConditionImmunities(raw.conditionImmune),
   };
 }
 
@@ -511,6 +702,18 @@ function buildRaces(): RaceInfo[] {
             sub.speed = parent.speed;
           if (sub.darkvision === undefined && parent.darkvision !== undefined)
             sub.darkvision = parent.darkvision;
+          if (!sub.toolProficiencies && parent.toolProficiencies)
+            sub.toolProficiencies = parent.toolProficiencies;
+          if (!sub.weaponProficiencies && parent.weaponProficiencies)
+            sub.weaponProficiencies = parent.weaponProficiencies;
+          if (!sub.armorProficiencies && parent.armorProficiencies)
+            sub.armorProficiencies = parent.armorProficiencies;
+          if (!sub.resist && parent.resist)
+            sub.resist = parent.resist;
+          if (!sub.conditionImmune && parent.conditionImmune)
+            sub.conditionImmune = parent.conditionImmune;
+          if (!sub.skillProficiencies && parent.skillProficiencies)
+            sub.skillProficiencies = parent.skillProficiencies;
         }
       }
 

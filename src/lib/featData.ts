@@ -18,6 +18,17 @@ export interface FeatAbilityBonus {
   };
 }
 
+export interface FeatSpellGrant {
+  /** Spell level (0 = cantrip) */
+  level: number;
+  /** How many spells at this level */
+  count: number;
+  /** "daily" = once per long rest, "at-will" = unlimited, "rest" = once per short rest */
+  frequency: "daily" | "at-will" | "rest";
+  /** Whether the spell can also be cast using existing spell slots */
+  canUseSlots: boolean;
+}
+
 export interface Feat {
   name: string;
   source: string;
@@ -26,6 +37,7 @@ export interface Feat {
   levelRequired?: number;    // min level if specified in prerequisites
   abilityBonus?: FeatAbilityBonus;
   entries: string[];         // flattened, tag-stripped description
+  spellGrants?: FeatSpellGrant[];  // spells granted by the feat
 }
 
 // ---------------------------------------------------------------------------
@@ -86,6 +98,14 @@ interface RawFeat {
   ability?: RawAbility[];
   entries: RawEntry[];
   reprintedAs?: string[];
+  additionalSpells?: RawAdditionalSpell[];
+}
+
+interface RawAdditionalSpell {
+  ability?: string | { choose: string[] };
+  innate?: Record<string, Record<string, Record<string, unknown[]>> | unknown[]>;
+  known?: Record<string, unknown[]>;
+  prepared?: Record<string, Record<string, Record<string, unknown[]>>>;
 }
 
 // ---------------------------------------------------------------------------
@@ -295,6 +315,131 @@ function parseAbilityBonus(abilities: RawAbility[]): FeatAbilityBonus | undefine
 }
 
 // ---------------------------------------------------------------------------
+// Parse feat spell grants
+// ---------------------------------------------------------------------------
+
+function extractSpellLevel(filter: unknown): number {
+  if (typeof filter !== "string") return 0;
+  const match = filter.match(/level=(\d+)/);
+  return match ? parseInt(match[1]!, 10) : 0;
+}
+
+function parseSpellGrants(raw: RawAdditionalSpell[]): FeatSpellGrant[] | undefined {
+  const grants: FeatSpellGrant[] = [];
+
+  for (const spell of raw) {
+    // Parse innate spells (daily/rest castings)
+    if (spell.innate && typeof spell.innate === "object") {
+      for (const _charLevel of Object.keys(spell.innate)) {
+        const inner = spell.innate[_charLevel];
+        if (!inner || typeof inner !== "object") continue;
+
+        // daily: { "1": [...], "1e": [...] }
+        const daily = (inner as Record<string, unknown>).daily as Record<string, unknown[]> | undefined;
+        if (daily) {
+          for (const [freq, spells] of Object.entries(daily)) {
+            const canUseSlots = freq.includes("e");
+            for (const s of spells) {
+              let level = 0;
+              if (typeof s === "string") {
+                // Fixed spell name — infer level from name pattern or default to 1
+                level = 1;
+              } else if (typeof s === "object" && s !== null) {
+                const choose = (s as Record<string, unknown>).choose;
+                if (choose) level = extractSpellLevel(choose);
+              }
+              if (level > 0) {
+                // Merge with existing grant at same level/frequency
+                const existing = grants.find((g) => g.level === level && g.frequency === "daily");
+                if (existing) {
+                  existing.count += 1;
+                  existing.canUseSlots = existing.canUseSlots || canUseSlots;
+                } else {
+                  grants.push({ level, count: 1, frequency: "daily", canUseSlots });
+                }
+              }
+            }
+          }
+        }
+
+        // rest: { "1": [...] }
+        const rest = (inner as Record<string, unknown>).rest as Record<string, unknown[]> | undefined;
+        if (rest) {
+          for (const [, spells] of Object.entries(rest)) {
+            for (const s of spells) {
+              let level = 1;
+              if (typeof s === "object" && s !== null) {
+                const choose = (s as Record<string, unknown>).choose;
+                if (choose) level = extractSpellLevel(choose);
+              }
+              if (level > 0) {
+                grants.push({ level, count: 1, frequency: "rest", canUseSlots: true });
+              }
+            }
+          }
+        }
+
+        // At-will (array directly)
+        if (Array.isArray(inner)) {
+          for (const s of inner) {
+            let level = 0;
+            if (typeof s === "string") level = 0; // cantrip-level at-will
+            grants.push({ level, count: 1, frequency: "at-will", canUseSlots: false });
+          }
+        }
+      }
+    }
+
+    // Parse known spells (cantrips)
+    if (spell.known && typeof spell.known === "object") {
+      for (const _charLevel of Object.keys(spell.known)) {
+        const spells = spell.known[_charLevel];
+        if (!Array.isArray(spells)) continue;
+        for (const s of spells) {
+          let level = 0;
+          let count = 1;
+          if (typeof s === "object" && s !== null) {
+            const obj = s as Record<string, unknown>;
+            const choose = obj.choose;
+            if (choose) level = extractSpellLevel(choose);
+            if (typeof obj.count === "number") count = obj.count;
+          }
+          // Known spells at level 0 are cantrips (at-will)
+          if (level === 0) {
+            grants.push({ level: 0, count, frequency: "at-will", canUseSlots: false });
+          }
+        }
+      }
+    }
+
+    // Parse prepared spells (same as innate but under "prepared")
+    if (spell.prepared && typeof spell.prepared === "object") {
+      for (const _charLevel of Object.keys(spell.prepared)) {
+        const inner = spell.prepared[_charLevel];
+        if (!inner || typeof inner !== "object") continue;
+        const rest = (inner as Record<string, unknown>).rest as Record<string, unknown[]> | undefined;
+        if (rest) {
+          for (const [, spells] of Object.entries(rest)) {
+            for (const s of spells) {
+              let level = 1;
+              if (typeof s === "object" && s !== null) {
+                const choose = (s as Record<string, unknown>).choose;
+                if (choose) level = extractSpellLevel(choose);
+              }
+              if (level > 0) {
+                grants.push({ level, count: 1, frequency: "rest", canUseSlots: true });
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+
+  return grants.length > 0 ? grants : undefined;
+}
+
+// ---------------------------------------------------------------------------
 // Fighting style category filter
 // ---------------------------------------------------------------------------
 
@@ -321,6 +466,7 @@ function parseFeat(raw: RawFeat): Feat {
     levelRequired,
     abilityBonus: parseAbilityBonus(raw.ability ?? []),
     entries: flattenEntries(raw.entries).map((text) => parseTaggedText(text)),
+    spellGrants: raw.additionalSpells ? parseSpellGrants(raw.additionalSpells) : undefined,
   };
 }
 
@@ -429,4 +575,29 @@ export function getFeatByNameAndSource(
  */
 export function getFeatByName(name: string): Feat | undefined {
   return FEATS.find((f) => f.name.toLowerCase() === name.toLowerCase());
+}
+
+/**
+ * Get all spell grants from a character's feats.
+ * Returns merged grants grouped by spell level.
+ */
+export function getCharacterFeatSpellGrants(
+  featNames: string[],
+  rulesSource: string,
+): FeatSpellGrant[] {
+  const allGrants: FeatSpellGrant[] = [];
+  for (const name of featNames) {
+    const feat = getFeatByNameAndSource(name, rulesSource);
+    if (feat?.spellGrants) {
+      allGrants.push(...feat.spellGrants);
+    }
+  }
+  return allGrants;
+}
+
+/**
+ * Check if a character has any spell-granting feats.
+ */
+export function hasFeatSpells(featNames: string[], rulesSource: string): boolean {
+  return getCharacterFeatSpellGrants(featNames, rulesSource).some((g) => g.level > 0);
 }

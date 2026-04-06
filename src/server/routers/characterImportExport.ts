@@ -17,6 +17,34 @@ export const characterImportExportRouter = createTRPCRouter({
         });
       }
 
+      // Compute spellcasting stats (derived, not stored in DB)
+      const SPELLCASTING_ABILITY: Record<string, string> = {
+        Artificer: "intelligence",
+        Bard: "charisma",
+        Cleric: "wisdom",
+        Druid: "wisdom",
+        Paladin: "charisma",
+        Ranger: "wisdom",
+        Sorcerer: "charisma",
+        Warlock: "charisma",
+        Wizard: "intelligence",
+      };
+      const spellAbility =
+        SPELLCASTING_ABILITY[character.characterClass] ?? null;
+
+      const abilityScores: Record<string, number> = {
+        strength: character.strength,
+        dexterity: character.dexterity,
+        constitution: character.constitution,
+        intelligence: character.intelligence,
+        wisdom: character.wisdom,
+        charisma: character.charisma,
+      };
+      const profBonus = Math.ceil(character.level / 4) + 1;
+      const abilityMod = spellAbility
+        ? Math.floor((abilityScores[spellAbility]! - 10) / 2)
+        : 0;
+
       return {
         _version: 1,
         _exportedAt: new Date().toISOString(),
@@ -44,6 +72,12 @@ export const characterImportExportRouter = createTRPCRouter({
         spellSlotsUsed: character.spellSlotsUsed,
         skillProficiencies: character.skillProficiencies,
         skillExpertise: character.skillExpertise,
+        toolProficiencies: character.toolProficiencies,
+        weaponProficiencies: character.weaponProficiencies,
+        armorProficiencies: character.armorProficiencies,
+        damageResistances: character.damageResistances,
+        conditionImmunities: character.conditionImmunities,
+        darkvision: character.darkvision,
         preparedSpells: character.preparedSpells,
         featureUses: character.featureUses,
         activeConditions: character.activeConditions,
@@ -51,6 +85,14 @@ export const characterImportExportRouter = createTRPCRouter({
         feats: character.feats,
         notes: character.notes,
         equippedItems: character.equippedItems,
+        spellcasting: spellAbility
+          ? {
+              ability: spellAbility,
+              abilityModifier: abilityMod,
+              saveDC: 8 + profBonus + abilityMod,
+              attackBonus: profBonus + abilityMod,
+            }
+          : null,
       };
     }),
 
@@ -84,6 +126,12 @@ export const characterImportExportRouter = createTRPCRouter({
           spellSlotsUsed: z.string().optional().default("[]"),
           skillProficiencies: z.string().optional().default("[]"),
           skillExpertise: z.string().optional().default("[]"),
+          toolProficiencies: z.string().optional().default("[]"),
+          weaponProficiencies: z.string().optional().default("[]"),
+          armorProficiencies: z.string().optional().default("[]"),
+          damageResistances: z.string().optional().default("[]"),
+          conditionImmunities: z.string().optional().default("[]"),
+          darkvision: z.number().int().min(0).default(0),
           preparedSpells: z.string().optional().default("[]"),
           featureUses: z.string().optional().default("{}"),
           activeConditions: z.string().optional().default("[]"),

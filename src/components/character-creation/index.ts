@@ -7,4 +7,6 @@ export { AbilityScoreSection } from "./AbilityScoreSection";
 export { CombatSection } from "./CombatSection";
 export { BackstorySection } from "./BackstorySection";
 export { LanguageSection } from "./LanguageSection";
+export { RaceBenefitsSection } from "./RaceBenefitsSection";
+export { ClassFeatureChoicesSection } from "./ClassFeatureChoicesSection";
 export * from "./shared";

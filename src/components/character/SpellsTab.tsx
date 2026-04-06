@@ -9,7 +9,8 @@ import {
   getSpellManagementType,
 } from "@/lib/spellSlotData";
 import { SPELLS } from "@/lib/spellsData";
-import { type CharacterData, mod } from "./shared";
+import { getCharacterFeatSpellGrants, type FeatSpellGrant } from "@/lib/featData";
+import { type CharacterData, mod, proficiencyBonus } from "./shared";
 import { SpellSelectionSection } from "./SpellSelectionSection";
 import { getAutoKnownCantrips } from "@/lib/autoKnownSpells";
 
@@ -47,6 +48,14 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     isInAdventure && playerSpells && playerSpells.length > 0;
   const slots = getSpellSlots(character.characterClass, character.level);
   const warlockMode = isWarlock(character.characterClass);
+
+  // Feat spell grants
+  const characterFeats: string[] = (() => {
+    try { return character.feats ? JSON.parse(character.feats) as string[] : []; }
+    catch { return []; }
+  })();
+  const featSpellGrants = getCharacterFeatSpellGrants(characterFeats, character.rulesSource ?? "PHB")
+    .filter((g) => g.level > 0); // exclude cantrips (at-will)
 
   const usedRaw: number[] = (() => {
     try {
@@ -117,6 +126,13 @@ export function SpellsTab({ character }: { character: CharacterData }) {
   };
   const spellAbilityMod = mod(abilityScores[spellAbility] ?? 10);
 
+  // Spellcasting stats
+  const profBonus = proficiencyBonus(character.level);
+  const spellSaveDC = 8 + profBonus + spellAbilityMod;
+  const spellAttackBonus = profBonus + spellAbilityMod;
+  const spellAbilityLabel = spellAbility.charAt(0).toUpperCase() + spellAbility.slice(1);
+  const abilityAbbrev = spellAbility.slice(0, 3).toUpperCase();
+
   // Data-driven spell limits
   const cantripsMax = getCantripsKnown(
     character.characterClass,
@@ -138,19 +154,22 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     character.rulesSource,
   );
 
-  // Compute maximum castable spell level from spell slots
+  // Compute maximum castable spell level from spell slots + feat spell grants
   const maxCastableLevel = (() => {
-    if (warlockMode) {
-      // For warlocks, slots[1] is the pact slot level
-      return slots[1] ?? 1;
-    }
-    // Standard casters: find the highest index where slots > 0, then level = index + 1
     let maxLvl = 0;
-    for (let i = slots.length - 1; i >= 0; i--) {
-      if ((slots[i] ?? 0) > 0) {
-        maxLvl = i + 1;
-        break;
+    if (warlockMode) {
+      maxLvl = slots[1] ?? 1;
+    } else {
+      for (let i = slots.length - 1; i >= 0; i--) {
+        if ((slots[i] ?? 0) > 0) {
+          maxLvl = i + 1;
+          break;
+        }
       }
+    }
+    // Also consider feat-granted spell levels
+    for (const g of featSpellGrants) {
+      if (g.level > maxLvl) maxLvl = g.level;
     }
     return maxLvl;
   })();
@@ -254,6 +273,14 @@ export function SpellsTab({ character }: { character: CharacterData }) {
 
     return (
       <div>
+        <SpellcastingStatsBar
+          abilityAbbrev={abilityAbbrev}
+          spellAbilityLabel={spellAbilityLabel}
+          spellAbilityMod={spellAbilityMod}
+          spellSaveDC={spellSaveDC}
+          spellAttackBonus={spellAttackBonus}
+          profBonus={profBonus}
+        />
         <div
           style={{
             display: "flex",
@@ -424,6 +451,9 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           </p>
         )}
 
+        {/* Feat Spell Slots */}
+        <FeatSpellSlotsSection grants={featSpellGrants} featNames={characterFeats} />
+
         {/* Spell selection for Warlock */}
         <SpellSelectionSection
           character={character}
@@ -450,8 +480,19 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     .map((count, i) => ({ count, i }))
     .filter(({ count }) => count > 0);
 
+  const hasClassSlots = activeLevels.length > 0;
+
   return (
     <div>
+      <SpellcastingStatsBar
+        abilityAbbrev={abilityAbbrev}
+        spellAbilityLabel={spellAbilityLabel}
+        spellAbilityMod={spellAbilityMod}
+        spellSaveDC={spellSaveDC}
+        spellAttackBonus={spellAttackBonus}
+        profBonus={profBonus}
+      />
+      {hasClassSlots && (<>
       <div
         style={{
           display: "flex",
@@ -559,6 +600,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           );
         })}
       </div>
+      </>)}
 
       {/* Player spell status */}
       {hasPlayerSpells && (
@@ -627,6 +669,9 @@ export function SpellsTab({ character }: { character: CharacterData }) {
         </p>
       )}
 
+      {/* Feat Spell Slots */}
+      <FeatSpellSlotsSection grants={featSpellGrants} featNames={characterFeats} />
+
       {/* Spell selection */}
       <SpellSelectionSection
         character={character}
@@ -644,6 +689,215 @@ export function SpellsTab({ character }: { character: CharacterData }) {
         spellManagement={spellManagement}
         autoCantrips={autoCantrips}
       />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Spellcasting Stats Bar — displays ability, save DC, and attack bonus
+// ---------------------------------------------------------------------------
+
+function SpellcastingStatsBar({
+  abilityAbbrev,
+  spellAbilityLabel,
+  spellAbilityMod,
+  spellSaveDC,
+  spellAttackBonus,
+  profBonus,
+}: {
+  abilityAbbrev: string;
+  spellAbilityLabel: string;
+  spellAbilityMod: number;
+  spellSaveDC: number;
+  spellAttackBonus: number;
+  profBonus: number;
+}) {
+  const boxStyle: React.CSSProperties = {
+    flex: 1,
+    minWidth: "120px",
+    background: "rgba(0,0,0,0.5)",
+    border: "1px solid rgba(201,168,76,0.3)",
+    borderRadius: "10px",
+    padding: "14px 18px",
+    textAlign: "center",
+  };
+  const labelStyle: React.CSSProperties = {
+    color: "#a89060",
+    fontSize: "10px",
+    fontFamily: "'Georgia', serif",
+    letterSpacing: "1px",
+    textTransform: "uppercase",
+    marginBottom: "6px",
+  };
+  const valueStyle: React.CSSProperties = {
+    color: "#c9a84c",
+    fontSize: "20px",
+    fontWeight: "bold",
+    fontFamily: "'Georgia', serif",
+  };
+  const subStyle: React.CSSProperties = {
+    color: "#a89060",
+    fontSize: "10px",
+    fontFamily: "'Georgia', serif",
+    marginTop: "2px",
+  };
+
+  const fmtMod = (v: number) => (v >= 0 ? `+${v}` : `${v}`);
+
+  return (
+    <div style={{
+      display: "flex",
+      gap: "12px",
+      marginBottom: "20px",
+      flexWrap: "wrap",
+    }}>
+      {/* Spellcasting Ability */}
+      <div style={boxStyle}>
+        <p style={labelStyle}>Spellcasting Ability</p>
+        <p style={valueStyle}>{abilityAbbrev}</p>
+        <p style={{ ...subStyle, color: "#e8d5a3", fontSize: "11px" }}>
+          {spellAbilityLabel} ({fmtMod(spellAbilityMod)})
+        </p>
+      </div>
+
+      {/* Spell Save DC */}
+      <div style={boxStyle}>
+        <p style={labelStyle}>Spell Save DC</p>
+        <p style={valueStyle}>{spellSaveDC}</p>
+        <p style={subStyle}>8 + {profBonus} + {fmtMod(spellAbilityMod)}</p>
+      </div>
+
+      {/* Spell Attack Bonus */}
+      <div style={boxStyle}>
+        <p style={labelStyle}>Spell Attack</p>
+        <p style={valueStyle}>{fmtMod(spellAttackBonus)}</p>
+        <p style={subStyle}>Prof + {abilityAbbrev} mod</p>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Feat Spell Slots Section — shows spell slots granted by feats
+// ---------------------------------------------------------------------------
+
+function FeatSpellSlotsSection({
+  grants,
+  featNames,
+}: {
+  grants: FeatSpellGrant[];
+  featNames: string[];
+}) {
+  if (grants.length === 0) return null;
+
+  const levelOrdinals = ["Cantrip", "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"];
+  const frequencyLabel = (f: string) => {
+    switch (f) {
+      case "daily": return "1/Long Rest";
+      case "rest": return "1/Short Rest";
+      case "at-will": return "At Will";
+      default: return f;
+    }
+  };
+
+  // Group grants by spell level
+  const byLevel = new Map<number, { count: number; frequency: string; canUseSlots: boolean }[]>();
+  for (const g of grants) {
+    const existing = byLevel.get(g.level) ?? [];
+    existing.push({ count: g.count, frequency: g.frequency, canUseSlots: g.canUseSlots });
+    byLevel.set(g.level, existing);
+  }
+
+  return (
+    <div style={{ marginTop: "20px" }}>
+      <p style={{
+        color: "#c9a84c",
+        fontSize: "12px",
+        fontWeight: "bold",
+        letterSpacing: "2px",
+        textTransform: "uppercase",
+        marginBottom: "12px",
+        paddingBottom: "8px",
+        borderBottom: "1px solid rgba(201,168,76,0.2)",
+        fontFamily: "'Georgia', serif",
+      }}>
+        Feat Spells
+      </p>
+      <p style={{
+        color: "#a89060",
+        fontSize: "11px",
+        fontFamily: "'Georgia', serif",
+        marginBottom: "12px",
+        fontStyle: "italic",
+      }}>
+        Spells granted by: {featNames.join(", ")}. Your DM will add the specific spells.
+      </p>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+        {[...byLevel.entries()].sort(([a], [b]) => a - b).map(([level, entries]) => (
+          <div
+            key={level}
+            style={{
+              background: "rgba(0,0,0,0.5)",
+              border: "1px solid rgba(201,168,76,0.3)",
+              borderRadius: "10px",
+              padding: "12px 18px",
+              display: "flex",
+              alignItems: "center",
+              gap: "12px",
+              flexWrap: "wrap",
+            }}
+          >
+            <span style={{
+              color: "#b8934a",
+              fontSize: "12px",
+              fontFamily: "'Georgia', serif",
+              minWidth: "100px",
+              fontWeight: "bold",
+            }}>
+              {levelOrdinals[level] ?? `${level}th`} Level
+            </span>
+            {entries.map((entry, i) => (
+              <span key={i} style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                <span style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "28px",
+                  height: "28px",
+                  border: "1px solid rgba(100,149,237,0.5)",
+                  borderRadius: "50%",
+                  color: "#6495ed",
+                  fontSize: "14px",
+                  fontFamily: "'Georgia', serif",
+                }}>
+                  {entry.count}
+                </span>
+                <span style={{
+                  fontSize: "10px",
+                  padding: "2px 8px",
+                  borderRadius: "10px",
+                  background: entry.frequency === "rest" ? "rgba(91,155,213,0.12)" : "rgba(74,124,42,0.12)",
+                  border: `1px solid ${entry.frequency === "rest" ? "rgba(91,155,213,0.3)" : "rgba(74,124,42,0.3)"}`,
+                  color: entry.frequency === "rest" ? "#5b9bd5" : "#4a7c2a",
+                  fontFamily: "'Georgia', serif",
+                }}>
+                  {frequencyLabel(entry.frequency)}
+                </span>
+                {entry.canUseSlots && (
+                  <span style={{
+                    color: "#a89060",
+                    fontSize: "10px",
+                    fontFamily: "'Georgia', serif",
+                    fontStyle: "italic",
+                  }}>
+                    + can use spell slots
+                  </span>
+                )}
+              </span>
+            ))}
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

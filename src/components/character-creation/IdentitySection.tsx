@@ -17,6 +17,8 @@ interface IdentitySectionProps {
   isLoading: boolean;
   onFormChange: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
   onRulesSourceChange: (source: "PHB" | "XPHB") => void;
+  selectedSubclass?: string;
+  onSubclassChange?: (subclass: string) => void;
 }
 
 export function IdentitySection({
@@ -24,11 +26,27 @@ export function IdentitySection({
   isLoading,
   onFormChange,
   onRulesSourceChange,
+  selectedSubclass,
+  onSubclassChange,
 }: IdentitySectionProps) {
   const isMobile = useIsMobile();
   const filteredClasses = useMemo(
     () => getClassesBySource(form.rulesSource),
     [form.rulesSource],
+  );
+
+  // Check if selected class gets subclass at level 1
+  const classInfo = useMemo(
+    () => (form.characterClass ? getClassByNameAndSource(form.characterClass, form.rulesSource) : undefined),
+    [form.characterClass, form.rulesSource],
+  );
+  const hasLevel1Subclass = useMemo(
+    () => classInfo?.levelFeatures.some((f) => f.level === 1 && f.isSubclassFeature) ?? false,
+    [classInfo],
+  );
+  const subclassList = useMemo(
+    () => (hasLevel1Subclass && classInfo ? classInfo.subclasses : []),
+    [hasLevel1Subclass, classInfo],
   );
 
   const backgroundInfo: Background | undefined = useMemo(
@@ -110,6 +128,28 @@ export function IdentitySection({
             </select>
           </div>
         </div>
+        {/* Subclass dropdown — shown for classes that get subclass at level 1 (e.g. Cleric, Sorcerer, Warlock in PHB) */}
+        {hasLevel1Subclass && subclassList.length > 0 && onSubclassChange && (
+          <div>
+            <label htmlFor="subclass" style={labelStyle}>
+              {classInfo?.subclassTitle ?? "Subclass"}
+            </label>
+            <select
+              id="subclass"
+              value={selectedSubclass ?? ""}
+              onChange={(e) => onSubclassChange(e.target.value)}
+              style={{ ...inputStyle, cursor: "pointer" }}
+              disabled={isLoading}
+            >
+              <option value="" disabled>Choose your path...</option>
+              {subclassList.map((sc) => (
+                <option key={sc.name} value={sc.name} style={{ background: "#1a1a2e" }}>
+                  {sc.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <div>
           <label htmlFor="alignment" style={labelStyle}>Alignment</label>
           <select id="alignment" name="alignment" value={form.alignment} onChange={onFormChange} style={{ ...inputStyle, cursor: "pointer" }} disabled={isLoading}>
