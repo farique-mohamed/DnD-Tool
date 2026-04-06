@@ -2,7 +2,9 @@ import { useState } from "react";
 import { api } from "@/utils/api";
 import { getClassByName, getClassByNameAndSource } from "@/lib/classData";
 import type { FeatureDescription } from "@/lib/classData";
+import { FIGHTING_STYLE_DESCRIPTIONS } from "@/lib/levelUpChoicesData";
 import { type CharacterData, FEATURE_USAGE_CONFIG } from "./shared";
+import { FeatCard } from "./FeatCard";
 import { RenderFeatureEntry } from "./RenderFeatureEntry";
 import { SpellProgressionTable } from "./SpellProgressionTable";
 import { TinkersMagicSection } from "./TinkersMagicSection";
@@ -25,6 +27,24 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
       return {};
     }
   });
+
+  // Parse levelUpSelections to display chosen fighting styles, tools, etc.
+  const levelUpSelections: Record<string, string[]> = (() => {
+    try {
+      return JSON.parse(character.levelUpSelections || "{}") as Record<string, string[]>;
+    } catch {
+      return {};
+    }
+  })();
+
+  // Parse feats to display next to ASI features
+  const characterFeats: string[] = (() => {
+    try {
+      return character.feats ? (JSON.parse(character.feats) as string[]) : [];
+    } catch {
+      return [];
+    }
+  })();
 
   const updateFeatureUses = api.character.updateFeatureUses.useMutation({
     onSuccess: async () => {
@@ -160,6 +180,11 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
     fontFamily: "'Georgia', serif",
   };
 
+  // Find the first ASI level to show feats only once
+  const firstAsiLevel = levels.find((lvl) =>
+    featuresByLevel[lvl]?.some((f) => f.featureName === "Ability Score Improvement"),
+  );
+
   const isArtificer =
     character.characterClass.toLowerCase() === "artificer";
   const isWarlock =
@@ -195,6 +220,10 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
               const usePool =
                 showUsage && !isFinite(maxUses) === false && maxUses > 20;
 
+              // Look up chosen selections for this feature (e.g. fighting style)
+              const selectionKey = feat.featureName.replace(/\s+/g, "");
+              const chosenSelections = levelUpSelections[selectionKey] ?? [];
+
               return (
                 <div
                   key={key}
@@ -223,6 +252,23 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                       }}
                     >
                       {feat.featureName}
+                      {chosenSelections.length > 0 && (
+                        <span
+                          style={{
+                            marginLeft: "10px",
+                            fontSize: "12px",
+                            fontWeight: "normal",
+                            color: "#c9a84c",
+                            background: "rgba(201,168,76,0.15)",
+                            border: "1px solid rgba(201,168,76,0.35)",
+                            borderRadius: "12px",
+                            padding: "2px 10px",
+                            letterSpacing: "0.3px",
+                          }}
+                        >
+                          {chosenSelections.join(", ")}
+                        </span>
+                      )}
                     </span>
                     <span
                       style={{
@@ -395,6 +441,50 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                           {maxUses - usedCount} / {maxUses} remaining
                         </span>
                       )}
+                    </div>
+                  )}
+
+                  {/* Show chosen feats at the first ASI feature to avoid duplication */}
+                  {feat.featureName === "Ability Score Improvement" && feat.level === firstAsiLevel && characterFeats.length > 0 && (
+                    <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                      <span style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'Georgia', serif" }}>
+                        Feat{characterFeats.length > 1 ? "s" : ""} taken:
+                      </span>
+                      {characterFeats.map((featName) => (
+                        <FeatCard
+                          key={featName}
+                          featName={featName}
+                          rulesSource={character.rulesSource || "PHB"}
+                        />
+                      ))}
+                    </div>
+                  )}
+
+                  {/* Show chosen selection descriptions (e.g. fighting style effect) */}
+                  {chosenSelections.length > 0 && chosenSelections.some((s) => FIGHTING_STYLE_DESCRIPTIONS[s]) && (
+                    <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
+                      {chosenSelections.map((sel) => {
+                        const desc2 = FIGHTING_STYLE_DESCRIPTIONS[sel];
+                        if (!desc2) return null;
+                        return (
+                          <div
+                            key={sel}
+                            style={{
+                              padding: "8px 14px",
+                              background: "rgba(201,168,76,0.06)",
+                              borderLeft: "3px solid rgba(201,168,76,0.5)",
+                              borderRadius: "0 6px 6px 0",
+                            }}
+                          >
+                            <span style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>
+                              {sel}
+                            </span>
+                            <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
+                              {desc2}
+                            </p>
+                          </div>
+                        );
+                      })}
                     </div>
                   )}
 

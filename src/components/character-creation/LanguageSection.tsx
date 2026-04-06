@@ -20,17 +20,26 @@ const CHOICE_PATTERNS = [
 ];
 
 function isChoiceEntry(lang: string): boolean {
-  return CHOICE_PATTERNS.some((p) => lang.toLowerCase() === p.toLowerCase());
+  if (CHOICE_PATTERNS.some((p) => lang.toLowerCase() === p.toLowerCase())) return true;
+  // Match "N extra languages of your choice" pattern
+  return /^\d+\s+extra languages? of your choice$/i.test(lang);
 }
 
 /** How many extra languages the race grants the player to choose. */
 function getChoiceCount(raceLanguages: string[]): number {
+  let total = 0;
   for (const lang of raceLanguages) {
     const lower = lang.toLowerCase();
-    if (lower.includes("two other languages") || lower.includes("two extra languages")) return 2;
-    if (lower.includes("one extra language") || lower.includes("one other language")) return 1;
+    // Match "N extra languages of your choice" pattern (from raceData parser)
+    const numMatch = lower.match(/^(\d+)\s+extra languages? of your choice$/);
+    if (numMatch) {
+      total += parseInt(numMatch[1]!, 10);
+      continue;
+    }
+    if (lower.includes("two other languages") || lower.includes("two extra languages")) { total += 2; continue; }
+    if (lower.includes("one extra language") || lower.includes("one other language")) { total += 1; continue; }
   }
-  return 0;
+  return total;
 }
 
 /** Extract fixed (non-choice) languages from the race data. */

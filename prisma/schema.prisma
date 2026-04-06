@@ -137,6 +137,12 @@ model Character {
   spellSlotsUsed     String  @default("[]")          // JSON: number[] (used per slot level 1-9)
   skillProficiencies String  @default("[]")           // JSON: string[] of proficient skill names
   skillExpertise     String  @default("[]")           // JSON: string[] of skill names with expertise (double proficiency)
+  toolProficiencies  String  @default("[]")           // JSON: string[] of tool proficiency names
+  weaponProficiencies String @default("[]")           // JSON: string[] of weapon proficiency names
+  armorProficiencies String  @default("[]")           // JSON: string[] of armor proficiency names
+  damageResistances  String  @default("[]")           // JSON: string[] of damage resistance types
+  conditionImmunities String @default("[]")           // JSON: string[] of condition immunity names
+  darkvision         Int     @default(0)              // Darkvision range in feet (0 = none)
   preparedSpells     String  @default("[]")           // JSON: string[] of prepared/known spell names
   featureUses        String  @default("{}")           // JSON: Record<string, number> feature name → used count
   activeConditions    String  @default("[]")           // JSON: string[] of active condition/status names

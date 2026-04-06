@@ -80,6 +80,41 @@ All three filters are applied together (AND logic).
 
 ---
 
+## Spellcasting Stats Display
+
+**File:** `src/components/character/SpellsTab.tsx`
+
+The Spells tab on the character sheet displays a **Spellcasting Stats** bar at the top for all spellcasting classes. It shows three values in a horizontal row of styled stat boxes:
+
+| Stat | Formula | Example |
+|------|---------|---------|
+| Spellcasting Ability | Class-dependent (see `SPELLCASTING_ABILITY` map) | WIS, CHA, INT |
+| Spell Save DC | 8 + proficiency bonus + spellcasting ability modifier | 8 + 2 + 3 = 13 |
+| Spell Attack Bonus | proficiency bonus + spellcasting ability modifier | +5 |
+
+### Class-to-Ability Mapping
+
+| Class | Spellcasting Ability |
+|-------|---------------------|
+| Artificer | Intelligence |
+| Bard | Charisma |
+| Cleric | Wisdom |
+| Druid | Wisdom |
+| Paladin | Charisma |
+| Ranger | Wisdom |
+| Sorcerer | Charisma |
+| Warlock | Charisma |
+| Wizard | Intelligence |
+
+### Implementation Notes
+
+- The stats bar is rendered by the internal `SpellcastingStatsBar` component (not exported).
+- It appears in both the Warlock (Pact Magic) and standard caster return paths.
+- `proficiencyBonus(level)` is imported from `./shared` and follows the standard 5e proficiency progression.
+- Non-caster classes (Fighter, Barbarian, etc.) never see this bar because the parent component only renders `SpellsTab` when `isSpellcaster()` returns true.
+
+---
+
 ## NavBar
 
 `/spells` is added to both `DUNGEON_MASTER` and `PLAYER` nav item lists in `src/components/NavBar.tsx`, positioned after Adventures.

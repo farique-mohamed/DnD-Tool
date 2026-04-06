@@ -62,15 +62,48 @@ export function ActionsTab({ character }: { character: CharacterData }) {
     }
   })();
 
+  // Check if character has chosen the Two-Weapon Fighting *fighting style*
+  const hasTwoWeaponFightingStyle = (() => {
+    try {
+      const selections = JSON.parse(character.levelUpSelections || "{}") as Record<string, string[]>;
+      return Object.values(selections).some((arr) => arr.includes("Two-Weapon Fighting"));
+    } catch {
+      return false;
+    }
+  })();
+
   // Compute equipment-based actions if equipment data is available
   const equipmentActionsList = equippedItems
     ? getEquipmentActions(equippedItems, character.characterClass, character.level, ITEMS)
     : undefined;
 
   // Use equipment-aware actions if equipment data is available, otherwise fall back
-  const actions = equipmentActionsList
+  let actions = equipmentActionsList
     ? getCharacterActionsWithEquipment(character.characterClass, character.level, equipmentActionsList)
     : getCharacterActions(character.characterClass, character.level);
+
+  // If the character has the Two-Weapon Fighting fighting style, update the offhand attack description
+  if (hasTwoWeaponFightingStyle) {
+    actions = actions.map((a) => {
+      if (a.name === "Two-Weapon Fighting (Offhand Attack)") {
+        return {
+          ...a,
+          description: "When you take the Attack action with a light melee weapon, attack with a different light melee weapon in your off-hand. You add your ability modifier to the damage of this attack (Two-Weapon Fighting style).",
+        };
+      }
+      // Also update equipment-generated offhand attacks
+      if (a.name.includes("Offhand Attack") && a.feature === "Two-Weapon Fighting") {
+        return {
+          ...a,
+          description: a.description.replace(
+            "Don't add your ability modifier to damage unless negative.",
+            "Add your ability modifier to the damage (Two-Weapon Fighting style).",
+          ),
+        };
+      }
+      return a;
+    });
+  }
 
   const grouped: Record<string, ActionEntry[]> = {};
   for (const cost of ACTION_COST_ORDER) {

@@ -10,6 +10,7 @@ import { getClassByNameAndSource } from "@/lib/classData";
 import { BACKGROUNDS } from "@/lib/backgroundData";
 import type { Background } from "@/lib/backgroundData";
 import { classHasExpertise, getExpertiseCountAtLevel } from "@/lib/expertiseData";
+import { getLevelUpChoices } from "@/lib/levelUpChoicesData";
 import { getRaceByNameAndSource, getRaceByName } from "@/lib/raceData";
 import {
   IdentitySection,
@@ -19,6 +20,8 @@ import {
   AbilityScoreSection,
   CombatSection,
   BackstorySection,
+  RaceBenefitsSection,
+  ClassFeatureChoicesSection,
   ABILITY_NAMES,
   type AbilityName,
   type FormState,
@@ -50,6 +53,17 @@ function CreateCharacterContent() {
   const [selectedBgChoiceSkills, setSelectedBgChoiceSkills] = useState<string[]>([]);
   const [selectedClassSkills, setSelectedClassSkills] = useState<string[]>([]);
   const [selectedExpertiseSkills, setSelectedExpertiseSkills] = useState<string[]>([]);
+
+  // Race benefit choice state
+  const [selectedResistance, setSelectedResistance] = useState("");
+  const [selectedRaceSkillChoices, setSelectedRaceSkillChoices] = useState<string[]>([]);
+  const [selectedToolChoices, setSelectedToolChoices] = useState<string[]>([]);
+
+  // Subclass selection (for classes that get subclass at level 1: Cleric, Sorcerer, Warlock in PHB)
+  const [selectedSubclass, setSelectedSubclass] = useState("");
+
+  // Class feature choices at level 1 (fighting styles, languages, etc.)
+  const [classFeatureSelections, setClassFeatureSelections] = useState<Record<string, string[]>>({});
 
   // Racial ASI state (PHB choice bonuses, e.g., Half-Elf)
   const [racialAsiChoices, setRacialAsiChoices] = useState<string[]>([]);
@@ -193,20 +207,22 @@ function CreateCharacterContent() {
   const allSelectedSkills = useMemo(() => {
     const skills = new Set<string>();
     racialFixedSkills.forEach((s) => skills.add(s));
+    selectedRaceSkillChoices.forEach((s) => skills.add(s));
     bgFixedSkills.forEach((s) => skills.add(s));
     selectedBgChoiceSkills.forEach((s) => skills.add(s));
     selectedClassSkills.forEach((s) => skills.add(s));
     return Array.from(skills).sort();
-  }, [racialFixedSkills, bgFixedSkills, selectedBgChoiceSkills, selectedClassSkills]);
+  }, [racialFixedSkills, selectedRaceSkillChoices, bgFixedSkills, selectedBgChoiceSkills, selectedClassSkills]);
 
   // Skills already locked (from race + bg fixed + bg choices) — class choices cannot pick these
   const lockedByBackground = useMemo(() => {
     const set = new Set<string>();
     racialFixedSkills.forEach((s) => set.add(s));
+    selectedRaceSkillChoices.forEach((s) => set.add(s));
     bgFixedSkills.forEach((s) => set.add(s));
     selectedBgChoiceSkills.forEach((s) => set.add(s));
     return set;
-  }, [racialFixedSkills, bgFixedSkills, selectedBgChoiceSkills]);
+  }, [racialFixedSkills, selectedRaceSkillChoices, bgFixedSkills, selectedBgChoiceSkills]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -225,11 +241,16 @@ function CreateCharacterContent() {
     if (name === "characterClass") {
       setSelectedClassSkills([]);
       setSelectedExpertiseSkills([]);
+      setClassFeatureSelections({});
+      setSelectedSubclass("");
     }
-    // Reset racial ASI choices when race changes
+    // Reset racial ASI choices and benefit choices when race changes
     if (name === "race") {
       setRacialAsiChoices([]);
       setXphbAsiChoices({});
+      setSelectedResistance("");
+      setSelectedRaceSkillChoices([]);
+      setSelectedToolChoices([]);
     }
     // Reset class selection when rulebook changes (features differ between versions)
     if (name === "rulesSource") {
@@ -238,6 +259,8 @@ function CreateCharacterContent() {
       setSelectedExpertiseSkills([]);
       setRacialAsiChoices([]);
       setXphbAsiChoices({});
+      setClassFeatureSelections({});
+      setSelectedSubclass("");
     }
   };
 
@@ -310,18 +333,55 @@ function CreateCharacterContent() {
     e.preventDefault();
     setError(null);
     if (!form.characterClass || !form.race) return;
+    // Collect race benefit data
+    const allResistances = [
+      ...(raceInfo?.damageResistances ?? []),
+      ...(selectedResistance ? [selectedResistance] : []),
+    ];
+    const allWeaponProfs = raceInfo?.weaponProficiencies ?? [];
+    const allArmorProfs = raceInfo?.armorProficiencies ?? [];
+    const allToolProfs = [
+      ...(raceInfo?.toolProficiencies?.filter((tp) => tp.name).map((tp) => tp.name!) ?? []),
+      ...selectedToolChoices,
+    ];
+    const allConditionImmunities = raceInfo?.conditionImmunities ?? [];
+
+    // Merge class feature language choices (e.g. Ranger Favored Enemy, Cleric Knowledge) into languages
+    const classFeatureLanguages: string[] = [];
+    const level1Choices = form.characterClass
+      ? getLevelUpChoices(form.characterClass, 1, form.rulesSource, selectedSubclass || undefined)
+      : [];
+    for (const choice of level1Choices) {
+      if (choice.type === "language") {
+        const key = choice.featureName.replace(/\s+/g, "");
+        const values = classFeatureSelections[key] ?? [];
+        classFeatureLanguages.push(...values.filter((v) => !form.languages.includes(v)));
+      }
+    }
+    const allLanguages = [...new Set([...form.languages, ...classFeatureLanguages])];
+
     createCharacter.mutate({
       name: form.name,
       rulesSource: form.rulesSource,
       characterClass: form.characterClass,
       race: form.race,
       level: 1 as const,
+      subclass: selectedSubclass || undefined,
       alignment: form.alignment as Parameters<typeof createCharacter.mutate>[0]["alignment"],
       background: form.background || undefined,
       backstory: form.backstory || undefined,
-      languages: form.languages.length > 0 ? JSON.stringify(form.languages) : undefined,
+      languages: allLanguages.length > 0 ? JSON.stringify(allLanguages) : undefined,
       skillProficiencies: allSelectedSkills.length > 0 ? JSON.stringify(allSelectedSkills) : undefined,
       skillExpertise: selectedExpertiseSkills.length > 0 ? JSON.stringify(selectedExpertiseSkills) : undefined,
+      toolProficiencies: allToolProfs.length > 0 ? JSON.stringify(allToolProfs) : undefined,
+      weaponProficiencies: allWeaponProfs.length > 0 ? JSON.stringify(allWeaponProfs) : undefined,
+      armorProficiencies: allArmorProfs.length > 0 ? JSON.stringify(allArmorProfs) : undefined,
+      damageResistances: allResistances.length > 0 ? JSON.stringify(allResistances) : undefined,
+      conditionImmunities: allConditionImmunities.length > 0 ? JSON.stringify(allConditionImmunities) : undefined,
+      darkvision: raceInfo?.darkvision ?? 0,
+      levelUpSelections: Object.keys(classFeatureSelections).length > 0
+        ? JSON.stringify(classFeatureSelections)
+        : undefined,
       strength: form.strength + racialBonuses.strength,
       dexterity: form.dexterity + racialBonuses.dexterity,
       constitution: form.constitution + racialBonuses.constitution,
@@ -371,6 +431,11 @@ function CreateCharacterContent() {
               isLoading={isLoading}
               onFormChange={handleChange}
               onRulesSourceChange={handleRulesSourceChange}
+              selectedSubclass={selectedSubclass}
+              onSubclassChange={(sc) => {
+                setSelectedSubclass(sc);
+                setClassFeatureSelections({});
+              }}
             />
 
             {/* Languages */}
@@ -381,6 +446,23 @@ function CreateCharacterContent() {
               backgroundName={backgroundInfo?.name}
               selectedLanguages={form.languages}
               onLanguagesChange={handleLanguagesChange}
+            />
+
+            {/* Race Benefits (darkvision, resistances, proficiencies, etc.) */}
+            <RaceBenefitsSection
+              raceInfo={raceInfo}
+              selectedResistance={selectedResistance}
+              onResistanceChange={setSelectedResistance}
+              selectedSkillChoices={selectedRaceSkillChoices}
+              onToggleSkillChoice={(skill) => {
+                setSelectedRaceSkillChoices((prev) =>
+                  prev.includes(skill)
+                    ? prev.filter((s) => s !== skill)
+                    : [...prev, skill],
+                );
+              }}
+              selectedToolChoices={selectedToolChoices}
+              onToolChoiceChange={setSelectedToolChoices}
             />
 
             {/* Skill Proficiencies */}
@@ -412,6 +494,18 @@ function CreateCharacterContent() {
                 allSelectedSkills={allSelectedSkills}
                 selectedExpertiseSkills={selectedExpertiseSkills}
                 onToggleExpertiseSkill={toggleExpertiseSkill}
+              />
+            )}
+
+            {/* Class Feature Choices (fighting styles, languages, etc.) */}
+            {form.characterClass && (
+              <ClassFeatureChoicesSection
+                characterClass={form.characterClass}
+                rulesSource={form.rulesSource}
+                subclass={selectedSubclass || undefined}
+                selections={classFeatureSelections}
+                onSelectionsChange={setClassFeatureSelections}
+                existingLanguages={form.languages}
               />
             )}
 

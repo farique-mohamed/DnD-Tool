@@ -65,7 +65,7 @@ function RaceFeaturesSection({
         Race Features
       </p>
 
-      {/* Meta info: speed, size, languages */}
+      {/* Meta info: speed, size, darkvision, languages */}
       <div
         style={{
           display: "flex",
@@ -75,7 +75,13 @@ function RaceFeaturesSection({
         }}
       >
         <span style={badgeStyle}>Speed: {raceInfo.speed} ft.</span>
+        {raceInfo.flySpeed && <span style={badgeStyle}>Fly: {raceInfo.flySpeed} ft.</span>}
+        {raceInfo.swimSpeed && <span style={badgeStyle}>Swim: {raceInfo.swimSpeed} ft.</span>}
+        {raceInfo.climbSpeed && <span style={badgeStyle}>Climb: {raceInfo.climbSpeed} ft.</span>}
         <span style={badgeStyle}>Size: {raceInfo.size}</span>
+        {(character.darkvision ?? raceInfo.darkvision ?? 0) > 0 && (
+          <span style={badgeStyle}>Darkvision: {character.darkvision ?? raceInfo.darkvision} ft.</span>
+        )}
         {(() => {
           // Show the character's actual saved languages instead of the race template
           let langs: string[] = [];
@@ -91,6 +97,79 @@ function RaceFeaturesSection({
           ));
         })()}
       </div>
+
+      {/* Damage Resistances */}
+      {(() => {
+        let resistances: string[] = [];
+        try { resistances = character.damageResistances ? JSON.parse(character.damageResistances) : []; } catch { /* empty */ }
+        if (resistances.length === 0) return null;
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+            <span style={{ ...badgeStyle, background: "rgba(139,42,30,0.15)", borderColor: "rgba(201,100,76,0.3)", color: "#e8a060" }}>
+              Resist: {resistances.join(", ")}
+            </span>
+          </div>
+        );
+      })()}
+
+      {/* Condition Immunities */}
+      {(() => {
+        let immunities: string[] = [];
+        try { immunities = character.conditionImmunities ? JSON.parse(character.conditionImmunities) : []; } catch { /* empty */ }
+        if (immunities.length === 0) return null;
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+            <span style={{ ...badgeStyle, background: "rgba(30,100,60,0.15)", borderColor: "rgba(76,201,120,0.3)", color: "#80c9a0" }}>
+              Immune: {immunities.join(", ")}
+            </span>
+          </div>
+        );
+      })()}
+
+      {/* Weapon Proficiencies */}
+      {(() => {
+        let weapons: string[] = [];
+        try { weapons = character.weaponProficiencies ? JSON.parse(character.weaponProficiencies) : []; } catch { /* empty */ }
+        if (weapons.length === 0) return null;
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+            {weapons.map((w) => (
+              <span key={w} style={badgeStyle}>{w}</span>
+            ))}
+            <span style={{ color: "#a89060", fontSize: "10px", alignSelf: "center" }}>(Weapon Prof.)</span>
+          </div>
+        );
+      })()}
+
+      {/* Armor Proficiencies */}
+      {(() => {
+        let armor: string[] = [];
+        try { armor = character.armorProficiencies ? JSON.parse(character.armorProficiencies) : []; } catch { /* empty */ }
+        if (armor.length === 0) return null;
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+            {armor.map((a) => (
+              <span key={a} style={badgeStyle}>{a}</span>
+            ))}
+            <span style={{ color: "#a89060", fontSize: "10px", alignSelf: "center" }}>(Armor Prof.)</span>
+          </div>
+        );
+      })()}
+
+      {/* Tool Proficiencies */}
+      {(() => {
+        let tools: string[] = [];
+        try { tools = character.toolProficiencies ? JSON.parse(character.toolProficiencies) : []; } catch { /* empty */ }
+        if (tools.length === 0) return null;
+        return (
+          <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", marginBottom: "12px" }}>
+            {tools.map((t) => (
+              <span key={t} style={badgeStyle}>{t}</span>
+            ))}
+            <span style={{ color: "#a89060", fontSize: "10px", alignSelf: "center" }}>(Tool Prof.)</span>
+          </div>
+        );
+      })()}
 
       {/* Ability Score Increase (PHB 2014 races) */}
       {raceInfo.abilityScoreIncrease && (

@@ -2,6 +2,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/router";
 import { isSpellcaster } from "@/lib/spellSlotData";
+import { hasFeatSpells } from "@/lib/featData";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { type CharacterData, type TabId, proficiencyBonus, mod } from "./shared";
 import { HpManager } from "./HpManager";
@@ -54,6 +55,14 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
 
   const spellcaster = isSpellcaster(character.characterClass);
 
+  // Also show Spells tab for characters with spell-granting feats
+  const characterFeats: string[] = (() => {
+    try { return character.feats ? JSON.parse(character.feats) as string[] : []; }
+    catch { return []; }
+  })();
+  const hasFeatSpellGrants = hasFeatSpells(characterFeats, character.rulesSource ?? "PHB");
+  const showSpellsTab = spellcaster || hasFeatSpellGrants;
+
   const hasAcceptedAdventure = character.adventurePlayers?.some(
     (ap) => ap.status === "ACCEPTED",
   ) ?? false;
@@ -62,7 +71,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
     { id: "overview", label: "Overview" },
     { id: "features", label: "Class Features" },
     { id: "actions", label: "Actions" },
-    ...(spellcaster ? [{ id: "spells" as TabId, label: "Spells" }] : []),
+    ...(showSpellsTab ? [{ id: "spells" as TabId, label: "Spells" }] : []),
     ...(hasAcceptedAdventure ? [{ id: "inventory" as TabId, label: "Inventory" }] : []),
     ...(hasAcceptedAdventure ? [{ id: "familiars" as TabId, label: "Familiars" }] : []),
     { id: "notes" as TabId, label: "Notes" },

@@ -43,6 +43,7 @@ export function LevelUpPanel({
   const [asiOrFeat, setAsiOrFeat] = useState<"asi" | "feat">("asi");
   const [selectedFeat, setSelectedFeat] = useState<string>("");
   const [featSearch, setFeatSearch] = useState<string>("");
+  const [expandedFeat, setExpandedFeat] = useState<string>("");
   const [featAbilityChoices, setFeatAbilityChoices] = useState<string[]>([]);
   const [featureSelections, setFeatureSelections] = useState<FeatureSelections>(
     {},
@@ -1151,12 +1152,12 @@ export function LevelUpPanel({
                       );
                     }
                     const abilitySummary = abilityParts.join(", ");
-                    // Truncated description (first 2 lines)
-                    const descPreview = feat.entries.slice(0, 2).join(" ");
-                    const truncated =
-                      descPreview.length > 120
-                        ? descPreview.slice(0, 120) + "..."
-                        : descPreview;
+                    const fullDesc = feat.entries.join(" ");
+                    const isFeatExpanded = expandedFeat === feat.name;
+                    const needsTruncation = fullDesc.length > 120;
+                    const truncated = needsTruncation
+                      ? fullDesc.slice(0, 120).replace(/\s\S*$/, "") + "..."
+                      : fullDesc;
 
                     return (
                       <div
@@ -1242,17 +1243,54 @@ export function LevelUpPanel({
                             Requires: {feat.prerequisiteText}
                           </p>
                         )}
-                        <p
-                          style={{
-                            color: "#a89060",
-                            fontSize: "11px",
-                            fontFamily: "'Georgia', serif",
-                            margin: "0 0 0 21px",
-                            lineHeight: 1.4,
-                          }}
-                        >
-                          {truncated}
-                        </p>
+                        <div style={{ margin: "0 0 0 21px" }}>
+                          {isFeatExpanded ? (
+                            <>
+                              {feat.entries.map((entry, i) => (
+                                <p
+                                  key={i}
+                                  style={{
+                                    color: "#e8d5a3",
+                                    fontSize: "12px",
+                                    fontFamily: "'Georgia', serif",
+                                    lineHeight: 1.5,
+                                    margin: "0 0 4px 0",
+                                  }}
+                                >
+                                  {entry}
+                                </p>
+                              ))}
+                              {needsTruncation && (
+                                <span
+                                  onClick={(e) => { e.stopPropagation(); setExpandedFeat(""); }}
+                                  style={{ color: "#c9a84c", fontSize: "11px", fontFamily: "'Georgia', serif", cursor: "pointer" }}
+                                >
+                                  Show less
+                                </span>
+                              )}
+                            </>
+                          ) : (
+                            <p
+                              style={{
+                                color: "#a89060",
+                                fontSize: "11px",
+                                fontFamily: "'Georgia', serif",
+                                margin: 0,
+                                lineHeight: 1.4,
+                              }}
+                            >
+                              {truncated}
+                              {needsTruncation && (
+                                <span
+                                  onClick={(e) => { e.stopPropagation(); setExpandedFeat(feat.name); }}
+                                  style={{ color: "#c9a84c", cursor: "pointer", marginLeft: "4px" }}
+                                >
+                                  Read more
+                                </span>
+                              )}
+                            </p>
+                          )}
+                        </div>
                       </div>
                     );
                   })}

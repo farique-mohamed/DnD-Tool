@@ -34,6 +34,12 @@ export type CharacterData = {
   notes?: string;
   background?: string | null;
   languages?: string; // JSON string[]
+  toolProficiencies?: string; // JSON string[]
+  weaponProficiencies?: string; // JSON string[]
+  armorProficiencies?: string; // JSON string[]
+  damageResistances?: string; // JSON string[]
+  conditionImmunities?: string; // JSON string[]
+  darkvision?: number;
   levelUpSelections?: string; // JSON Record<string, string[]>
   equippedItems?: string; // JSON EquippedItems
   adventurePlayers?: Array<{
