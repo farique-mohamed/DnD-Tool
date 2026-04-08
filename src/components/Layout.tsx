@@ -16,7 +16,7 @@ export function Layout({ children }: LayoutProps) {
     <div
       style={{
         display: "flex",
-        flexDirection: isMobile ? "column" : "row",
+        flexDirection: "column",
         minHeight: "100vh",
         background: palette.bgGradient,
         fontFamily: "'EB Garamond', 'Georgia', serif",
@@ -26,8 +26,8 @@ export function Layout({ children }: LayoutProps) {
       <main
         style={{
           flex: 1,
-          padding: isMobile ? "68px 16px 16px" : "40px",
-          minHeight: "100vh",
+          padding: isMobile ? "68px 16px 16px" : "24px 40px 40px",
+          minHeight: 0,
           overflowY: "auto",
         }}
       >

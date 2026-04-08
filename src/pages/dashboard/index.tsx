@@ -5,7 +5,6 @@ import { useAuth } from "@/hooks/useAuth";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import type { UserRoleType } from "@/lib/constants";
 
-import { WelcomeWidget } from "@/components/dashboard/WelcomeWidget";
 import { MyCharactersWidget } from "@/components/dashboard/MyCharactersWidget";
 import { QuickActionsWidget } from "@/components/dashboard/QuickActionsWidget";
 import { MyAdventuresWidget } from "@/components/dashboard/MyAdventuresWidget";
@@ -20,7 +19,6 @@ type WidgetConfig = {
 };
 
 function getWidgetsForRole(role: UserRoleType): WidgetConfig[] {
-  const welcome = { key: "welcome", component: <WelcomeWidget />, colSpan: 3 };
   const campaigns = { key: "campaigns", component: <MyCampaignsWidget />, colSpan: 2 };
   const characters = { key: "characters", component: <MyCharactersWidget />, colSpan: 2 };
   const quickActions = { key: "quick-actions", component: <QuickActionsWidget />, colSpan: 1 };
@@ -30,15 +28,12 @@ function getWidgetsForRole(role: UserRoleType): WidgetConfig[] {
 
   switch (role) {
     case "ADMIN":
-      // Row 1: Welcome(3) | Row 2: DmRequests(1)+Campaigns(2) | Row 3: Characters(2)+Sessions(1) | Row 4: Adventures(2)+QuickActions(1)
-      return [welcome, dmRequests, campaigns, characters, upcomingSessions, adventures, quickActions];
+      return [dmRequests, campaigns, characters, upcomingSessions, adventures, quickActions];
     case "DUNGEON_MASTER":
-      // Row 1: Welcome(3) | Row 2: Campaigns(2)+Sessions(1) | Row 3: Characters(2)+QuickActions(1) | Row 4: Adventures(2)
-      return [welcome, campaigns, upcomingSessions, characters, quickActions, adventures];
+      return [campaigns, upcomingSessions, characters, quickActions, adventures];
     case "PLAYER":
     default:
-      // Row 1: Welcome(3) | Row 2: Characters(2)+Sessions(1) | Row 3: Adventures(2)+QuickActions(1)
-      return [welcome, characters, upcomingSessions, adventures, quickActions];
+      return [characters, upcomingSessions, adventures, quickActions];
   }
 }
 

@@ -29,6 +29,10 @@ function SettingsContent() {
   const [usernameError, setUsernameError] = useState("");
   const [usernameSuccess, setUsernameSuccess] = useState("");
 
+  // DM request state
+  const [dmRequestMessage, setDmRequestMessage] = useState("");
+  const [dmRequestError, setDmRequestError] = useState("");
+
   // Password form state
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
@@ -54,6 +58,21 @@ function SettingsContent() {
     onError: (err) => {
       setUsernameError(err.message);
       setUsernameSuccess("");
+    },
+  });
+
+  const requestDmMutation = api.user.requestDungeonMaster.useMutation({
+    onSuccess(data) {
+      setDmRequestMessage(data.message);
+      setDmRequestError("");
+    },
+    onError(error) {
+      if (error.data?.code === "CONFLICT") {
+        setDmRequestError("You already have a pending petition.");
+      } else {
+        setDmRequestError(error.message ?? "Something went wrong. Try again.");
+      }
+      setDmRequestMessage("");
     },
   });
 
@@ -285,6 +304,46 @@ function SettingsContent() {
             </Button>
           </form>
         </Card>
+
+        {/* Request Dungeon Master Role — PLAYER only */}
+        {user.role === "PLAYER" && (
+          <Card>
+            <h2 style={sectionTitleStyle}>Request Dungeon Master Role</h2>
+            <p
+              style={{
+                color: palette.textSecondary,
+                fontFamily: SERIF,
+                fontSize: "13px",
+                marginTop: "4px",
+                marginBottom: "20px",
+              }}
+            >
+              Seek the mantle of Dungeon Master to create campaigns, manage
+              monsters, and guide fellow adventurers through your stories. An
+              administrator will review your petition.
+            </p>
+
+            {dmRequestError && (
+              <div style={{ marginBottom: "16px" }}>
+                <Alert variant="error">{dmRequestError}</Alert>
+              </div>
+            )}
+            {dmRequestMessage && (
+              <div style={{ marginBottom: "16px" }}>
+                <Alert variant="success">{dmRequestMessage}</Alert>
+              </div>
+            )}
+
+            <Button
+              type="button"
+              isLoading={requestDmMutation.isPending}
+              disabled={requestDmMutation.isPending}
+              onClick={() => requestDmMutation.mutate()}
+            >
+              Seek the Dungeon Master&apos;s Mantle
+            </Button>
+          </Card>
+        )}
       </div>
     </>
   );
