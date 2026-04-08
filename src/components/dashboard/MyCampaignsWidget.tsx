@@ -28,7 +28,7 @@ export function MyCampaignsWidget() {
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             textAlign: "center",
             padding: "16px 0",
           }}
@@ -70,7 +70,7 @@ export function MyCampaignsWidget() {
                       color: "#c9a84c",
                       fontSize: "13px",
                       fontWeight: "bold",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {adventure.name}
@@ -79,7 +79,7 @@ export function MyCampaignsWidget() {
                     style={{
                       color: "#a89060",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginTop: "2px",
                     }}
                   >

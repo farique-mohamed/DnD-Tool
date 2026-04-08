@@ -29,7 +29,7 @@ function RaceFeaturesSection({
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
           }}
         >
@@ -44,7 +44,7 @@ function RaceFeaturesSection({
     padding: "2px 10px",
     borderRadius: "12px",
     fontSize: "11px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     letterSpacing: "0.04em",
     background: "rgba(201,168,76,0.1)",
     border: "1px solid rgba(201,168,76,0.3)",
@@ -188,7 +188,7 @@ function RaceFeaturesSection({
               fontSize: "11px",
               textTransform: "uppercase",
               letterSpacing: "1.2px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
             }}
           >
@@ -198,7 +198,7 @@ function RaceFeaturesSection({
             style={{
               color: "#e8d5a3",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               lineHeight: 1.5,
               margin: "4px 0 0",
             }}
@@ -226,7 +226,7 @@ function RaceFeaturesSection({
                   color: "#c9a84c",
                   fontSize: "13px",
                   fontWeight: "bold",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {trait.name}
@@ -235,7 +235,7 @@ function RaceFeaturesSection({
                 style={{
                   color: "#e8d5a3",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   lineHeight: 1.5,
                   margin: "4px 0 0",
                 }}
@@ -253,7 +253,7 @@ function RaceFeaturesSection({
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
           }}
         >
@@ -305,7 +305,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
     marginBottom: "16px",
     paddingBottom: "8px",
     borderBottom: "1px solid rgba(201,168,76,0.2)",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
 
   return (
@@ -349,7 +349,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                       fontSize: "10px",
                       textTransform: "uppercase",
                       letterSpacing: "0.08em",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginBottom: "6px",
                     }}
                   >
@@ -360,7 +360,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                       color: "#e8d5a3",
                       fontSize: "22px",
                       fontWeight: "bold",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       lineHeight: 1,
                     }}
                   >
@@ -370,7 +370,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                     style={{
                       color: "#a89060",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginTop: "4px",
                     }}
                   >
@@ -426,7 +426,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                       style={{
                         color: "#e8d5a3",
                         fontSize: "13px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         flex: 1,
                       }}
                     >
@@ -436,7 +436,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                       style={{
                         color: "#e8d5a3",
                         fontSize: "13px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontWeight: isProficient ? "bold" : "normal",
                       }}
                     >
@@ -514,7 +514,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                     style={{
                       color: "#e8d5a3",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       flex: 1,
                       fontWeight: isHighlighted ? "bold" : "normal",
                     }}
@@ -525,7 +525,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                     style={{
                       color: "#a89060",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     ({abilityLabel})
@@ -534,7 +534,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
                     style={{
                       color: isHighlighted ? "#c9a84c" : "#e8d5a3",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       fontWeight: isHighlighted ? "bold" : "normal",
                     }}
                   >
@@ -563,7 +563,7 @@ export function OverviewTab({ character, isMobile }: { character: CharacterData;
             style={{
               color: "#e8d5a3",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               lineHeight: 1.7,
               whiteSpace: "pre-wrap",
             }}

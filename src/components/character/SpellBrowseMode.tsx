@@ -78,7 +78,7 @@ export function SpellBrowseMode({
             borderRadius: "6px",
             color: "#e8d5a3",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             outline: "none",
           }}
         />
@@ -96,7 +96,7 @@ export function SpellBrowseMode({
             borderRadius: "6px",
             color: "#e8d5a3",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             outline: "none",
           }}
         >
@@ -215,7 +215,7 @@ export function SpellBrowseMode({
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "8px",
             }}

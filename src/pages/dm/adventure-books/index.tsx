@@ -33,7 +33,7 @@ function AdventureBooksContent() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Adventure Books
@@ -43,7 +43,7 @@ function AdventureBooksContent() {
             color: "#a89060",
             fontSize: "14px",
             marginBottom: "16px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Select an adventure book to use as the basis for your campaign.
@@ -84,7 +84,7 @@ function AdventureBooksContent() {
                   borderRadius: "8px",
                   padding: "20px",
                   transition: "border-color 0.15s, background 0.15s",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 <EntityImage

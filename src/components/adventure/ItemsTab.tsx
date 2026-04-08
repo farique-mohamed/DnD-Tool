@@ -89,7 +89,7 @@ export function ItemsTab({
           borderRadius: "6px",
           padding: "10px 24px",
           fontSize: "14px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontWeight: "bold",
           cursor: "pointer",
           letterSpacing: "0.5px",
@@ -130,7 +130,7 @@ export function ItemsTab({
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             No items added yet. Equip this adventure with some loot.
@@ -179,7 +179,7 @@ export function ItemsTab({
                       style={{
                         color: GOLD_BRIGHT,
                         fontSize: "14px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       {isExpanded ? "\u25BC" : "\u25B6"} {item.name}
@@ -201,7 +201,7 @@ export function ItemsTab({
                           fontSize: "11px",
                           cursor: "pointer",
                           padding: "3px 10px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           borderRadius: "4px",
                           whiteSpace: "nowrap",
                         }}
@@ -225,7 +225,7 @@ export function ItemsTab({
                           ? "default"
                           : "pointer",
                         padding: "4px 8px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         opacity: removeItem.isPending ? 0.5 : 1,
                       }}
                       title="Remove item"
@@ -556,7 +556,7 @@ export function ItemsTab({
                         border: "none",
                         color: GOLD,
                         cursor: "pointer",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontSize: "13px",
                         padding: "0",
                         textDecoration: "underline",
@@ -609,7 +609,7 @@ export function ItemsTab({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "20px",
             }}
@@ -621,7 +621,7 @@ export function ItemsTab({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "20px",
             }}
@@ -667,7 +667,7 @@ export function ItemsTab({
                   style={{
                     color: "#e8d5a3",
                     fontSize: "14px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     flex: 1,
                   }}
                 >
@@ -677,7 +677,7 @@ export function ItemsTab({
                   style={{
                     color: "#a89060",
                     fontSize: "12px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     minWidth: "80px",
                   }}
                 >

@@ -134,7 +134,7 @@ export function SpellProgressionTable({
     fontSize: "11px",
     fontWeight: "bold",
     color: "#c9a84c",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     textAlign: "center",
     borderBottom: "1px solid rgba(201,168,76,0.3)",
     whiteSpace: "nowrap",
@@ -144,7 +144,7 @@ export function SpellProgressionTable({
     padding: "5px 8px",
     fontSize: "12px",
     color: "#e8d5a3",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     textAlign: "center",
     borderBottom: "1px solid rgba(201,168,76,0.1)",
   };
@@ -179,7 +179,7 @@ export function SpellProgressionTable({
           fontWeight: "bold",
           letterSpacing: "2px",
           textTransform: "uppercase",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           cursor: "pointer",
           textAlign: "left",
         }}

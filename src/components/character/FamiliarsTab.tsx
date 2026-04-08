@@ -6,7 +6,7 @@ import { findMonsterData, MonsterStatBlock } from "@/components/adventure/Monste
 const GOLD = "#c9a84c";
 const GOLD_MUTED = "#a89060";
 const GOLD_BRIGHT = "#e8d5a3";
-const SERIF = "'Georgia', serif";
+const SERIF = "'EB Garamond', 'Georgia', serif";
 
 type Familiar = {
   id: string;

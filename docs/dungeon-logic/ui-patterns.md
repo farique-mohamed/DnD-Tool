@@ -29,7 +29,8 @@ All UI is inline-styled (no CSS framework). The aesthetic is dark, medieval, and
 
 ## Typography
 
-- **Font:** `'Georgia', 'Times New Roman', serif` — used everywhere
+- **Body font:** `'EB Garamond', 'Georgia', serif` — used for body/content text (`SERIF` token)
+- **Heading font:** `'Cinzel', 'Georgia', serif` — used for headings (`HEADING_FONT` token)
 - **Headings:** uppercase, letter-spacing `1px`–`2px`, color `#c9a84c`
 - **Body:** `#e8d5a3` on dark backgrounds
 - **Labels:** uppercase, `0.08em` letter-spacing, `#b8934a`
@@ -64,7 +65,7 @@ import { Card, Button, PageHeader, Input, Select, Badge, Modal, Alert, GOLD, GOL
 
 Centralises every color constant, font, and common style object. The existing `src/components/adventure/shared.tsx` was updated to re-export from `theme.ts`, so older imports continue to work.
 
-Exported constants: `GOLD`, `GOLD_GLOW`, `GOLD_MUTED`, `GOLD_DARK`, `GOLD_BRIGHT`, `GOLD_FADED`, `TEXT_DIM`, `DARK_NAVY_1`, `DARK_NAVY_2`, `DARK_NAVY_3`, `CARD_BG`, `INPUT_BG`, `DANGER_RED`, `SUCCESS_GREEN_BORDER`, `ERROR_RED_BORDER`, `SERIF`.
+Exported constants: `GOLD`, `GOLD_GLOW`, `GOLD_MUTED`, `GOLD_DARK`, `GOLD_BRIGHT`, `GOLD_FADED`, `TEXT_DIM`, `DARK_NAVY_1`, `DARK_NAVY_2`, `DARK_NAVY_3`, `CARD_BG`, `INPUT_BG`, `DANGER_RED`, `SUCCESS_GREEN_BORDER`, `ERROR_RED_BORDER`, `SERIF`, `HEADING_FONT`.
 
 Exported style objects: `baseTextStyle`, `headingStyle`, `cardStyle`, `inputStyle`.
 
@@ -231,7 +232,7 @@ background: "linear-gradient(90deg, transparent, #c9a84c, transparent)";
 
 ## Theme Toggle (Dark / Light)
 
-The app supports a dark (default) and light (parchment) theme, toggled via a button in the NavBar sidebar (desktop and mobile overlay).
+The app supports a dark (default) and light (parchment) theme, toggled via an icon button in the top-right of the NavBar (desktop) and a full-width button in the mobile nav overlay.
 
 ### `useTheme` hook (`src/hooks/useTheme.ts`)
 
@@ -259,25 +260,33 @@ Full palettes are exported from `theme.ts` as `darkPalette` and `lightPalette` (
 ### Adopted components
 
 - **Layout** (`src/components/Layout.tsx`) — background gradient responds to theme.
-- **NavBar** (`src/components/NavBar.tsx`) — sidebar and mobile overlay colours respond to theme. Theme toggle button rendered above the logout button.
+- **NavBar** (`src/components/nav/`) — horizontal top bar and mobile overlay colours respond to theme. Theme toggle icon rendered at the top-right of the navbar (desktop) and as a full-width button in the mobile overlay.
 
 ---
 
 ## Layout & Navigation Components
 
-### `NavBar` (`src/components/NavBar.tsx`)
+### `NavBar` (`src/components/nav/`)
 
-Vertical sidebar (left side, 220px wide). Reads role from `useAuth()` and renders role-specific nav items. Active route highlighted with gold left-border accent using `useRouter().pathname`. Logout button at the bottom.
+Horizontal top bar (sticky, full width, 56px tall) replacing the former vertical sidebar. The component is split into sub-modules:
 
-Role → nav items mapping:
+- `src/components/nav/navItems.ts` — `NavLink`, `NavGroup`, and `NavEntry` types; `getNavEntries(role)` returns grouped menu entries.
+- `src/components/nav/DesktopNav.tsx` — desktop top bar with dropdown sub-menus on hover.
+- `src/components/nav/MobileNav.tsx` — hamburger button + full-screen overlay with expandable sections.
+- `src/components/nav/NavBar.tsx` — selects desktop vs mobile based on `useIsMobile()`.
+- `src/components/NavBar.tsx` — re-exports `NavBar` from `./nav/NavBar` for backwards compatibility.
 
-- **ADMIN**: Admin Dashboard, User Management, Adventure Oversight, DM Requests, Global Settings
-- **DUNGEON_MASTER**: Adventure Books, My Campaigns, Spells, Classes, Monster Manual, Item Vault, Rule Books, Rules For DM, Rules For Players, My Characters, Create New Character
-- **PLAYER**: My Adventures, Spells, Classes, Item Vault, Rules For Players, My Characters, Create New Character
+**Desktop layout:** Logo (left) | grouped menu items with dropdown sub-menus (center-left) | theme toggle icon + logout button (right). No username display.
+
+**Sub-menu groupings per role:**
+
+- **PLAYER**: Compendium (Spells, Classes, Races, Backgrounds, Conditions, Languages, Life Events), Equipment (Item Vault, Vehicles), Rules (Rules For Players), Characters (My Characters, Create New Character) + top-level: Search, My Adventures, Sessions, Settings
+- **DUNGEON_MASTER**: same as PLAYER plus Compendium adds Monster Manual; Rules adds Rules For DM, Rule Books; DM Tools (Adventure Books, NPC Generator); top-level My Campaigns replaces My Adventures
+- **ADMIN**: all DM items plus Admin (Admin Dashboard, User Management, Adventure Oversight, DM Requests, Global Settings)
 
 ### `Layout` (`src/components/Layout.tsx`)
 
-Flex wrapper: `NavBar` on the left, `children` in a scrollable `<main>` on the right, and `<DiceRoller>` as a sibling to `<main>` (renders the floating popup on every authenticated page). Applies the standard dark navy gradient background. Wrap all authenticated pages with both `<ProtectedRoute>` and `<Layout>`:
+Column flex wrapper: `NavBar` on top, `children` in a scrollable `<main>` below, and `<DiceRoller>` as a sibling to `<main>` (renders the floating popup on every authenticated page). Applies the standard dark navy gradient background. Wrap all authenticated pages with both `<ProtectedRoute>` and `<Layout>`:
 
 ```tsx
 export default function MyPage() {
@@ -386,16 +395,18 @@ const isMobile = useIsMobile();
 
 ### NavBar (Mobile)
 
-- The 220px sidebar is replaced by a **hamburger menu button** fixed at top-left (`12px` inset, `44px` square, `z-index: 1100`).
+- The horizontal top bar is replaced by a **hamburger menu button** fixed at top-left (`12px` inset, `44px` square, `z-index: 1100`).
 - The hamburger uses three gold (`#c9a84c`) bars that animate into an X when open.
-- Tapping the hamburger opens a **full-screen overlay** (`z-index: 1050`) with the same dark gradient background and gold-themed nav items.
+- Tapping the hamburger opens a **full-screen overlay** (`z-index: 1050`) with grouped nav items in expandable/collapsible sections (tap section header to toggle). Top-level links appear as regular buttons.
 - Nav items are larger on mobile (`16px` font, `14px` vertical padding) for easier tap targets.
+- Theme toggle and Logout are at the bottom of the overlay.
+- No username display in the mobile nav.
 - The overlay closes on nav item click, route change, or tapping the X/hamburger again.
 - Body scroll is locked while the overlay is open via `body.nav-open { overflow: hidden }` in `globals.css`.
 
 ### Layout (Mobile)
 
-- Flex direction changes from `row` to `column`.
+- Flex direction is `column` (same as desktop now that the navbar is horizontal).
 - Main content padding is `68px 16px 16px` — the `68px` top padding prevents the fixed hamburger button from overlapping page content.
 
 ### DiceRoller (Mobile)

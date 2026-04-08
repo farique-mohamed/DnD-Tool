@@ -90,7 +90,7 @@ function AdventureDetailContent() {
         style={{
           color: "#a89060",
           fontSize: "14px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
       >
         Loading adventure...
@@ -113,7 +113,7 @@ function AdventureDetailContent() {
           style={{
             color: "#a89060",
             fontSize: "14px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Adventure not found.
@@ -135,7 +135,7 @@ function AdventureDetailContent() {
           alignItems: "center",
           gap: "8px",
           marginBottom: "20px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "13px",
           color: "#a89060",
         }}
@@ -147,7 +147,7 @@ function AdventureDetailContent() {
             border: "none",
             color: "#c9a84c",
             cursor: "pointer",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontSize: "13px",
             padding: "0",
             textDecoration: "underline",
@@ -168,7 +168,7 @@ function AdventureDetailContent() {
           letterSpacing: "2px",
           textTransform: "uppercase",
           marginBottom: "8px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
       >
         {adventure.name}
@@ -180,7 +180,7 @@ function AdventureDetailContent() {
           style={{
             color: "#a89060",
             fontSize: "14px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             marginBottom: "16px",
           }}
         >
@@ -230,7 +230,7 @@ function AdventureDetailContent() {
                   : "2px solid transparent",
                 color: isActive ? "#c9a84c" : "#a89060",
                 fontSize: isMobile ? "11px" : "14px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 letterSpacing: "1px",
                 textTransform: "uppercase",

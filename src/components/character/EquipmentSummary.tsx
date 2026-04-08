@@ -49,7 +49,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
           fontWeight: "bold",
           letterSpacing: "1.5px",
           textTransform: "uppercase",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           marginBottom: "8px",
         }}
       >
@@ -77,7 +77,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
                 style={{
                   color: "#a89060",
                   fontSize: "10px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   textTransform: "uppercase",
                   letterSpacing: "0.5px",
                 }}
@@ -88,7 +88,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
                 style={{
                   color: "#e8d5a3",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {name}
@@ -99,7 +99,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
                   style={{
                     color: "#e8d5a3",
                     fontSize: "10px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     background: "rgba(232,213,163,0.08)",
                     border: "1px solid rgba(232,213,163,0.15)",
                     borderRadius: "3px",
@@ -121,7 +121,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
                   style={{
                     color: "#a89060",
                     fontSize: "9px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     background: "rgba(168,144,96,0.1)",
                     border: "1px solid rgba(168,144,96,0.2)",
                     borderRadius: "3px",
@@ -138,7 +138,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
                   style={{
                     color: "#88aaff",
                     fontSize: "9px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     background: "rgba(136,170,255,0.1)",
                     border: "1px solid rgba(136,170,255,0.2)",
                     borderRadius: "3px",
@@ -171,7 +171,7 @@ export function EquipmentSummary({ character }: { character: CharacterData }) {
                 style={{
                   color: "#cc4444",
                   fontSize: "11px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 Warning: {penalty}

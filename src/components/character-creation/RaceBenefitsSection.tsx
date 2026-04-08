@@ -39,7 +39,7 @@ const subLabelStyle: React.CSSProperties = {
   margin: "0 0 8px 0",
   color: "#a89060",
   fontSize: "12px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
 };
 
 function toolProficiencyLabel(tp: { name?: string; choiceType?: string; choiceCount?: number; choiceFrom?: string[] }): string {

@@ -21,7 +21,7 @@ export function FeatCard({
           padding: "5px 14px",
           color: "#c9a84c",
           fontSize: "12px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontWeight: "bold",
           display: "inline-block",
         }}
@@ -78,7 +78,7 @@ export function FeatCard({
           style={{
             color: "#c9a84c",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontWeight: "bold",
           }}
         >
@@ -105,7 +105,7 @@ export function FeatCard({
               padding: "1px 8px",
               color: "#c9a84c",
               fontSize: "10px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {abilityBonusLabel}
@@ -122,7 +122,7 @@ export function FeatCard({
           style={{
             color: "#a89060",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             margin: "4px 0 0 0",
             lineHeight: "1.4",
             fontStyle: "italic",
@@ -139,7 +139,7 @@ export function FeatCard({
               style={{
                 color: "#e8d5a3",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 lineHeight: "1.6",
                 margin: "0 0 6px 0",
               }}

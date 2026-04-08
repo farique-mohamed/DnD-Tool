@@ -40,7 +40,7 @@ export function QuickActionsWidget() {
               padding: "10px 8px",
               color: "#c9a84c",
               fontSize: "11px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               cursor: "pointer",
               transition: "border-color 0.2s, background 0.2s",
               display: "flex",

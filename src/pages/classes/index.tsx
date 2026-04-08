@@ -26,7 +26,7 @@ const LABEL_STYLE: React.CSSProperties = {
   fontSize: "11px",
   textTransform: "uppercase",
   letterSpacing: "1.2px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   margin: 0,
   marginBottom: "8px",
 };
@@ -34,7 +34,7 @@ const LABEL_STYLE: React.CSSProperties = {
 const BODY_STYLE: React.CSSProperties = {
   color: "#e8d5a3",
   fontSize: "13px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   margin: 0,
   lineHeight: "1.5",
 };
@@ -98,7 +98,7 @@ function ClassListPanel({
               borderRadius: "6px",
               color: isActive ? "#c9a84c" : "#e8d5a3",
               fontSize: "13px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               cursor: "pointer",
               letterSpacing: "0.3px",
               transition: "background 0.15s, color 0.15s",
@@ -150,7 +150,7 @@ function TabButton({
         borderRadius: "4px",
         padding: "6px 16px",
         fontSize: "13px",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         cursor: "pointer",
         letterSpacing: "0.5px",
         transition: "background 0.15s, color 0.15s",
@@ -223,7 +223,7 @@ function OverviewTab({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean }) {
                     padding: "3px 10px",
                     color: "#a89060",
                     fontSize: "12px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {skill}
@@ -246,7 +246,7 @@ function OverviewTab({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean }) {
             style={{
               color: "#d4b896",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               lineHeight: "1.75",
               margin: 0,
               fontStyle: "italic",
@@ -277,7 +277,7 @@ function renderFeatureEntry(
           style={{
             color: textColor,
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             lineHeight: "1.6",
             margin: "0 0 6px 0",
           }}
@@ -295,7 +295,7 @@ function renderFeatureEntry(
             paddingLeft: "20px",
             color: textColor,
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             lineHeight: "1.6",
           }}
         >
@@ -315,7 +315,7 @@ function renderFeatureEntry(
               style={{
                 color: isSubclass ? "#c9a84c" : "#c9a84c",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 letterSpacing: "0.4px",
                 margin: "0 0 4px 0",
@@ -335,11 +335,11 @@ function renderFeatureEntry(
       return (
         <div key={key} style={{ marginBottom: "10px" }}>
           {entry.caption && (
-            <p style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'Georgia', serif", marginBottom: "6px", letterSpacing: "0.5px" }}>
+            <p style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'EB Garamond', 'Georgia', serif", marginBottom: "6px", letterSpacing: "0.5px" }}>
               {entry.caption}
             </p>
           )}
-          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             {entry.colLabels && entry.colLabels.length > 0 && (
               <thead>
                 <tr>
@@ -383,7 +383,7 @@ function renderFeatureEntry(
               style={{
                 color: "#c9a84c",
                 fontSize: "11px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 letterSpacing: "0.6px",
                 textTransform: "uppercase",
@@ -447,7 +447,7 @@ function FeatureBlock({
           border: "none",
           padding: 0,
           cursor: "pointer",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "13px",
           fontWeight: "bold",
           color: nameColor,
@@ -490,7 +490,7 @@ function FeatureBlock({
           style={{
             color: snippetColor,
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             lineHeight: "1.5",
             margin: "3px 0 0 0",
             fontStyle: "italic",
@@ -516,7 +516,7 @@ function FeatureBlock({
                 cursor: "pointer",
                 color: "#c9a84c",
                 fontSize: "11px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 letterSpacing: "0.3px",
                 opacity: 0.8,
               }}
@@ -578,7 +578,7 @@ function ProgressionTab({
     fontSize: "11px",
     textTransform: "uppercase",
     letterSpacing: "1.2px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontWeight: "bold",
     padding: "8px 12px",
     borderBottom: "1px solid rgba(201,168,76,0.4)",
@@ -612,7 +612,7 @@ function ProgressionTab({
                     color: isActive ? "#1a1a2e" : "#c9a84c",
                     fontWeight: isActive ? "bold" : "normal",
                     fontSize: "12px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     cursor: "pointer",
                     transition: "background 0.15s, color 0.15s",
                   }}
@@ -637,7 +637,7 @@ function ProgressionTab({
           style={{
             width: "100%",
             borderCollapse: "collapse",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           <thead>
@@ -724,14 +724,14 @@ function ProgressionTab({
                     {/* Plain names without descriptions */}
                     {baseNamesOnly.map((name) => (
                       <div key={`plain-base-${name}`} style={{ marginBottom: "4px" }}>
-                        <span style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+                        <span style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                           {name}
                         </span>
                       </div>
                     ))}
                     {subNamesOnly.map((name) => (
                       <div key={`plain-sub-${name}`} style={{ marginBottom: "4px" }}>
-                        <span style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+                        <span style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                           {name}
                         </span>
                       </div>
@@ -778,7 +778,7 @@ function ClassDetailPanel({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean
             fontWeight: "bold",
             letterSpacing: "2px",
             textTransform: "uppercase",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             margin: 0,
             marginBottom: "12px",
           }}
@@ -795,7 +795,7 @@ function ClassDetailPanel({ cls, isMobile }: { cls: ClassInfo; isMobile: boolean
               padding: "4px 14px",
               color: "#c9a84c",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               letterSpacing: "0.5px",
             }}
@@ -868,7 +868,7 @@ function ClassCompendiumContent() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Class Compendium
@@ -878,7 +878,7 @@ function ClassCompendiumContent() {
             color: "#a89060",
             fontSize: "14px",
             marginBottom: "20px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Every path begins with a choice of calling.
@@ -902,7 +902,7 @@ function ClassCompendiumContent() {
                 fontWeight: selectedSource === opt.value ? "bold" : "normal",
                 padding: isMobile ? "6px 10px" : "8px 18px",
                 fontSize: isMobile ? "11px" : "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 cursor: "pointer",
                 letterSpacing: "0.3px",
                 borderRadius: opt.value === "PHB" ? "6px 0 0 6px" : "0 6px 6px 0",

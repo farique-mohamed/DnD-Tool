@@ -16,7 +16,7 @@ const GOLD_BRIGHT = "#e8d5a3";
 const GOLD_DIM = "rgba(201,168,76,0.15)";
 const GOLD_BORDER = "rgba(201,168,76,0.25)";
 const TEXT_DIM = "rgba(232,213,163,0.6)";
-const SERIF = "'Georgia', 'Times New Roman', serif";
+const SERIF = "'EB Garamond', 'Georgia', serif";
 
 // ---------------------------------------------------------------------------
 // Source badge color helper

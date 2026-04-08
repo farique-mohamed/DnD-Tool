@@ -75,7 +75,7 @@ function ConfirmDialog({
           padding: "40px 36px",
           maxWidth: "420px",
           width: "100%",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -125,7 +125,7 @@ function ConfirmDialog({
               color: "#c9a84c",
               borderRadius: "4px",
               padding: "10px 20px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontSize: "13px",
               cursor: "pointer",
               opacity: isLoading ? 0.5 : 1,
@@ -143,7 +143,7 @@ function ConfirmDialog({
               borderRadius: "6px",
               padding: "10px 24px",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: isLoading ? "not-allowed" : "pointer",
               letterSpacing: "0.5px",
@@ -168,7 +168,7 @@ function RoleBadge({ role }: { role: Role }) {
         borderRadius: "4px",
         fontSize: "11px",
         fontWeight: "bold",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         letterSpacing: "0.5px",
         color: ROLE_COLORS[role],
         background: `${ROLE_COLORS[role]}20`,
@@ -255,7 +255,7 @@ function UserManagementContent() {
     background: "rgba(30,15,5,0.9)",
     border: "1px solid rgba(201,168,76,0.4)",
     color: "#e8d5a3",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     borderRadius: "6px",
     padding: "10px 14px",
     fontSize: "13px",
@@ -336,7 +336,7 @@ function UserManagementContent() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           User Management
@@ -346,7 +346,7 @@ function UserManagementContent() {
             color: "#a89060",
             fontSize: "14px",
             marginBottom: "32px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Every soul that walks these halls
@@ -371,7 +371,7 @@ function UserManagementContent() {
               color: "#e74c3c",
               fontSize: "13px",
               marginBottom: "20px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {errorMessage}
@@ -417,7 +417,7 @@ function UserManagementContent() {
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Consulting the arcane records...
@@ -429,7 +429,7 @@ function UserManagementContent() {
             style={{
               color: "#e74c3c",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             A dark magic has disrupted the records.
@@ -454,7 +454,7 @@ function UserManagementContent() {
                   style={{
                     width: "100%",
                     borderCollapse: "collapse",
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   <thead>
@@ -594,7 +594,7 @@ function UserManagementContent() {
                                 borderRadius: "4px",
                                 padding: "6px 12px",
                                 fontSize: "11px",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                                 cursor: "pointer",
                                 whiteSpace: "nowrap",
                               }}
@@ -621,7 +621,7 @@ function UserManagementContent() {
                       border: "1px solid rgba(201,168,76,0.2)",
                       borderRadius: "12px",
                       padding: "18px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     <div
@@ -744,7 +744,7 @@ function UserManagementContent() {
                           borderRadius: "4px",
                           padding: "8px 14px",
                           fontSize: "12px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           cursor: "pointer",
                           whiteSpace: "nowrap",
                         }}
@@ -766,7 +766,7 @@ function UserManagementContent() {
                   alignItems: "center",
                   gap: "16px",
                   marginTop: "24px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 <button
@@ -778,7 +778,7 @@ function UserManagementContent() {
                     color: "#c9a84c",
                     borderRadius: "4px",
                     padding: "8px 16px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "13px",
                     cursor: page === 1 ? "not-allowed" : "pointer",
                     opacity: page === 1 ? 0.4 : 1,
@@ -803,7 +803,7 @@ function UserManagementContent() {
                     color: "#c9a84c",
                     borderRadius: "4px",
                     padding: "8px 16px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "13px",
                     cursor: page === totalPages ? "not-allowed" : "pointer",
                     opacity: page === totalPages ? 0.4 : 1,
@@ -828,7 +828,7 @@ function UserManagementContent() {
                   style={{
                     color: "#a89060",
                     fontSize: "14px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   No adventurers found matching your search.

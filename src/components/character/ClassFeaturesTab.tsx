@@ -64,7 +64,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
       <div
         style={{
           color: "#a89060",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "14px",
           padding: "20px 0",
         }}
@@ -177,7 +177,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
     marginBottom: "16px",
     paddingBottom: "8px",
     borderBottom: "1px solid rgba(201,168,76,0.2)",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
 
   // Find the first ASI level to show feats only once
@@ -247,7 +247,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                         color: "#e8d5a3",
                         fontSize: "14px",
                         fontWeight: "bold",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         flex: 1,
                       }}
                     >
@@ -275,7 +275,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                         fontSize: "10px",
                         padding: "2px 8px",
                         borderRadius: "10px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         letterSpacing: "0.5px",
                         background: isSubclass
                           ? "rgba(168,144,96,0.15)"
@@ -298,7 +298,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                           borderRadius: "4px",
                           padding: "2px 10px",
                           fontSize: "11px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           cursor: "pointer",
                           letterSpacing: "0.5px",
                         }}
@@ -325,7 +325,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                           fontSize: "11px",
                           textTransform: "uppercase",
                           letterSpacing: "0.06em",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                         }}
                       >
                         Uses:
@@ -359,7 +359,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                               borderRadius: "6px",
                               color: "#e8d5a3",
                               fontSize: "13px",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                               outline: "none",
                               textAlign: "center",
                             }}
@@ -368,7 +368,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                             style={{
                               color: "#a89060",
                               fontSize: "12px",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                             }}
                           >
                             / {maxUses} used
@@ -402,7 +402,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                               display: "flex",
                               alignItems: "center",
                               justifyContent: "center",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                             }}
                           >
                             {j < usedCount ? "●" : "○"}
@@ -423,7 +423,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                             usageConfig.recharge === "short"
                               ? "#5b9bd5"
                               : "#4a7c2a",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                         }}
                       >
                         {usageConfig.recharge === "short"
@@ -435,7 +435,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                           style={{
                             color: "#a89060",
                             fontSize: "12px",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                           }}
                         >
                           {maxUses - usedCount} / {maxUses} remaining
@@ -447,7 +447,7 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                   {/* Show chosen feats at the first ASI feature to avoid duplication */}
                   {feat.featureName === "Ability Score Improvement" && feat.level === firstAsiLevel && characterFeats.length > 0 && (
                     <div style={{ marginTop: "10px", display: "flex", flexDirection: "column", gap: "6px" }}>
-                      <span style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'Georgia', serif" }}>
+                      <span style={{ color: "#b8934a", fontSize: "11px", textTransform: "uppercase", letterSpacing: "0.06em", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                         Feat{characterFeats.length > 1 ? "s" : ""} taken:
                       </span>
                       {characterFeats.map((featName) => (
@@ -476,10 +476,10 @@ export function ClassFeaturesTab({ character }: { character: CharacterData }) {
                               borderRadius: "0 6px 6px 0",
                             }}
                           >
-                            <span style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>
+                            <span style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                               {sel}
                             </span>
-                            <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
+                            <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
                               {desc2}
                             </p>
                           </div>

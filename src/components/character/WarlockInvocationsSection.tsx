@@ -69,7 +69,7 @@ export function WarlockInvocationsSection({
     fontWeight: "bold",
     letterSpacing: "2px",
     textTransform: "uppercase",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
 
   const cardStyle: React.CSSProperties = {
@@ -87,7 +87,7 @@ export function WarlockInvocationsSection({
     borderRadius: "6px",
     color: "#e8d5a3",
     fontSize: "13px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     outline: "none",
     flex: 1,
     minWidth: "0",
@@ -100,7 +100,7 @@ export function WarlockInvocationsSection({
     color: "#1a0e00",
     fontSize: "12px",
     fontWeight: "bold",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     padding: "6px 14px",
     cursor: "pointer",
     whiteSpace: "nowrap",
@@ -112,7 +112,7 @@ export function WarlockInvocationsSection({
     borderRadius: "4px",
     color: "#a89060",
     fontSize: "11px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     padding: "2px 8px",
     cursor: "pointer",
   };
@@ -135,7 +135,7 @@ export function WarlockInvocationsSection({
           style={{
             color: "#a89060",
             fontSize: "11px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {invocations.length} / {maxKnown} known
@@ -196,7 +196,7 @@ export function WarlockInvocationsSection({
           style={{
             color: "#a89060",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
             margin: 0,
           }}
@@ -222,7 +222,7 @@ export function WarlockInvocationsSection({
                 style={{
                   color: "#e8d5a3",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   flex: 1,
                 }}
               >

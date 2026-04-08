@@ -176,7 +176,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
               "0 0 40px rgba(201,168,76,0.3), inset 0 0 60px rgba(0,0,0,0.5)",
             display: "flex",
             flexDirection: "column",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {/* Header */}
@@ -223,7 +223,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                 cursor: "pointer",
                 lineHeight: 1,
                 padding: "0 0 0 8px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 minHeight: "auto",
               }}
               title="Close"
@@ -249,7 +249,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                   fontSize: "12px",
                   textAlign: "center",
                   padding: "20px 0",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 Consulting the fates...
@@ -263,7 +263,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                   fontSize: "12px",
                   textAlign: "center",
                   padding: "20px 0",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontStyle: "italic",
                 }}
               >
@@ -329,7 +329,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                           style={{
                             color: "#e8d5a3",
                             fontSize: "13px",
-                            fontFamily: "'Georgia', 'Times New Roman', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                           }}
                         >
                           {roll.diceType} →{" "}
@@ -356,7 +356,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                               border: "1px solid rgba(46,204,113,0.5)",
                               borderRadius: "3px",
                               padding: "1px 4px",
-                              fontFamily: "'Georgia', 'Times New Roman', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                             }}
                           >
                             Adv
@@ -372,7 +372,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                               border: "1px solid rgba(230,126,34,0.5)",
                               borderRadius: "3px",
                               padding: "1px 4px",
-                              fontFamily: "'Georgia', 'Times New Roman', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                             }}
                           >
                             Dis
@@ -422,7 +422,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                           fontStyle: "italic",
                           marginTop: "2px",
                           paddingLeft: "2px",
-                          fontFamily: "'Georgia', 'Times New Roman', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                         }}
                       >
                         {roll.label}
@@ -450,7 +450,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                 textTransform: "uppercase",
                 letterSpacing: "1.5px",
                 marginBottom: "6px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Roll Mode
@@ -486,7 +486,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                       borderRadius: "6px",
                       padding: "6px 4px",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       fontWeight: "bold",
                       cursor: "pointer",
                       textTransform: "uppercase",
@@ -509,7 +509,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                 textTransform: "uppercase",
                 letterSpacing: "1.5px",
                 marginBottom: "6px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Dice
@@ -523,7 +523,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                   fontSize: "11px",
                   fontStyle: "italic",
                   marginBottom: "6px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {rollMode === "ADVANTAGE"
@@ -572,7 +572,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                         color: isActive ? "#c9a84c" : "#a89060",
                         fontSize: "12px",
                         fontWeight: "bold",
-                        fontFamily: "'Georgia', 'Times New Roman', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         textTransform: "uppercase",
                         letterSpacing: "0.5px",
                         width: "34px",
@@ -597,7 +597,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         opacity: disabled || count === 0 ? 0.4 : 1,
                         flexShrink: 0,
                         minHeight: "auto",
@@ -609,7 +609,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                       style={{
                         color: "#e8d5a3",
                         fontSize: "13px",
-                        fontFamily: "'Georgia', 'Times New Roman', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontWeight: "bold",
                         minWidth: "20px",
                         textAlign: "center",
@@ -633,7 +633,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         opacity: disabled || count === 10 ? 0.4 : 1,
                         flexShrink: 0,
                         minHeight: "auto",
@@ -654,7 +654,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                   fontSize: "11px",
                   fontStyle: "italic",
                   marginBottom: "10px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   letterSpacing: "0.5px",
                 }}
               >
@@ -671,7 +671,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                 textTransform: "uppercase",
                 letterSpacing: "1.5px",
                 marginBottom: "4px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Roll Type
@@ -689,7 +689,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                 padding: "8px 10px",
                 color: "#e8d5a3",
                 fontSize: "12px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "12px",
                 boxSizing: "border-box",
                 outline: "none",
@@ -722,7 +722,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                 borderRadius: "6px",
                 padding: "10px 20px",
                 fontSize: "14px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 cursor:
                   rollMutation.isPending || rollDisplay === "Select a Die"
@@ -742,7 +742,7 @@ export function DiceRoller({ adventureId }: { adventureId: string }) {
                   color: "#e74c3c",
                   fontSize: "11px",
                   marginTop: "6px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {rollMutation.error.message}

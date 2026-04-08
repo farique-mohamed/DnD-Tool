@@ -85,7 +85,7 @@ export function IdentitySection({
                   fontWeight: form.rulesSource === opt.value ? "bold" : "normal",
                   padding: "8px 18px",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: isLoading ? "not-allowed" : "pointer",
                   letterSpacing: "0.3px",
                   borderRadius: opt.value === "PHB" ? "6px 0 0 6px" : "0 6px 6px 0",
@@ -115,7 +115,7 @@ export function IdentitySection({
                 href="/classes"
                 target="_blank"
                 rel="noopener noreferrer"
-                style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", textDecoration: "none", letterSpacing: "0.3px" }}
+                style={{ color: "#a89060", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif", textDecoration: "none", letterSpacing: "0.3px" }}
                 onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#c9a84c"; }}
                 onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#a89060"; }}
               >
@@ -163,7 +163,7 @@ export function IdentitySection({
               href="/backgrounds"
               target="_blank"
               rel="noopener noreferrer"
-              style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", textDecoration: "none", letterSpacing: "0.3px" }}
+              style={{ color: "#a89060", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif", textDecoration: "none", letterSpacing: "0.3px" }}
               onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#c9a84c"; }}
               onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.color = "#a89060"; }}
             >
@@ -186,7 +186,7 @@ export function IdentitySection({
           padding: "3px 10px",
           color: "#e8d5a3",
           fontSize: "12px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         };
         const featureName = backgroundInfo.entries
           ?.filter((e): e is { name: string; type: string } => typeof e === 'object' && e !== null && 'name' in e)
@@ -211,7 +211,7 @@ export function IdentitySection({
             flexDirection: "column",
             gap: "10px",
           }}>
-            <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif", margin: 0 }}>
+            <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'EB Garamond', 'Georgia', serif", margin: 0 }}>
               {backgroundInfo.name} — Background Benefits
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
@@ -267,33 +267,33 @@ export function IdentitySection({
             flexDirection: "column",
             gap: "10px",
           }}>
-            <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif", margin: 0 }}>
+            <p style={{ color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'EB Garamond', 'Georgia', serif", margin: 0 }}>
               {ci.name} — Class Overview
             </p>
             <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
-              <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "3px 10px", color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+              <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "3px 10px", color: "#e8d5a3", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                 Hit Die: {ci.hitDie}
               </span>
               {ci.savingThrows.length > 0 && (
-                <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "3px 10px", color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+                <span style={{ background: "rgba(201,168,76,0.15)", border: "1px solid rgba(201,168,76,0.3)", borderRadius: "4px", padding: "3px 10px", color: "#e8d5a3", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                   Saves: {ci.savingThrows.join(", ")}
                 </span>
               )}
             </div>
             {ci.armorProficiencies.length > 0 && (
-              <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+              <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                 <span style={{ color: "#c9a84c" }}>Armor:</span>{" "}
                 {ci.armorProficiencies.join(", ")}
               </p>
             )}
             {ci.weaponProficiencies.length > 0 && (
-              <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+              <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                 <span style={{ color: "#c9a84c" }}>Weapons:</span>{" "}
                 {ci.weaponProficiencies.join(", ")}
               </p>
             )}
             {ci.skillChoices.count > 0 && (
-              <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+              <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                 <span style={{ color: "#c9a84c" }}>Skills:</span>{" "}
                 Choose {ci.skillChoices.count} from{" "}
                 {ci.skillChoices.from.length > 0 && ci.skillChoices.from[0] !== "Any skill"

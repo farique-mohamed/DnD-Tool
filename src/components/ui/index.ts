@@ -30,6 +30,7 @@ export {
   ERROR_RED_BORDER,
   // Font
   SERIF,
+  HEADING_FONT,
   // Common style objects
   baseTextStyle,
   headingStyle,

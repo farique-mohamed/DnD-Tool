@@ -119,7 +119,7 @@ export function SpellsTab({
           borderRadius: "6px",
           padding: "10px 24px",
           fontSize: "14px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontWeight: "bold",
           cursor: "pointer",
           letterSpacing: "0.5px",
@@ -143,7 +143,7 @@ export function SpellsTab({
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             No spells added yet. Curate the spell list for your players.
@@ -192,7 +192,7 @@ export function SpellsTab({
                       style={{
                         color: GOLD_BRIGHT,
                         fontSize: "14px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       {isExpanded ? "\u25BC" : "\u25B6"} {spell.name}
@@ -204,7 +204,7 @@ export function SpellsTab({
                           style={{
                             color: GOLD,
                             fontSize: "11px",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                             background: "rgba(201,168,76,0.15)",
                             padding: "2px 8px",
                             borderRadius: "4px",
@@ -217,7 +217,7 @@ export function SpellsTab({
                           style={{
                             color: GOLD_MUTED,
                             fontSize: "11px",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                             fontStyle: "italic",
                           }}
                         >
@@ -239,7 +239,7 @@ export function SpellsTab({
                       fontSize: "16px",
                       cursor: removeSpell.isPending ? "default" : "pointer",
                       padding: "4px 8px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       opacity: removeSpell.isPending ? 0.5 : 1,
                     }}
                     title="Remove spell"
@@ -446,7 +446,7 @@ export function SpellsTab({
               background: "rgba(30,15,5,0.9)",
               border: "1px solid rgba(201,168,76,0.4)",
               color: "#e8d5a3",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               borderRadius: "6px",
               padding: "6px 10px",
               fontSize: "12px",
@@ -467,7 +467,7 @@ export function SpellsTab({
               background: "rgba(30,15,5,0.9)",
               border: "1px solid rgba(201,168,76,0.4)",
               color: "#e8d5a3",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               borderRadius: "6px",
               padding: "6px 10px",
               fontSize: "12px",
@@ -488,7 +488,7 @@ export function SpellsTab({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "20px",
             }}
@@ -500,7 +500,7 @@ export function SpellsTab({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "20px",
             }}
@@ -555,7 +555,7 @@ export function SpellsTab({
                     style={{
                       color: "#e8d5a3",
                       fontSize: "14px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       flex: 1,
                     }}
                   >
@@ -577,7 +577,7 @@ export function SpellsTab({
                     style={{
                       color: "#c9a84c",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       background: "rgba(201,168,76,0.15)",
                       padding: "2px 8px",
                       borderRadius: "4px",
@@ -591,7 +591,7 @@ export function SpellsTab({
                     style={{
                       color: "#a89060",
                       fontSize: "12px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       minWidth: "80px",
                     }}
                   >

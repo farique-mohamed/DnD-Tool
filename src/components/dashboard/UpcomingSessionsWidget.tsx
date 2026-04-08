@@ -47,7 +47,7 @@ export function UpcomingSessionsWidget() {
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             textAlign: "center",
             padding: "16px 0",
           }}
@@ -85,7 +85,7 @@ export function UpcomingSessionsWidget() {
                 style={{
                   color: "#a89060",
                   fontSize: "11px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {formatShortDate(session.scheduledAt)} at{" "}
@@ -96,7 +96,7 @@ export function UpcomingSessionsWidget() {
                   color: "#c9a84c",
                   fontSize: "13px",
                   fontWeight: "bold",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {session.title}
@@ -106,7 +106,7 @@ export function UpcomingSessionsWidget() {
                   style={{
                     color: "#a89060",
                     fontSize: "11px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {session.adventure.name}

@@ -126,7 +126,7 @@ export function ArtificerInfusionsSection({
     fontWeight: "bold",
     letterSpacing: "2px",
     textTransform: "uppercase",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
 
   const cardStyle: React.CSSProperties = {
@@ -144,7 +144,7 @@ export function ArtificerInfusionsSection({
     borderRadius: "6px",
     color: "#e8d5a3",
     fontSize: "13px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     outline: "none",
     flex: 1,
     minWidth: "0",
@@ -157,7 +157,7 @@ export function ArtificerInfusionsSection({
     color: "#1a0e00",
     fontSize: "12px",
     fontWeight: "bold",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     padding: "6px 14px",
     cursor: "pointer",
     whiteSpace: "nowrap",
@@ -169,7 +169,7 @@ export function ArtificerInfusionsSection({
     borderRadius: "4px",
     color: "#a89060",
     fontSize: "11px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     padding: "2px 8px",
     cursor: "pointer",
   };
@@ -193,7 +193,7 @@ export function ArtificerInfusionsSection({
             style={{
               color: "#a89060",
               fontSize: "11px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {data.knownInfusions.length} / {maxKnown} known
@@ -202,7 +202,7 @@ export function ArtificerInfusionsSection({
             style={{
               color: "#a89060",
               fontSize: "11px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {activeCount} / {maxActive} active
@@ -264,7 +264,7 @@ export function ArtificerInfusionsSection({
           style={{
             color: "#a89060",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
             margin: 0,
           }}
@@ -327,7 +327,7 @@ export function ArtificerInfusionsSection({
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       opacity: canActivate ? 1 : 0.4,
                       flexShrink: 0,
                     }}
@@ -340,7 +340,7 @@ export function ArtificerInfusionsSection({
                     style={{
                       color: isActive ? "#e8d5a3" : "#a89060",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       flex: 1,
                     }}
                   >
@@ -357,7 +357,7 @@ export function ArtificerInfusionsSection({
                         background: "rgba(74,124,42,0.15)",
                         border: "1px solid rgba(74,124,42,0.3)",
                         color: "#4a7c2a",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       Active

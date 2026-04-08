@@ -23,7 +23,7 @@ export function DiceHistoryWidget({ adventureId }: { adventureId: string }) {
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             textAlign: "center",
             padding: "16px 0",
           }}
@@ -56,7 +56,7 @@ export function DiceHistoryWidget({ adventureId }: { adventureId: string }) {
                     color: "#c9a84c",
                     fontSize: "18px",
                     fontWeight: "bold",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     minWidth: "28px",
                     textAlign: "center",
                   }}
@@ -68,7 +68,7 @@ export function DiceHistoryWidget({ adventureId }: { adventureId: string }) {
                     style={{
                       color: "#e8d5a3",
                       fontSize: "12px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {roll.diceType}
@@ -103,7 +103,7 @@ export function DiceHistoryWidget({ adventureId }: { adventureId: string }) {
                     style={{
                       color: "#8b7a5e",
                       fontSize: "10px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginTop: "2px",
                     }}
                   >
@@ -115,7 +115,7 @@ export function DiceHistoryWidget({ adventureId }: { adventureId: string }) {
                 style={{
                   color: "#8b7a5e",
                   fontSize: "10px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {timeAgo(roll.rolledAt)}

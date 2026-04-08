@@ -8,7 +8,7 @@ export const GOLD_BRIGHT = "#e8d5a3";
 export const GOLD_DIM = "rgba(201,168,76,0.15)";
 export const GOLD_BORDER = "rgba(201,168,76,0.25)";
 export const TEXT_DIM = "rgba(232,213,163,0.6)";
-export const SERIF = "'Georgia', 'Times New Roman', serif";
+export const SERIF = "'EB Garamond', 'Georgia', serif";
 
 export const LABEL: React.CSSProperties = {
   color: GOLD,

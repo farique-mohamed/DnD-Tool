@@ -70,7 +70,7 @@ export function MonstersTab({
           borderRadius: "6px",
           padding: "10px 24px",
           fontSize: "14px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontWeight: "bold",
           cursor: "pointer",
           letterSpacing: "0.5px",
@@ -94,7 +94,7 @@ export function MonstersTab({
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             No monsters added yet. Add some foes to this adventure.
@@ -143,7 +143,7 @@ export function MonstersTab({
                       style={{
                         color: GOLD_BRIGHT,
                         fontSize: "14px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       {isExpanded ? "\u25BC" : "\u25B6"} {monster.name}
@@ -154,7 +154,7 @@ export function MonstersTab({
                         style={{
                           color: GOLD,
                           fontSize: "11px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(201,168,76,0.15)",
                           padding: "2px 8px",
                           borderRadius: "4px",
@@ -180,7 +180,7 @@ export function MonstersTab({
                         ? "default"
                         : "pointer",
                       padding: "4px 8px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       opacity: removeMonster.isPending ? 0.5 : 1,
                     }}
                     title="Remove monster"
@@ -642,7 +642,7 @@ export function MonstersTab({
                         border: "none",
                         color: GOLD,
                         cursor: "pointer",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontSize: "13px",
                         padding: "0",
                         textDecoration: "underline",
@@ -695,7 +695,7 @@ export function MonstersTab({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "20px",
             }}
@@ -707,7 +707,7 @@ export function MonstersTab({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "20px",
             }}
@@ -753,7 +753,7 @@ export function MonstersTab({
                   style={{
                     color: "#e8d5a3",
                     fontSize: "14px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     flex: 1,
                   }}
                 >
@@ -763,7 +763,7 @@ export function MonstersTab({
                   style={{
                     color: "#c9a84c",
                     fontSize: "11px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     background: "rgba(201,168,76,0.15)",
                     padding: "2px 8px",
                     borderRadius: "4px",
@@ -776,7 +776,7 @@ export function MonstersTab({
                   style={{
                     color: "#a89060",
                     fontSize: "12px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     minWidth: "80px",
                   }}
                 >
