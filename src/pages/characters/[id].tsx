@@ -51,7 +51,7 @@ function ExportBar({ character }: { character: CharacterData }) {
     borderRadius: "4px",
     color: "#a89060",
     fontSize: "12px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     padding: "5px 12px",
     cursor: "pointer",
     letterSpacing: "0.5px",
@@ -130,7 +130,7 @@ function CharacterDetailContent() {
       <p
         style={{
           color: "#a89060",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "14px",
         }}
       >
@@ -149,7 +149,7 @@ function CharacterDetailContent() {
           padding: "16px 20px",
           color: "#e8d5a3",
           fontSize: "14px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           maxWidth: "500px",
         }}
       >

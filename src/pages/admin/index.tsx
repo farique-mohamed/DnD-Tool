@@ -43,7 +43,7 @@ function StatCard({
           color: "#c9a84c",
           fontSize: "32px",
           fontWeight: "bold",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           marginBottom: "8px",
         }}
       >
@@ -53,7 +53,7 @@ function StatCard({
         style={{
           color: "#a89060",
           fontSize: "13px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           letterSpacing: "0.5px",
           textTransform: "uppercase",
         }}
@@ -93,7 +93,7 @@ function AdminDashboardContent() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Admin Dashboard
@@ -103,7 +103,7 @@ function AdminDashboardContent() {
             color: "#a89060",
             fontSize: "14px",
             marginBottom: "32px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           The Realm&apos;s Command Center
@@ -123,7 +123,7 @@ function AdminDashboardContent() {
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Consulting the arcane records...
@@ -135,7 +135,7 @@ function AdminDashboardContent() {
             style={{
               color: "#e74c3c",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             A dark magic has disrupted the records.
@@ -180,7 +180,7 @@ function AdminDashboardContent() {
                 style={{
                   color: "#a89060",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   marginBottom: "16px",
@@ -201,7 +201,7 @@ function AdminDashboardContent() {
                       color: "#3a7bd5",
                       fontSize: "22px",
                       fontWeight: "bold",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {stats.usersByRole.PLAYER}
@@ -211,7 +211,7 @@ function AdminDashboardContent() {
                       color: "#a89060",
                       fontSize: "11px",
                       marginTop: "4px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     Players
@@ -223,7 +223,7 @@ function AdminDashboardContent() {
                       color: "#c9a84c",
                       fontSize: "22px",
                       fontWeight: "bold",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {stats.usersByRole.DUNGEON_MASTER}
@@ -233,7 +233,7 @@ function AdminDashboardContent() {
                       color: "#a89060",
                       fontSize: "11px",
                       marginTop: "4px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     DMs
@@ -245,7 +245,7 @@ function AdminDashboardContent() {
                       color: "#e74c3c",
                       fontSize: "22px",
                       fontWeight: "bold",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {stats.usersByRole.ADMIN}
@@ -255,7 +255,7 @@ function AdminDashboardContent() {
                       color: "#a89060",
                       fontSize: "11px",
                       marginTop: "4px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     Admins

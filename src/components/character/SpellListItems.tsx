@@ -36,7 +36,7 @@ export function SectionCounter({
           fontWeight: "bold",
           letterSpacing: "1.5px",
           textTransform: "uppercase",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
       >
         {label}
@@ -46,7 +46,7 @@ export function SectionCounter({
           style={{
             color: atLimit ? "#c9a84c" : "#a89060",
             fontSize: "11px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             background: atLimit
               ? "rgba(201,168,76,0.12)"
               : "transparent",
@@ -80,7 +80,7 @@ export function LimitReachedBanner({ label }: { label: string }) {
         style={{
           color: "#c9a84c",
           fontSize: "11px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontStyle: "italic",
         }}
       >
@@ -140,7 +140,7 @@ export function BrowseSpellRow({
         style={{
           color: "#e8d5a3",
           fontSize: "13px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           flex: 1,
         }}
       >
@@ -155,7 +155,7 @@ export function BrowseSpellRow({
           background: "rgba(201,168,76,0.12)",
           border: "1px solid rgba(201,168,76,0.25)",
           color: "#c9a84c",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
       >
         {spell.level === 0 ? "C" : spell.level}
@@ -164,7 +164,7 @@ export function BrowseSpellRow({
         style={{
           color: "#a89060",
           fontSize: "11px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           minWidth: "60px",
           textAlign: "right",
         }}
@@ -217,7 +217,7 @@ export function PreparedSpellRow({
         style={{
           color: "#e8d5a3",
           fontSize: "13px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           flex: 1,
         }}
       >
@@ -232,7 +232,7 @@ export function PreparedSpellRow({
             background: "rgba(74,124,42,0.15)",
             border: "1px solid rgba(74,124,42,0.35)",
             color: "#6aad45",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             letterSpacing: "0.5px",
             textTransform: "uppercase",
             fontWeight: "bold",
@@ -253,7 +253,7 @@ export function PreparedSpellRow({
                 background: "rgba(120,180,224,0.10)",
                 border: "1px solid rgba(120,180,224,0.30)",
                 color: "#7ab4e0",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Cantrip
@@ -267,7 +267,7 @@ export function PreparedSpellRow({
                 background: "rgba(201,168,76,0.12)",
                 border: "1px solid rgba(201,168,76,0.25)",
                 color: "#c9a84c",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Lv {spellData.level}
@@ -277,7 +277,7 @@ export function PreparedSpellRow({
             style={{
               color: "#a89060",
               fontSize: "11px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {spellData.school}

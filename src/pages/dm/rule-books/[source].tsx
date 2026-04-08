@@ -31,7 +31,7 @@ function renderEntries(
             fontSize: "14px",
             lineHeight: "1.7",
             marginBottom: "10px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
           dangerouslySetInnerHTML={{ __html: parseTaggedText(entry) }}
         />
@@ -56,7 +56,7 @@ function renderEntries(
                 style={{
                   color: "#a89060",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontStyle: "italic",
                   marginTop: "6px",
                 }}
@@ -86,7 +86,7 @@ function renderEntries(
                   style={{ maxWidth: "600px" }}
                 />
                 {typeof img.title === "string" && (
-                  <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "6px" }}>
+                  <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", fontStyle: "italic", marginTop: "6px" }}>
                     {img.title}
                   </p>
                 )}
@@ -111,7 +111,7 @@ function renderEntries(
                 letterSpacing: "1px",
                 textTransform: "uppercase",
                 marginBottom: "8px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {parseTaggedText(e.name)}
@@ -133,7 +133,7 @@ function renderEntries(
             color: "#e8d5a3",
             fontSize: "14px",
             lineHeight: "1.7",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {items.map((item, j) => {
@@ -201,7 +201,7 @@ function renderEntries(
                 marginBottom: "8px",
                 fontStyle: "normal",
                 letterSpacing: "0.5px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {parseTaggedText(e.name)}
@@ -228,7 +228,7 @@ function renderEntries(
                 fontSize: "13px",
                 fontWeight: "bold",
                 marginBottom: "6px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 letterSpacing: "0.5px",
               }}
             >
@@ -240,7 +240,7 @@ function renderEntries(
               width: "100%",
               borderCollapse: "collapse",
               fontSize: "13px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               color: "#e8d5a3",
             }}
           >
@@ -313,7 +313,7 @@ function renderEntries(
             marginBottom: "16px",
             fontStyle: "italic",
             color: "#a89060",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {e.entries &&
@@ -376,7 +376,7 @@ function BookDetailContent() {
           alignItems: "center",
           gap: "8px",
           marginBottom: "20px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "13px",
           color: "#a89060",
         }}
@@ -388,7 +388,7 @@ function BookDetailContent() {
             border: "none",
             color: "#c9a84c",
             cursor: "pointer",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontSize: "13px",
             padding: "0",
             textDecoration: "underline",
@@ -408,7 +408,7 @@ function BookDetailContent() {
           letterSpacing: "2px",
           textTransform: "uppercase",
           marginBottom: "8px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
       >
         {bookInfo?.name ?? source}
@@ -438,7 +438,7 @@ function BookDetailContent() {
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Content coming soon for this tome.
@@ -459,7 +459,7 @@ function BookDetailContent() {
                 borderRadius: "6px",
                 color: "#e8d5a3",
                 fontSize: "13px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 outline: "none",
                 cursor: "pointer",
                 boxSizing: "border-box",
@@ -496,7 +496,7 @@ function BookDetailContent() {
                   padding: "0 14px 10px",
                   borderBottom: "1px solid rgba(201,168,76,0.15)",
                   marginBottom: "8px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 Contents
@@ -521,7 +521,7 @@ function BookDetailContent() {
                         : "2px solid transparent",
                       color: isActive ? "#c9a84c" : "#e8d5a3",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       cursor: "pointer",
                       lineHeight: "1.4",
                       transition: "background 0.1s, color 0.1s",
@@ -553,7 +553,7 @@ function BookDetailContent() {
                     letterSpacing: "1.5px",
                     textTransform: "uppercase",
                     marginBottom: "20px",
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {selectedSection.name ?? ""}

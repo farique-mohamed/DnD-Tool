@@ -28,7 +28,7 @@ export default function UnauthorizedPage() {
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
-        fontFamily: "'Georgia', 'Times New Roman', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         padding: "20px",
       }}>
         <div style={{
@@ -129,7 +129,7 @@ export default function UnauthorizedPage() {
               borderRadius: "6px",
               padding: "12px 28px",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: "pointer",
               letterSpacing: "0.5px",

@@ -61,7 +61,7 @@ export function WelcomeWidget() {
               color: "#c9a84c",
               fontSize: "18px",
               fontWeight: "bold",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               margin: 0,
             }}
           >
@@ -71,7 +71,7 @@ export function WelcomeWidget() {
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               margin: "4px 0 0 0",
             }}
           >
@@ -91,7 +91,7 @@ export function WelcomeWidget() {
                 background: "rgba(201,168,76,0.1)",
                 border: "1px solid rgba(201,168,76,0.3)",
                 borderRadius: "6px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 margin: 0,
               }}
             >
@@ -108,7 +108,7 @@ export function WelcomeWidget() {
                     background: "rgba(139,42,30,0.2)",
                     border: "1px solid #8b2a1e",
                     borderRadius: "6px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     margin: 0,
                   }}
                 >
@@ -127,7 +127,7 @@ export function WelcomeWidget() {
                   borderRadius: "6px",
                   padding: "8px 20px",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontWeight: "bold",
                   cursor: requestDmMutation.isPending
                     ? "not-allowed"

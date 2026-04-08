@@ -541,16 +541,16 @@ function CreateCharacterContent() {
             />
 
             {error && (
-              <div style={{ background: "rgba(139,42,30,0.2)", border: "1px solid #8b2a1e", borderRadius: "6px", padding: "12px 16px", color: "#e8d5a3", fontSize: "14px", fontFamily: "'Georgia', serif" }}>
+              <div style={{ background: "rgba(139,42,30,0.2)", border: "1px solid #8b2a1e", borderRadius: "6px", padding: "12px 16px", color: "#e8d5a3", fontSize: "14px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                 {error}
               </div>
             )}
 
             <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", gap: "12px", justifyContent: "flex-end", paddingTop: "8px" }}>
-              <button type="button" onClick={() => void router.push("/characters")} disabled={isLoading} style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.5)", color: "#c9a84c", borderRadius: "4px", padding: "10px 20px", fontFamily: "'Georgia', serif", fontSize: "13px", cursor: "pointer" }}>
+              <button type="button" onClick={() => void router.push("/characters")} disabled={isLoading} style={{ background: "transparent", border: "1px solid rgba(201,168,76,0.5)", color: "#c9a84c", borderRadius: "4px", padding: "10px 20px", fontFamily: "'EB Garamond', 'Georgia', serif", fontSize: "13px", cursor: "pointer" }}>
                 Cancel
               </button>
-              <button type="submit" disabled={isLoading} style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 28px", fontSize: "14px", fontFamily: "'Georgia', serif", fontWeight: "bold", cursor: isLoading ? "not-allowed" : "pointer", opacity: isLoading ? 0.7 : 1, letterSpacing: "0.5px" }}>
+              <button type="submit" disabled={isLoading} style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 28px", fontSize: "14px", fontFamily: "'EB Garamond', 'Georgia', serif", fontWeight: "bold", cursor: isLoading ? "not-allowed" : "pointer", opacity: isLoading ? 0.7 : 1, letterSpacing: "0.5px" }}>
                 {isLoading ? "Forging your legend..." : "Begin the Legend"}
               </button>
             </div>

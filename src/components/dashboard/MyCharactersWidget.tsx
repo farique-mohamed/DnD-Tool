@@ -50,7 +50,7 @@ export function MyCharactersWidget() {
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "12px",
             }}
           >
@@ -65,7 +65,7 @@ export function MyCharactersWidget() {
               borderRadius: "6px",
               padding: "8px 20px",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: "pointer",
               letterSpacing: "0.5px",
@@ -108,7 +108,7 @@ export function MyCharactersWidget() {
                       color: "#c9a84c",
                       fontSize: "13px",
                       fontWeight: "bold",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {c.name}
@@ -117,7 +117,7 @@ export function MyCharactersWidget() {
                     style={{
                       color: "#a89060",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginTop: "2px",
                     }}
                   >
@@ -131,7 +131,7 @@ export function MyCharactersWidget() {
                         padding: "1px 8px",
                         borderRadius: "10px",
                         fontSize: "10px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         background:
                           ap.status === "ACCEPTED"
                             ? "rgba(74,124,42,0.2)"
@@ -153,7 +153,7 @@ export function MyCharactersWidget() {
                     style={{
                       color: "#e8d5a3",
                       fontSize: "12px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginBottom: "4px",
                     }}
                   >

@@ -15,7 +15,7 @@ function SourceBadge({ source }: { source: string }) {
         borderRadius: "4px",
         fontSize: "10px",
         fontWeight: "bold",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         letterSpacing: "0.5px",
         color: "#e8d5a3",
         background: "rgba(201,168,76,0.15)",
@@ -46,7 +46,7 @@ function AdventureOversightContent() {
     background: "rgba(30,15,5,0.9)",
     border: "1px solid rgba(201,168,76,0.4)",
     color: "#e8d5a3",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     borderRadius: "6px",
     padding: "10px 14px",
     fontSize: "13px",
@@ -68,7 +68,7 @@ function AdventureOversightContent() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Adventure Oversight
@@ -78,7 +78,7 @@ function AdventureOversightContent() {
             color: "#a89060",
             fontSize: "14px",
             marginBottom: "32px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Monitor all quests across the realm
@@ -112,7 +112,7 @@ function AdventureOversightContent() {
             style={{
               color: "#a89060",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Consulting the arcane records...
@@ -124,7 +124,7 @@ function AdventureOversightContent() {
             style={{
               color: "#e74c3c",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             A dark magic has disrupted the records.
@@ -149,7 +149,7 @@ function AdventureOversightContent() {
                   style={{
                     width: "100%",
                     borderCollapse: "collapse",
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   <thead>
@@ -314,7 +314,7 @@ function AdventureOversightContent() {
                       border: "1px solid rgba(201,168,76,0.2)",
                       borderRadius: "12px",
                       padding: "18px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     <div
@@ -445,7 +445,7 @@ function AdventureOversightContent() {
                   alignItems: "center",
                   gap: "16px",
                   marginTop: "24px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 <button
@@ -457,7 +457,7 @@ function AdventureOversightContent() {
                     color: "#c9a84c",
                     borderRadius: "4px",
                     padding: "8px 16px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "13px",
                     cursor: page === 1 ? "not-allowed" : "pointer",
                     opacity: page === 1 ? 0.4 : 1,
@@ -482,7 +482,7 @@ function AdventureOversightContent() {
                     color: "#c9a84c",
                     borderRadius: "4px",
                     padding: "8px 16px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "13px",
                     cursor: page === totalPages ? "not-allowed" : "pointer",
                     opacity: page === totalPages ? 0.4 : 1,
@@ -507,7 +507,7 @@ function AdventureOversightContent() {
                   style={{
                     color: "#a89060",
                     fontSize: "14px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   No adventures found matching your search.

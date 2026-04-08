@@ -49,7 +49,7 @@ export function NotesTab({ character }: { character: CharacterData }) {
               fontWeight: "bold",
               letterSpacing: "2px",
               textTransform: "uppercase",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               margin: 0,
             }}
           >
@@ -61,7 +61,7 @@ export function NotesTab({ character }: { character: CharacterData }) {
                 style={{
                   color: "#a89060",
                   fontSize: "11px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontStyle: "italic",
                 }}
               >
@@ -80,7 +80,7 @@ export function NotesTab({ character }: { character: CharacterData }) {
                 borderRadius: "6px",
                 padding: "6px 16px",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 cursor: saved ? "default" : "pointer",
                 opacity: saved ? 0.6 : 1,
@@ -110,7 +110,7 @@ export function NotesTab({ character }: { character: CharacterData }) {
             borderRadius: "8px",
             color: "#e8d5a3",
             fontSize: "14px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             lineHeight: "1.7",
             resize: "vertical",
             outline: "none",
@@ -122,7 +122,7 @@ export function NotesTab({ character }: { character: CharacterData }) {
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "8px",
             }}
           >
@@ -189,7 +189,7 @@ function DmNotesInCharacterView({ adventureId, characterId }: { adventureId: str
           fontWeight: "bold",
           letterSpacing: "2px",
           textTransform: "uppercase",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           margin: 0,
           marginBottom: "16px",
           paddingBottom: "8px",
@@ -200,11 +200,11 @@ function DmNotesInCharacterView({ adventureId, characterId }: { adventureId: str
       </p>
 
       {isLoading ? (
-        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           Loading DM notes...
         </p>
       ) : typedNotes.length === 0 ? (
-        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>
+        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", fontStyle: "italic" }}>
           No DM notes yet.
         </p>
       ) : (
@@ -231,7 +231,7 @@ function DmNotesInCharacterView({ adventureId, characterId }: { adventureId: str
                   style={{
                     color: "#a89060",
                     fontSize: "11px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {new Date(note.createdAt).toLocaleDateString("en-US", {
@@ -247,7 +247,7 @@ function DmNotesInCharacterView({ adventureId, characterId }: { adventureId: str
                 style={{
                   color: "#e8d5a3",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   lineHeight: 1.6,
                   whiteSpace: "pre-wrap",
                   margin: "0 0 10px 0",

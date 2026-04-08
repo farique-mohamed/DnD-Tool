@@ -648,7 +648,7 @@ function PlayerNpcNotes({ npcId }: { npcId: string }) {
           border: "1px solid rgba(201,168,76,0.4)",
           borderRadius: "6px",
           color: "#e8d5a3",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "13px",
           lineHeight: "1.6",
           outline: "none",

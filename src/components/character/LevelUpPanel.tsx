@@ -423,7 +423,7 @@ export function LevelUpPanel({
         <h2
           style={{
             color: "#c9a84c",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontSize: "20px",
             fontWeight: "bold",
             letterSpacing: "2px",
@@ -436,7 +436,7 @@ export function LevelUpPanel({
         <p
           style={{
             color: "#a89060",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontSize: "13px",
             marginBottom: "24px",
           }}
@@ -454,7 +454,7 @@ export function LevelUpPanel({
                 fontSize: "11px",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "8px",
               }}
             >
@@ -489,7 +489,7 @@ export function LevelUpPanel({
                     padding: "8px 14px",
                     color:
                       selectedSubclass === sub.name ? "#c9a84c" : "#e8d5a3",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "13px",
                     cursor: "pointer",
                     textAlign: "left",
@@ -504,7 +504,7 @@ export function LevelUpPanel({
                 style={{
                   color: "#e74c3c",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   marginTop: "6px",
                 }}
               >
@@ -523,7 +523,7 @@ export function LevelUpPanel({
                 fontSize: "11px",
                 textTransform: "uppercase",
                 letterSpacing: "0.08em",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "8px",
               }}
             >
@@ -533,7 +533,7 @@ export function LevelUpPanel({
               style={{
                 color: "#a89060",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "10px",
               }}
             >
@@ -551,7 +551,7 @@ export function LevelUpPanel({
                 style={{
                   color: "#a89060",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontStyle: "italic",
                 }}
               >
@@ -580,7 +580,7 @@ export function LevelUpPanel({
                         borderRadius: "20px",
                         padding: "4px 12px",
                         fontSize: "11px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         cursor: isFull ? "not-allowed" : "pointer",
                         opacity: isFull ? 0.5 : 1,
                         fontWeight: isSelected ? "bold" : "normal",
@@ -598,7 +598,7 @@ export function LevelUpPanel({
                 style={{
                   color: "#e74c3c",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   marginTop: "6px",
                 }}
               >
@@ -626,7 +626,7 @@ export function LevelUpPanel({
                 style={{
                   color: "#e74c3c",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   marginTop: "6px",
                 }}
               >
@@ -653,7 +653,7 @@ export function LevelUpPanel({
                 fontSize: "11px",
                 textTransform: "uppercase",
                 letterSpacing: "1.2px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 margin: "0 0 12px 0",
                 fontWeight: "bold",
               }}
@@ -681,7 +681,7 @@ export function LevelUpPanel({
                   fontWeight: asiOrFeat === "asi" ? "bold" : "normal",
                   padding: "8px 18px",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: "pointer",
                   borderRadius: "6px 0 0 6px",
                 }}
@@ -706,7 +706,7 @@ export function LevelUpPanel({
                   fontWeight: asiOrFeat === "feat" ? "bold" : "normal",
                   padding: "8px 18px",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: "pointer",
                   borderRadius: "0 6px 6px 0",
                 }}
@@ -741,7 +741,7 @@ export function LevelUpPanel({
                             fontSize: "9px",
                             textTransform: "uppercase",
                             letterSpacing: "0.5px",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                           }}
                         >
                           {label}
@@ -751,7 +751,7 @@ export function LevelUpPanel({
                             color: "#e8d5a3",
                             fontSize: "15px",
                             fontWeight: "bold",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                           }}
                         >
                           {score}
@@ -784,7 +784,7 @@ export function LevelUpPanel({
                       borderRadius: "20px",
                       padding: "5px 14px",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       cursor: "pointer",
                       fontWeight: asiMode === "2" ? "bold" : "normal",
                     }}
@@ -809,7 +809,7 @@ export function LevelUpPanel({
                       borderRadius: "20px",
                       padding: "5px 14px",
                       fontSize: "11px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       cursor: "pointer",
                       fontWeight: asiMode === "1-1" ? "bold" : "normal",
                     }}
@@ -825,7 +825,7 @@ export function LevelUpPanel({
                       style={{
                         color: "#a89060",
                         fontSize: "11px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         display: "block",
                         marginBottom: "6px",
                       }}
@@ -846,7 +846,7 @@ export function LevelUpPanel({
                         borderRadius: "6px",
                         color: "#e8d5a3",
                         fontSize: "13px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         outline: "none",
                       }}
                     >
@@ -872,7 +872,7 @@ export function LevelUpPanel({
                         style={{
                           color: "#c9a84c",
                           fontSize: "12px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           marginTop: "6px",
                         }}
                       >
@@ -909,7 +909,7 @@ export function LevelUpPanel({
                         style={{
                           color: "#a89060",
                           fontSize: "11px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           display: "block",
                           marginBottom: "6px",
                         }}
@@ -930,7 +930,7 @@ export function LevelUpPanel({
                           borderRadius: "6px",
                           color: "#e8d5a3",
                           fontSize: "13px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           outline: "none",
                         }}
                       >
@@ -957,7 +957,7 @@ export function LevelUpPanel({
                           style={{
                             color: "#c9a84c",
                             fontSize: "12px",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                             marginTop: "4px",
                           }}
                         >
@@ -986,7 +986,7 @@ export function LevelUpPanel({
                         style={{
                           color: "#a89060",
                           fontSize: "11px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           display: "block",
                           marginBottom: "6px",
                         }}
@@ -1007,7 +1007,7 @@ export function LevelUpPanel({
                           borderRadius: "6px",
                           color: "#e8d5a3",
                           fontSize: "13px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           outline: "none",
                         }}
                       >
@@ -1034,7 +1034,7 @@ export function LevelUpPanel({
                           style={{
                             color: "#c9a84c",
                             fontSize: "12px",
-                            fontFamily: "'Georgia', serif",
+                            fontFamily: "'EB Garamond', 'Georgia', serif",
                             marginTop: "4px",
                           }}
                         >
@@ -1077,7 +1077,7 @@ export function LevelUpPanel({
                     borderRadius: "6px",
                     color: "#e8d5a3",
                     fontSize: "13px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     outline: "none",
                     marginBottom: "10px",
                     boxSizing: "border-box",
@@ -1097,7 +1097,7 @@ export function LevelUpPanel({
                       style={{
                         color: "#a89060",
                         fontSize: "12px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontStyle: "italic",
                         padding: "8px 0",
                       }}
@@ -1199,7 +1199,7 @@ export function LevelUpPanel({
                             style={{
                               color: "#e8d5a3",
                               fontSize: "13px",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                               fontWeight: isSelected ? "bold" : "normal",
                             }}
                           >
@@ -1223,7 +1223,7 @@ export function LevelUpPanel({
                             style={{
                               color: "#c9a84c",
                               fontSize: "11px",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                               margin: "0 0 2px 21px",
                             }}
                           >
@@ -1235,7 +1235,7 @@ export function LevelUpPanel({
                             style={{
                               color: "#8a7050",
                               fontSize: "10px",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                               margin: "0 0 2px 21px",
                               fontStyle: "italic",
                             }}
@@ -1252,7 +1252,7 @@ export function LevelUpPanel({
                                   style={{
                                     color: "#e8d5a3",
                                     fontSize: "12px",
-                                    fontFamily: "'Georgia', serif",
+                                    fontFamily: "'EB Garamond', 'Georgia', serif",
                                     lineHeight: 1.5,
                                     margin: "0 0 4px 0",
                                   }}
@@ -1263,7 +1263,7 @@ export function LevelUpPanel({
                               {needsTruncation && (
                                 <span
                                   onClick={(e) => { e.stopPropagation(); setExpandedFeat(""); }}
-                                  style={{ color: "#c9a84c", fontSize: "11px", fontFamily: "'Georgia', serif", cursor: "pointer" }}
+                                  style={{ color: "#c9a84c", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif", cursor: "pointer" }}
                                 >
                                   Show less
                                 </span>
@@ -1274,7 +1274,7 @@ export function LevelUpPanel({
                               style={{
                                 color: "#a89060",
                                 fontSize: "11px",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                                 margin: 0,
                                 lineHeight: 1.4,
                               }}
@@ -1303,7 +1303,7 @@ export function LevelUpPanel({
                       style={{
                         color: "#b8934a",
                         fontSize: "11px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         marginBottom: "6px",
                       }}
                     >
@@ -1335,7 +1335,7 @@ export function LevelUpPanel({
                           borderRadius: "6px",
                           color: "#e8d5a3",
                           fontSize: "13px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           outline: "none",
                           marginBottom: "6px",
                         }}
@@ -1405,7 +1405,7 @@ export function LevelUpPanel({
                 style={{
                   color: "#e74c3c",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   marginTop: "8px",
                 }}
               >
@@ -1422,7 +1422,7 @@ export function LevelUpPanel({
               fontSize: "11px",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "6px",
             }}
           >
@@ -1432,7 +1432,7 @@ export function LevelUpPanel({
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "10px",
             }}
           >
@@ -1452,7 +1452,7 @@ export function LevelUpPanel({
               borderRadius: "6px",
               color: "#e8d5a3",
               fontSize: "16px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               outline: "none",
               textAlign: "center",
             }}
@@ -1470,7 +1470,7 @@ export function LevelUpPanel({
               borderRadius: "6px",
               padding: "10px 24px",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: isPending ? "not-allowed" : "pointer",
               opacity: isPending ? 0.7 : 1,
@@ -1489,7 +1489,7 @@ export function LevelUpPanel({
               borderRadius: "6px",
               padding: "10px 20px",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               cursor: "pointer",
             }}
           >
@@ -1502,7 +1502,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >
@@ -1514,7 +1514,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >
@@ -1526,7 +1526,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >
@@ -1538,7 +1538,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >
@@ -1550,7 +1550,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >
@@ -1562,7 +1562,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >
@@ -1574,7 +1574,7 @@ export function LevelUpPanel({
             style={{
               color: "#e74c3c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginTop: "12px",
             }}
           >

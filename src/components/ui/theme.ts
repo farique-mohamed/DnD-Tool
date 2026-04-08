@@ -26,7 +26,8 @@ export const SUCCESS_GREEN_BORDER = "#4a7c2a";
 export const ERROR_RED_BORDER = "#8b2a1e";
 
 // Font
-export const SERIF = "'Georgia', 'Times New Roman', serif";
+export const SERIF = "'EB Garamond', 'Georgia', serif";
+export const HEADING_FONT = "'Cinzel', 'Georgia', serif";
 
 // ---------------------------------------------------------------------------
 // Theme palettes (dark = original D&D theme, light = parchment/scroll theme)
@@ -114,7 +115,7 @@ export const baseTextStyle: React.CSSProperties = {
 
 export const headingStyle: React.CSSProperties = {
   color: GOLD,
-  fontFamily: SERIF,
+  fontFamily: HEADING_FONT,
   fontWeight: "bold",
   letterSpacing: "2px",
   textTransform: "uppercase",

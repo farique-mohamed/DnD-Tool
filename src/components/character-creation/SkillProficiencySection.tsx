@@ -55,7 +55,7 @@ export function SkillProficiencySection({
         {/* Racial fixed skills */}
         {racialFixedSkills.length > 0 && (
           <div>
-            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               <span style={{ color: "#c9a84c" }}>From Race</span>{" "}
               ({raceName}) — granted automatically
             </p>
@@ -70,7 +70,7 @@ export function SkillProficiencySection({
         {/* Background fixed skills */}
         {bgFixedSkills.length > 0 && (
           <div>
-            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               <span style={{ color: "#c9a84c" }}>From Background</span>{" "}
               ({backgroundInfo?.name}) — granted automatically
             </p>
@@ -85,7 +85,7 @@ export function SkillProficiencySection({
         {/* Background choice skills */}
         {bgChoiceCount > 0 && bgChoiceFrom.length > 0 && (
           <div>
-            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               <span style={{ color: "#c9a84c" }}>Background Choice</span>{" "}
               — choose {bgChoiceCount} from the following
               {selectedBgChoiceSkills.length > 0 && (
@@ -117,7 +117,7 @@ export function SkillProficiencySection({
         {/* Class skill choices */}
         {classSkillCount > 0 && (
           <div>
-            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               <span style={{ color: "#c9a84c" }}>From Class</span>{" "}
               ({classInfo?.name}) — choose {classSkillCount}
               {!classIsAnySkill && " from the following"}
@@ -157,10 +157,10 @@ export function SkillProficiencySection({
             padding: "10px 14px",
             marginTop: "4px",
           }}>
-            <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               Proficient Skills ({allSelectedSkills.length})
             </p>
-            <p style={{ margin: "6px 0 0 0", color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: "6px 0 0 0", color: "#e8d5a3", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               {allSelectedSkills.join(", ")}
             </p>
           </div>

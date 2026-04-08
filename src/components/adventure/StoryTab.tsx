@@ -32,7 +32,7 @@ export function StoryTab({
           style={{
             color: "#a89060",
             fontSize: "14px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Content coming soon for this tome.
@@ -58,7 +58,7 @@ export function StoryTab({
             borderRadius: "6px",
             color: "#e8d5a3",
             fontSize: "13px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             outline: "none",
             cursor: "pointer",
             boxSizing: "border-box",
@@ -95,7 +95,7 @@ export function StoryTab({
               padding: "0 14px 10px",
               borderBottom: "1px solid rgba(201,168,76,0.15)",
               marginBottom: "8px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Contents
@@ -120,7 +120,7 @@ export function StoryTab({
                     : "2px solid transparent",
                   color: isActive ? "#c9a84c" : "#e8d5a3",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: "pointer",
                   lineHeight: "1.4",
                   transition: "background 0.1s, color 0.1s",
@@ -152,7 +152,7 @@ export function StoryTab({
                 letterSpacing: "1.5px",
                 textTransform: "uppercase",
                 marginBottom: "20px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {selectedSection.name ?? ""}

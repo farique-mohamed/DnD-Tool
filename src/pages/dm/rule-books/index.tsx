@@ -39,7 +39,7 @@ function RuleBooksContent() {
             letterSpacing: "2px",
             textTransform: "uppercase",
             marginBottom: "8px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Rule Books
@@ -49,7 +49,7 @@ function RuleBooksContent() {
             color: "#a89060",
             fontSize: "14px",
             marginBottom: "16px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Ancient tomes and sacred texts of the realm.
@@ -90,7 +90,7 @@ function RuleBooksContent() {
                   borderRadius: "8px",
                   padding: isMobile ? "16px" : "20px",
                   transition: "border-color 0.15s, background 0.15s",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 <EntityImage

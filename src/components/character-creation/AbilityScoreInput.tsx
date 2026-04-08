@@ -34,11 +34,11 @@ export function AbilityScoreInput({
         <span style={bonusBadgeStyle}>+{bonus}</span>
       )}
       {bonus > 0 ? (
-        <span style={{ color: "#e8d5a3", fontSize: "14px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>
+        <span style={{ color: "#e8d5a3", fontSize: "14px", fontWeight: "bold", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           {total} <span style={{ color: "#a89060", fontSize: "12px", fontWeight: "normal" }}>({modStr})</span>
         </span>
       ) : (
-        <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+        <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           {modStr}
         </span>
       )}

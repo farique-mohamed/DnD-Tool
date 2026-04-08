@@ -50,7 +50,7 @@ function AbilityScoreEditSection({
   return (
     <div>
       <h3 style={sectionTitleStyle}>Ability Scores</h3>
-      <p style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", marginBottom: "14px" }}>
+      <p style={{ color: "#a89060", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif", marginBottom: "14px" }}>
         These values already include any racial bonuses applied during creation.
       </p>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
@@ -335,7 +335,7 @@ function EditCharacterContent() {
 
   if (isLoadingChar || !charId) {
     return (
-      <p style={{ color: "#a89060", fontFamily: "'Georgia', serif", fontSize: "14px" }}>
+      <p style={{ color: "#a89060", fontFamily: "'EB Garamond', 'Georgia', serif", fontSize: "14px" }}>
         Summoning your adventurer...
       </p>
     );
@@ -350,7 +350,7 @@ function EditCharacterContent() {
         padding: "16px 20px",
         color: "#e8d5a3",
         fontSize: "14px",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         maxWidth: "500px",
       }}>
         Character not found.
@@ -382,7 +382,7 @@ function EditCharacterContent() {
         <p style={{
           color: "#a89060",
           fontSize: "12px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           marginBottom: "32px",
         }}>
           Level: <span style={{ color: "#c9a84c", fontWeight: "bold" }}>{character.level}</span>
@@ -485,7 +485,7 @@ function EditCharacterContent() {
                 padding: "12px 16px",
                 color: "#e8d5a3",
                 fontSize: "14px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}>
                 {error}
               </div>
@@ -508,7 +508,7 @@ function EditCharacterContent() {
                   color: "#c9a84c",
                   borderRadius: "4px",
                   padding: "10px 20px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontSize: "13px",
                   cursor: "pointer",
                 }}
@@ -525,7 +525,7 @@ function EditCharacterContent() {
                   borderRadius: "6px",
                   padding: "12px 28px",
                   fontSize: "14px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontWeight: "bold",
                   cursor: isLoading ? "not-allowed" : "pointer",
                   opacity: isLoading ? 0.7 : 1,

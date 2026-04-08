@@ -89,7 +89,7 @@ function ExportDropdown({ character }: {
           borderRadius: "4px",
           color: "#a89060",
           fontSize: "11px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           padding: "3px 8px",
           cursor: "pointer",
           letterSpacing: "0.5px",
@@ -125,7 +125,7 @@ function ExportDropdown({ character }: {
               border: "none",
               color: "#e8d5a3",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               padding: "8px 14px",
               cursor: "pointer",
               textAlign: "left",
@@ -144,7 +144,7 @@ function ExportDropdown({ character }: {
               border: "none",
               color: "#e8d5a3",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               padding: "8px 14px",
               cursor: "pointer",
               textAlign: "left",
@@ -229,7 +229,7 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
                 padding: "2px 10px",
                 borderRadius: "12px",
                 fontSize: "11px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 letterSpacing: "0.3px",
                 background: ap.status === "ACCEPTED" ? "rgba(74,124,42,0.2)" : "rgba(201,168,76,0.15)",
                 border: ap.status === "ACCEPTED" ? "1px solid rgba(74,124,42,0.4)" : "1px solid rgba(201,168,76,0.3)",
@@ -266,13 +266,13 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
       }}>
         {abilities.map(({ label, value }) => (
           <div key={label} style={{ textAlign: "center" }}>
-            <div style={{ color: "#b8934a", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'Georgia', serif", marginBottom: "4px" }}>
+            <div style={{ color: "#b8934a", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'EB Garamond', 'Georgia', serif", marginBottom: "4px" }}>
               {label}
             </div>
-            <div style={{ color: "#e8d5a3", fontSize: "16px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>
+            <div style={{ color: "#e8d5a3", fontSize: "16px", fontWeight: "bold", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               {value}
             </div>
-            <div style={{ color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif" }}>
+            <div style={{ color: "#a89060", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               {abilityModifier(value)}
             </div>
           </div>
@@ -317,7 +317,7 @@ function CharactersContent() {
                 borderRadius: "6px",
                 padding: "12px 20px",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 cursor: "pointer",
                 letterSpacing: "0.5px",
@@ -328,7 +328,7 @@ function CharactersContent() {
             </button>
             <button
               onClick={() => void router.push("/characters/new")}
-              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 24px", fontSize: "13px", fontFamily: "'Georgia', serif", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px", whiteSpace: "nowrap" }}
+              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 24px", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px", whiteSpace: "nowrap" }}
             >
               + Create Character
             </button>
@@ -337,7 +337,7 @@ function CharactersContent() {
         <div style={{ width: "80px", height: "2px", background: "#c9a84c", marginBottom: "32px", opacity: 0.6 }} />
 
         {isLoading ? (
-          <p style={{ color: "#a89060", fontFamily: "'Georgia', serif", fontSize: "14px" }}>
+          <p style={{ color: "#a89060", fontFamily: "'EB Garamond', 'Georgia', serif", fontSize: "14px" }}>
             Summoning your adventurers...
           </p>
         ) : !characters || characters.length === 0 ? (
@@ -347,7 +347,7 @@ function CharactersContent() {
             <p style={{ color: "#a89060", fontSize: "13px", marginBottom: "24px" }}>Every legend begins with a single character sheet.</p>
             <button
               onClick={() => void router.push("/characters/new")}
-              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 28px", fontSize: "14px", fontFamily: "'Georgia', serif", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px" }}
+              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 28px", fontSize: "14px", fontFamily: "'EB Garamond', 'Georgia', serif", fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px" }}
             >
               Create Your First Character
             </button>

@@ -32,7 +32,7 @@ export function AdminDmRequestsWidget() {
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             textAlign: "center",
             padding: "16px 0",
           }}
@@ -59,7 +59,7 @@ export function AdminDmRequestsWidget() {
                     color: "#e8d5a3",
                     fontSize: "13px",
                     fontWeight: "bold",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {req.user.username}
@@ -68,7 +68,7 @@ export function AdminDmRequestsWidget() {
                   style={{
                     color: "#8b7a5e",
                     fontSize: "10px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     marginTop: "2px",
                   }}
                 >
@@ -88,7 +88,7 @@ export function AdminDmRequestsWidget() {
                   borderRadius: "6px",
                   padding: "6px 14px",
                   fontSize: "11px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontWeight: "bold",
                   cursor: approveMutation.isPending ? "not-allowed" : "pointer",
                   opacity: approveMutation.isPending ? 0.6 : 1,

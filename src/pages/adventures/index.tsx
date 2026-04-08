@@ -42,7 +42,7 @@ function InviteCodeButton({
           color: "#c9a84c",
           borderRadius: "4px",
           padding: "6px 16px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           cursor: "pointer",
           fontSize: "12px",
           whiteSpace: "nowrap",
@@ -71,7 +71,7 @@ function InviteCodeButton({
             style={{
               color: "#a89060",
               fontSize: "11px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "8px",
               textTransform: "uppercase",
               letterSpacing: "0.5px",
@@ -80,7 +80,7 @@ function InviteCodeButton({
             Invite Code
           </p>
           {isLoading ? (
-            <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               Loading...
             </p>
           ) : data ? (
@@ -113,7 +113,7 @@ function InviteCodeButton({
                   color: copied ? "#4a7c2a" : "#c9a84c",
                   borderRadius: "4px",
                   padding: "6px 10px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: "pointer",
                   fontSize: "11px",
                   whiteSpace: "nowrap",
@@ -134,7 +134,7 @@ function InviteCodeButton({
               color: "#a89060",
               fontSize: "11px",
               cursor: "pointer",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               padding: "0",
               marginTop: "8px",
             }}
@@ -190,15 +190,15 @@ function AdventureCard({
             letterSpacing: "1px",
             textTransform: "uppercase",
             marginBottom: "4px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {adventure.name}
         </h2>
-        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif", marginBottom: "2px" }}>
+        <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", marginBottom: "2px" }}>
           {ADVENTURE_LIST.find((a) => a.source === adventure.source)?.name ?? adventure.source}
         </p>
-        <p style={{ color: "#8b7a5e", fontSize: "11px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+        <p style={{ color: "#8b7a5e", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           Created{" "}
           {new Date(adventure.createdAt).toLocaleDateString("en-US", {
             year: "numeric",
@@ -375,7 +375,7 @@ function AdventuresContent() {
           letterSpacing: "1.5px",
           textTransform: "uppercase",
           marginBottom: "16px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
       >
         {title}
@@ -390,7 +390,7 @@ function AdventuresContent() {
             textAlign: "center",
           }}
         >
-          <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+          <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             No adventures in this section yet.
           </p>
         </div>
@@ -430,12 +430,12 @@ function AdventuresContent() {
                 letterSpacing: "2px",
                 textTransform: "uppercase",
                 marginBottom: "8px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Adventures
             </h1>
-            <p style={{ color: "#a89060", fontSize: "14px", marginBottom: "32px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+            <p style={{ color: "#a89060", fontSize: "14px", marginBottom: "32px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               {isDM ? "Your campaigns and adventures you have joined." : "Your ongoing quests and adventures."}
             </p>
           </div>
@@ -448,7 +448,7 @@ function AdventuresContent() {
               borderRadius: "6px",
               padding: "12px 28px",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: "pointer",
               letterSpacing: "0.5px",
@@ -469,7 +469,7 @@ function AdventuresContent() {
         />
 
         {isLoading ? (
-          <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+          <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             Loading your adventures...
           </p>
         ) : adventures.length === 0 ? (
@@ -488,12 +488,12 @@ function AdventuresContent() {
                 color: "#e8d5a3",
                 fontSize: "15px",
                 marginBottom: "8px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               No adventures yet, brave soul.
             </p>
-            <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+            <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               Wait for a Dungeon Master to invite you, or create your own campaign.
             </p>
           </div>
@@ -543,7 +543,7 @@ function AdventuresContent() {
                 letterSpacing: "1.5px",
                 textTransform: "uppercase",
                 marginBottom: "8px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Join Adventure
@@ -555,7 +555,7 @@ function AdventuresContent() {
                   style={{
                     color: "#a89060",
                     fontSize: "13px",
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     marginBottom: "20px",
                   }}
                 >
@@ -578,7 +578,7 @@ function AdventuresContent() {
                     border: "1px solid rgba(201,168,76,0.3)",
                     borderRadius: "6px",
                     color: "#e8d5a3",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "14px",
                     boxSizing: "border-box",
                     outline: "none",
@@ -596,7 +596,7 @@ function AdventuresContent() {
                     style={{
                       color: joinMessage.type === "success" ? "#4a7c2a" : "#e74c3c",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginBottom: "12px",
                     }}
                   >
@@ -613,7 +613,7 @@ function AdventuresContent() {
                       color: "#c9a84c",
                       borderRadius: "4px",
                       padding: "6px 16px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       cursor: "pointer",
                     }}
                   >
@@ -629,7 +629,7 @@ function AdventuresContent() {
                       borderRadius: "6px",
                       padding: "12px 28px",
                       fontSize: "14px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       fontWeight: "bold",
                       cursor: !inviteCodeInput.trim() ? "default" : "pointer",
                       letterSpacing: "0.5px",
@@ -648,7 +648,7 @@ function AdventuresContent() {
                   style={{
                     color: "#a89060",
                     fontSize: "13px",
-                    fontFamily: "'Georgia', 'Times New Roman', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     marginBottom: "20px",
                   }}
                 >
@@ -670,7 +670,7 @@ function AdventuresContent() {
                       style={{
                         color: "#e8d5a3",
                         fontSize: "14px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         marginBottom: "4px",
                       }}
                     >
@@ -680,7 +680,7 @@ function AdventuresContent() {
                       style={{
                         color: "#a89060",
                         fontSize: "12px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       Head to &quot;My Characters&quot; to create one.
@@ -701,7 +701,7 @@ function AdventuresContent() {
                         border: "1px solid rgba(201,168,76,0.3)",
                         borderRadius: "6px",
                         color: "#e8d5a3",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontSize: "14px",
                         boxSizing: "border-box",
                         outline: "none",
@@ -747,7 +747,7 @@ function AdventuresContent() {
                     style={{
                       color: joinMessage.type === "success" ? "#4a7c2a" : "#e74c3c",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginBottom: "12px",
                     }}
                   >
@@ -767,7 +767,7 @@ function AdventuresContent() {
                       color: "#c9a84c",
                       borderRadius: "4px",
                       padding: "6px 16px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       cursor: "pointer",
                     }}
                   >
@@ -783,7 +783,7 @@ function AdventuresContent() {
                       borderRadius: "6px",
                       padding: "12px 28px",
                       fontSize: "14px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       fontWeight: "bold",
                       cursor: !selectedCharacterId || joinByCode.isPending ? "default" : "pointer",
                       letterSpacing: "0.5px",

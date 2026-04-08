@@ -18,7 +18,7 @@ export function SkillExpertiseSection({
   return (
     <div>
       <p style={sectionTitleStyle}>Skill Expertise</p>
-      <p style={{ margin: "0 0 12px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+      <p style={{ margin: "0 0 12px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
         <span style={{ color: "#c9a84c" }}>{characterClass}</span>{" "}
         — choose {expertiseCount} proficient skill{expertiseCount !== 1 ? "s" : ""} to gain expertise
         {selectedExpertiseSkills.length > 0 && (
@@ -63,10 +63,10 @@ export function SkillExpertiseSection({
           padding: "10px 14px",
           marginTop: "12px",
         }}>
-          <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             Expertise Skills ({selectedExpertiseSkills.length}/{expertiseCount})
           </p>
-          <p style={{ margin: "6px 0 0 0", color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ margin: "6px 0 0 0", color: "#e8d5a3", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             {selectedExpertiseSkills.join(", ")}
           </p>
         </div>

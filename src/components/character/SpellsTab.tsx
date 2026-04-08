@@ -263,7 +263,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
     marginBottom: "16px",
     paddingBottom: "8px",
     borderBottom: "1px solid rgba(201,168,76,0.2)",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
 
   if (warlockMode) {
@@ -300,7 +300,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
               borderRadius: "6px",
               padding: "6px 16px",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               cursor: "pointer",
               letterSpacing: "0.5px",
             }}
@@ -321,7 +321,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "12px",
             }}
           >
@@ -340,7 +340,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
               style={{
                 color: "#b8934a",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 minWidth: "120px",
               }}
             >
@@ -365,7 +365,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {j < usedCount ? "●" : "○"}
@@ -376,7 +376,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
               style={{
                 color: "#a89060",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {pactCount - usedCount} / {pactCount} remaining
@@ -403,7 +403,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
                 background: "rgba(201,168,76,0.25)",
                 color: "#c9a84c",
                 fontSize: "10px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 padding: "2px 8px",
                 borderRadius: "4px",
                 letterSpacing: "0.5px",
@@ -417,7 +417,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
               style={{
                 color: "#a89060",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               Spells assigned to you by your DM
@@ -429,7 +429,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontStyle: "italic",
               marginTop: "16px",
             }}
@@ -442,7 +442,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontStyle: "italic",
               marginTop: "16px",
             }}
@@ -512,7 +512,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
             borderRadius: "6px",
             padding: "6px 16px",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             cursor: "pointer",
             letterSpacing: "0.5px",
             marginBottom: "16px",
@@ -554,7 +554,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
                 style={{
                   color: "#b8934a",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   minWidth: "100px",
                   fontWeight: "bold",
                 }}
@@ -580,7 +580,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {j < usedCount ? "●" : "○"}
@@ -591,7 +591,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
                 style={{
                   color: "#a89060",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {count - usedCount} / {count} remaining
@@ -621,7 +621,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
               background: "rgba(201,168,76,0.25)",
               color: "#c9a84c",
               fontSize: "10px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               padding: "2px 8px",
               borderRadius: "4px",
               letterSpacing: "0.5px",
@@ -635,7 +635,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Spells assigned to you by your DM
@@ -647,7 +647,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           style={{
             color: "#a89060",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
             marginTop: "16px",
           }}
@@ -660,7 +660,7 @@ export function SpellsTab({ character }: { character: CharacterData }) {
           style={{
             color: "#a89060",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
             marginTop: "16px",
           }}
@@ -724,7 +724,7 @@ function SpellcastingStatsBar({
   const labelStyle: React.CSSProperties = {
     color: "#a89060",
     fontSize: "10px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     letterSpacing: "1px",
     textTransform: "uppercase",
     marginBottom: "6px",
@@ -733,12 +733,12 @@ function SpellcastingStatsBar({
     color: "#c9a84c",
     fontSize: "20px",
     fontWeight: "bold",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
   const subStyle: React.CSSProperties = {
     color: "#a89060",
     fontSize: "10px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     marginTop: "2px",
   };
 
@@ -819,14 +819,14 @@ function FeatSpellSlotsSection({
         marginBottom: "12px",
         paddingBottom: "8px",
         borderBottom: "1px solid rgba(201,168,76,0.2)",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
       }}>
         Feat Spells
       </p>
       <p style={{
         color: "#a89060",
         fontSize: "11px",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         marginBottom: "12px",
         fontStyle: "italic",
       }}>
@@ -850,7 +850,7 @@ function FeatSpellSlotsSection({
             <span style={{
               color: "#b8934a",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               minWidth: "100px",
               fontWeight: "bold",
             }}>
@@ -868,7 +868,7 @@ function FeatSpellSlotsSection({
                   borderRadius: "50%",
                   color: "#6495ed",
                   fontSize: "14px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}>
                   {entry.count}
                 </span>
@@ -879,7 +879,7 @@ function FeatSpellSlotsSection({
                   background: entry.frequency === "rest" ? "rgba(91,155,213,0.12)" : "rgba(74,124,42,0.12)",
                   border: `1px solid ${entry.frequency === "rest" ? "rgba(91,155,213,0.3)" : "rgba(74,124,42,0.3)"}`,
                   color: entry.frequency === "rest" ? "#5b9bd5" : "#4a7c2a",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}>
                   {frequencyLabel(entry.frequency)}
                 </span>
@@ -887,7 +887,7 @@ function FeatSpellSlotsSection({
                   <span style={{
                     color: "#a89060",
                     fontSize: "10px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontStyle: "italic",
                   }}>
                     + can use spell slots

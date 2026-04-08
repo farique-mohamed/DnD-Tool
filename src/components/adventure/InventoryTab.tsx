@@ -114,7 +114,7 @@ export function InventoryTab({
             borderRadius: "6px",
             padding: "10px 24px",
             fontSize: "14px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontWeight: "bold",
             cursor: "pointer",
             letterSpacing: "0.5px",
@@ -151,7 +151,7 @@ export function InventoryTab({
             background: "rgba(30,15,5,0.9)",
             border: "1px solid rgba(201,168,76,0.4)",
             color: GOLD_BRIGHT,
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             borderRadius: "6px",
             padding: "10px 14px",
             width: "100%",
@@ -248,7 +248,7 @@ export function InventoryTab({
                       style={{
                         color: GOLD_BRIGHT,
                         fontSize: "14px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       {isExpanded ? "\u25BC" : "\u25B6"} {item.itemName}
@@ -258,7 +258,7 @@ export function InventoryTab({
                         style={{
                           color: GOLD,
                           fontSize: "12px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(201,168,76,0.15)",
                           padding: "2px 8px",
                           borderRadius: "4px",
@@ -275,7 +275,7 @@ export function InventoryTab({
                         style={{
                           color: "#4a8c3f",
                           fontSize: "10px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(74,140,63,0.15)",
                           padding: "2px 8px",
                           borderRadius: "4px",

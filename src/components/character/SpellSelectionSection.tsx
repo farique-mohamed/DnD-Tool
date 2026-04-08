@@ -76,7 +76,7 @@ export function SpellSelectionSection({
     padding: "0px 5px",
     color: "#7ab4e0",
     fontSize: "10px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     letterSpacing: "0.3px",
   };
 
@@ -130,7 +130,7 @@ export function SpellSelectionSection({
               fontWeight: "bold",
               letterSpacing: "2px",
               textTransform: "uppercase",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {sectionLabel}
@@ -147,7 +147,7 @@ export function SpellSelectionSection({
             borderRadius: "6px",
             padding: "6px 16px",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             cursor: "pointer",
             letterSpacing: "0.5px",
             fontWeight: browseMode ? "bold" : "normal",
@@ -183,7 +183,7 @@ export function SpellSelectionSection({
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
             padding: "16px 0",
           }}

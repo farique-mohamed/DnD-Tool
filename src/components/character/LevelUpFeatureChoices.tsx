@@ -34,14 +34,14 @@ const SECTION_LABEL_STYLE: React.CSSProperties = {
   fontSize: "11px",
   textTransform: "uppercase",
   letterSpacing: "0.08em",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   marginBottom: "8px",
 };
 
 const DESC_STYLE: React.CSSProperties = {
   color: "#a89060",
   fontSize: "12px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   marginBottom: "10px",
 };
 
@@ -49,7 +49,7 @@ const PILL_BASE: React.CSSProperties = {
   borderRadius: "20px",
   padding: "4px 12px",
   fontSize: "11px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   cursor: "pointer",
   border: "1px solid rgba(201,168,76,0.2)",
   background: "rgba(30,15,5,0.6)",
@@ -72,7 +72,7 @@ const SELECT_STYLE: React.CSSProperties = {
   borderRadius: "6px",
   color: "#e8d5a3",
   fontSize: "13px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   outline: "none",
   marginBottom: "6px",
 };

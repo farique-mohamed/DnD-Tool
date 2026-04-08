@@ -84,7 +84,7 @@ const GOLD = "#c9a84c";
 const GOLD_MUTED = "#a89060";
 const GOLD_LABEL = "#b8934a";
 const TEXT_LIGHT = "#e8d5a3";
-const SERIF = "'Georgia', 'Times New Roman', serif";
+const SERIF = "'EB Garamond', 'Georgia', serif";
 
 const cardOuterStyle: React.CSSProperties = {
   background: "rgba(0,0,0,0.6)",

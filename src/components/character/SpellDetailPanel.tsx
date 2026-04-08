@@ -28,7 +28,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
               color: "#c9a84c",
               fontSize: "16px",
               fontWeight: "bold",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "6px",
               letterSpacing: "0.5px",
             }}
@@ -39,7 +39,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
             style={{
               color: "#a89060",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "12px",
             }}
           >
@@ -77,7 +77,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
                   style={{
                     color: "#b8934a",
                     fontSize: "11px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     minWidth: "90px",
                     textTransform: "uppercase",
                     letterSpacing: "0.05em",
@@ -89,7 +89,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
                   style={{
                     color: "#e8d5a3",
                     fontSize: "12px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {value}
@@ -107,7 +107,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
               style={{
                 color: "#e8d5a3",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 lineHeight: 1.7,
                 whiteSpace: "pre-wrap",
               }}
@@ -121,7 +121,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
                     color: "#c9a84c",
                     fontSize: "12px",
                     fontWeight: "bold",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     marginBottom: "4px",
                   }}
                 >
@@ -131,7 +131,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
                   style={{
                     color: "#e8d5a3",
                     fontSize: "13px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     lineHeight: 1.7,
                   }}
                 >
@@ -146,7 +146,7 @@ export function SpellDetailPanel({ spellName }: { spellName: string | null }) {
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontStyle: "italic",
             textAlign: "center",
             paddingTop: "40px",

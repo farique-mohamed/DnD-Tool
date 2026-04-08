@@ -216,7 +216,7 @@ const styles: Record<string, React.CSSProperties> = {
     filter: "drop-shadow(0 0 12px rgba(201,168,76,0.8))",
   },
   title: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontSize: "3.5rem",
     fontWeight: 700,
     color: "#c9a84c",
@@ -225,7 +225,7 @@ const styles: Record<string, React.CSSProperties> = {
     lineHeight: 1.1,
   },
   subtitle: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontSize: "1rem",
     color: "#d4b896",
     marginTop: "0.5rem",
@@ -249,7 +249,7 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: "blur(8px)",
   },
   cardTitle: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontSize: "1.4rem",
     color: "#c9a84c",
     textAlign: "center",
@@ -267,7 +267,7 @@ const styles: Record<string, React.CSSProperties> = {
     gap: "0.4rem",
   },
   label: {
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontSize: "0.85rem",
     color: "#b8934a",
     letterSpacing: "0.08em",
@@ -281,7 +281,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "3px",
     color: "#e8d5b0",
     fontSize: "1rem",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     outline: "none",
     transition: "border-color 0.2s, box-shadow 0.2s",
   },
@@ -293,7 +293,7 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "0.75rem 1rem",
     borderRadius: "3px",
     fontSize: "0.9rem",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     textAlign: "center",
   },
   messageSuccess: {
@@ -314,7 +314,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: "3px",
     color: "#1a0e02",
     fontSize: "1rem",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontWeight: 700,
     letterSpacing: "0.1em",
     textTransform: "uppercase",
@@ -340,14 +340,14 @@ const styles: Record<string, React.CSSProperties> = {
   toggleText: {
     color: "#8a7060",
     fontSize: "0.875rem",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   },
   toggleButton: {
     background: "none",
     border: "none",
     color: "#c9a84c",
     fontSize: "0.875rem",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     cursor: "pointer",
     textDecoration: "none",
     padding: 0,
@@ -361,7 +361,7 @@ const styles: Record<string, React.CSSProperties> = {
     color: "rgba(180, 150, 100, 0.45)",
     fontSize: "0.75rem",
     letterSpacing: "0.1em",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   },
 };
 

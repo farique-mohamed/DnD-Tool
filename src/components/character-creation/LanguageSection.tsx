@@ -126,7 +126,7 @@ export function LanguageSection({
     return (
       <div>
         <p style={sectionTitleStyle}>Languages</p>
-        <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+        <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           Select a race to see available languages.
         </p>
       </div>
@@ -140,7 +140,7 @@ export function LanguageSection({
       {/* Fixed race languages */}
       {fixedLanguages.length > 0 && (
         <div style={{ marginBottom: (backgroundFixedLanguages.length > 0 || choiceCount > 0 || isDmDiscretion) ? "16px" : "0" }}>
-          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             <span style={{ color: "#c9a84c" }}>From Race</span>{" "}
             ({raceInfo.name}) — granted automatically
           </p>
@@ -167,7 +167,7 @@ export function LanguageSection({
       {/* Fixed background languages */}
       {backgroundFixedLanguages.length > 0 && (
         <div style={{ marginBottom: (choiceCount > 0 || isDmDiscretion) ? "16px" : "0" }}>
-          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             <span style={{ color: "#c9a84c" }}>From Background</span>{" "}
             {backgroundName ? `(${backgroundName})` : ""} — granted automatically
           </p>
@@ -194,7 +194,7 @@ export function LanguageSection({
       {/* Chosen extra languages */}
       {(choiceCount > 0 || isDmDiscretion) && (
         <div>
-          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             {isDmDiscretion ? (
               <>
                 <span style={{ color: "#c9a84c" }}>Additional Language</span>{" "}
@@ -208,7 +208,7 @@ export function LanguageSection({
             )}
           </p>
           {isDmDiscretion && (
-            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "11px", fontFamily: "'Georgia', serif", fontStyle: "italic" }}>
+            <p style={{ margin: "0 0 8px 0", color: "#a89060", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif", fontStyle: "italic" }}>
               Under DM&apos;s discretion
             </p>
           )}
@@ -277,7 +277,7 @@ export function LanguageSection({
 
       {/* Summary if no choices needed */}
       {!hasAnyLanguage && (
-        <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif" }}>
+        <p style={{ margin: 0, color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           This race does not grant any languages.
         </p>
       )}

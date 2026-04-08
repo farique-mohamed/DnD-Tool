@@ -86,7 +86,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
           background: "transparent",
           border: "none",
           color: "#a89060",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontSize: "13px",
           cursor: "pointer",
           marginBottom: "24px",
@@ -135,7 +135,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                   letterSpacing: "2px",
                   textTransform: "uppercase",
                   marginBottom: "0",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {character.name}
@@ -149,7 +149,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                     color: "#c9a84c",
                     borderRadius: "4px",
                     padding: "4px 14px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontSize: "11px",
                     cursor: "pointer",
                     letterSpacing: "0.5px",
@@ -163,7 +163,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
               style={{
                 color: "#a89060",
                 fontSize: "14px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginTop: "6px",
               }}
             >
@@ -181,7 +181,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                     padding: "1px 8px",
                     fontSize: "10px",
                     color: "#c9a84c",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     letterSpacing: "0.5px",
                     verticalAlign: "middle",
                   }}
@@ -195,7 +195,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                 color: "#a89060",
                 fontSize: "12px",
                 marginTop: "2px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {character.alignment}
@@ -211,7 +211,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                     padding: "6px 16px",
                     borderRadius: "6px",
                     fontSize: "12px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     fontWeight: "bold",
                     letterSpacing: "0.5px",
                     background: ap.status === "ACCEPTED"
@@ -249,7 +249,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                     fontSize: "10px",
                     textTransform: "uppercase",
                     letterSpacing: "0.08em",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     marginBottom: "4px",
                   }}
                 >
@@ -260,7 +260,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                     color: "#e8d5a3",
                     fontSize: "20px",
                     fontWeight: "bold",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   {value}
@@ -302,7 +302,7 @@ export function CharacterSheet({ character }: { character: CharacterData }) {
                   ? "linear-gradient(135deg, #8b6914, #c9a84c)"
                   : "transparent",
               color: activeTab === tab.id ? "#1a1a2e" : "#c9a84c",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontSize: isMobile ? "11px" : "13px",
               fontWeight: activeTab === tab.id ? "bold" : "normal",
               cursor: "pointer",

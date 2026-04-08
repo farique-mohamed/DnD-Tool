@@ -163,7 +163,7 @@ export function ActionsTab({ character }: { character: CharacterData }) {
     marginBottom: "12px",
     paddingBottom: "8px",
     borderBottom: "1px solid rgba(201,168,76,0.2)",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
   };
 
   return (
@@ -201,7 +201,7 @@ export function ActionsTab({ character }: { character: CharacterData }) {
                         color: "#e8d5a3",
                         fontSize: "14px",
                         fontWeight: "bold",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         flex: 1,
                       }}
                     >
@@ -212,7 +212,7 @@ export function ActionsTab({ character }: { character: CharacterData }) {
                         fontSize: "10px",
                         padding: "2px 10px",
                         borderRadius: "10px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         letterSpacing: "0.5px",
                         ...costBadgeStyle(action.cost),
                       }}
@@ -225,7 +225,7 @@ export function ActionsTab({ character }: { character: CharacterData }) {
                       style={{
                         color: "#a89060",
                         fontSize: "11px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                         fontStyle: "italic",
                         marginBottom: "4px",
                       }}
@@ -237,7 +237,7 @@ export function ActionsTab({ character }: { character: CharacterData }) {
                     style={{
                       color: "#e8d5a3",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       lineHeight: 1.6,
                     }}
                   >

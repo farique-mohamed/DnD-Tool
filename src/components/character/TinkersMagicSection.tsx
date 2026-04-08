@@ -111,7 +111,7 @@ export function TinkersMagicSection({
             color: "#e8d5a3",
             fontSize: "15px",
             fontWeight: "bold",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             flex: 1,
           }}
         >
@@ -125,7 +125,7 @@ export function TinkersMagicSection({
             background: "rgba(201,168,76,0.12)",
             border: "1px solid rgba(201,168,76,0.25)",
             color: "#c9a84c",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             letterSpacing: "0.5px",
           }}
         >
@@ -138,7 +138,7 @@ export function TinkersMagicSection({
         style={{
           color: "#a89060",
           fontSize: "12px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           lineHeight: "1.6",
           marginBottom: "12px",
         }}
@@ -166,7 +166,7 @@ export function TinkersMagicSection({
             fontSize: "11px",
             textTransform: "uppercase",
             letterSpacing: "0.06em",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Uses:
@@ -188,7 +188,7 @@ export function TinkersMagicSection({
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {j < usedCount ? "\u25CF" : "\u25CB"}
@@ -202,7 +202,7 @@ export function TinkersMagicSection({
             background: "rgba(74,124,42,0.12)",
             border: "1px solid rgba(74,124,42,0.3)",
             color: "#4a7c2a",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Long Rest
@@ -211,7 +211,7 @@ export function TinkersMagicSection({
           style={{
             color: "#a89060",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {maxUses - usedCount} / {maxUses} remaining (INT mod)
@@ -228,7 +228,7 @@ export function TinkersMagicSection({
           borderRadius: "4px",
           padding: "4px 12px",
           fontSize: "11px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           cursor: "pointer",
           letterSpacing: "0.5px",
           marginBottom: showItems ? "12px" : "0",
@@ -252,7 +252,7 @@ export function TinkersMagicSection({
               style={{
                 color: "#c9b87c",
                 fontSize: "11px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 padding: "3px 0",
                 borderBottom: "1px solid rgba(201,168,76,0.08)",
               }}

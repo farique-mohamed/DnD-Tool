@@ -161,7 +161,7 @@ export function HpManager({ character }: { character: CharacterData }) {
     borderRadius: "6px",
     color: "#e8d5a3",
     fontSize: "14px",
-    fontFamily: "'Georgia', 'Times New Roman', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     outline: "none",
     textAlign: "center",
   };
@@ -172,7 +172,7 @@ export function HpManager({ character }: { character: CharacterData }) {
     color: "#c9a84c",
     borderRadius: "6px",
     padding: "6px 16px",
-    fontFamily: "'Georgia', serif",
+    fontFamily: "'EB Garamond', 'Georgia', serif",
     fontSize: "12px",
     cursor: "pointer",
     letterSpacing: "0.5px",
@@ -195,7 +195,7 @@ export function HpManager({ character }: { character: CharacterData }) {
             fontSize: "11px",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Hit Points
@@ -205,7 +205,7 @@ export function HpManager({ character }: { character: CharacterData }) {
             style={{
               color: "#e8d5a3",
               fontSize: "14px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {character.currentHp} / {character.maxHp}
@@ -215,7 +215,7 @@ export function HpManager({ character }: { character: CharacterData }) {
               style={{
                 color: "#5b9bd5",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               +{character.tempHp} temp
@@ -281,7 +281,7 @@ export function HpManager({ character }: { character: CharacterData }) {
               fontSize: "10px",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Damage
@@ -307,7 +307,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 borderRadius: "6px",
                 padding: "8px 14px",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 cursor: isLoading || !damageAmount ? "not-allowed" : "pointer",
                 opacity: isLoading || !damageAmount ? 0.6 : 1,
@@ -326,7 +326,7 @@ export function HpManager({ character }: { character: CharacterData }) {
               fontSize: "10px",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Heal
@@ -352,7 +352,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 borderRadius: "6px",
                 padding: "8px 14px",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 cursor: isLoading || !healAmount ? "not-allowed" : "pointer",
                 opacity: isLoading || !healAmount ? 0.6 : 1,
@@ -371,7 +371,7 @@ export function HpManager({ character }: { character: CharacterData }) {
               fontSize: "10px",
               textTransform: "uppercase",
               letterSpacing: "0.08em",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             Temp HP
@@ -397,7 +397,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 borderRadius: "6px",
                 padding: "8px 14px",
                 fontSize: "13px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 fontWeight: "bold",
                 cursor:
                   isLoading || tempHpAmount === "" ? "not-allowed" : "pointer",
@@ -424,7 +424,7 @@ export function HpManager({ character }: { character: CharacterData }) {
             fontSize: "10px",
             textTransform: "uppercase",
             letterSpacing: "0.08em",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Rest
@@ -463,7 +463,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 fontSize: "11px",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "8px",
               }}
             >
@@ -473,7 +473,7 @@ export function HpManager({ character }: { character: CharacterData }) {
               style={{
                 color: "#a89060",
                 fontSize: "12px",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "10px",
               }}
             >
@@ -492,7 +492,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 style={{
                   color: "#e8d5a3",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 Hit dice to spend:
@@ -511,7 +511,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                   borderRadius: "6px",
                   color: "#e8d5a3",
                   fontSize: "14px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   outline: "none",
                   textAlign: "center",
                 }}
@@ -521,7 +521,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                   style={{
                     color: "#c9a84c",
                     fontSize: "13px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                   }}
                 >
                   = +{previewHeal} HP
@@ -539,7 +539,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                   borderRadius: "6px",
                   padding: "7px 18px",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontWeight: "bold",
                   cursor:
                     shortRest.isPending || diceCount < 1
@@ -559,7 +559,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                   borderRadius: "6px",
                   padding: "7px 14px",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: "pointer",
                 }}
               >
@@ -584,7 +584,7 @@ export function HpManager({ character }: { character: CharacterData }) {
             fontSize: "10px",
             textTransform: "uppercase",
             letterSpacing: "1px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             margin: "0 0 8px 0",
           }}
         >
@@ -608,7 +608,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                     borderRadius: "20px",
                     padding: "3px 10px",
                     fontSize: "10px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     color: "#e74c3c",
                     cursor: updateConditions.isPending ? "not-allowed" : "pointer",
                     fontWeight: "bold",
@@ -649,7 +649,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 borderRadius: "6px",
                 color: "#e8d5a3",
                 fontSize: "12px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 outline: "none",
                 cursor: updateConditions.isPending ? "not-allowed" : "pointer",
                 opacity: updateConditions.isPending ? 0.6 : 1,
@@ -682,7 +682,7 @@ export function HpManager({ character }: { character: CharacterData }) {
             fontSize: "10px",
             textTransform: "uppercase",
             letterSpacing: "1px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             margin: "0 0 8px 0",
           }}
         >
@@ -706,7 +706,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                     borderRadius: "20px",
                     padding: "3px 10px",
                     fontSize: "10px",
-                    fontFamily: "'Georgia', serif",
+                    fontFamily: "'EB Garamond', 'Georgia', serif",
                     color: "#bb8fd9",
                     cursor: updateDiseases.isPending ? "not-allowed" : "pointer",
                     fontWeight: "bold",
@@ -747,7 +747,7 @@ export function HpManager({ character }: { character: CharacterData }) {
                 borderRadius: "6px",
                 color: "#e8d5a3",
                 fontSize: "12px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 outline: "none",
                 cursor: updateDiseases.isPending ? "not-allowed" : "pointer",
                 opacity: updateDiseases.isPending ? 0.6 : 1,
@@ -772,7 +772,7 @@ export function HpManager({ character }: { character: CharacterData }) {
             marginTop: "10px",
             color: "#e74c3c",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {feedback}

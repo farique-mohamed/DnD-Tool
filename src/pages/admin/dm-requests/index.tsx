@@ -49,7 +49,7 @@ function ApproveDialog({
           padding: "40px 36px",
           maxWidth: "420px",
           width: "100%",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -107,7 +107,7 @@ function ApproveDialog({
               color: "#c9a84c",
               borderRadius: "4px",
               padding: "10px 20px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontSize: "13px",
               cursor: "pointer",
               opacity: isLoading ? 0.5 : 1,
@@ -125,7 +125,7 @@ function ApproveDialog({
               borderRadius: "6px",
               padding: "10px 24px",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: isLoading ? "not-allowed" : "pointer",
               letterSpacing: "0.5px",
@@ -176,7 +176,7 @@ function RejectDialog({
           padding: "40px 36px",
           maxWidth: "420px",
           width: "100%",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
         }}
         onClick={(e) => e.stopPropagation()}
       >
@@ -234,7 +234,7 @@ function RejectDialog({
               color: "#c9a84c",
               borderRadius: "4px",
               padding: "10px 20px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontSize: "13px",
               cursor: "pointer",
               opacity: isLoading ? 0.5 : 1,
@@ -252,7 +252,7 @@ function RejectDialog({
               borderRadius: "6px",
               padding: "10px 24px",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: isLoading ? "not-allowed" : "pointer",
               letterSpacing: "0.5px",
@@ -473,7 +473,7 @@ function DmRequestsContent() {
                       borderRadius: "6px",
                       padding: "8px 16px",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       cursor: "pointer",
                       letterSpacing: "0.5px",
                     }}
@@ -489,7 +489,7 @@ function DmRequestsContent() {
                       borderRadius: "6px",
                       padding: "8px 20px",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       fontWeight: "bold",
                       cursor: "pointer",
                       letterSpacing: "0.5px",

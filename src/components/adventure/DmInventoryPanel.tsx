@@ -133,7 +133,7 @@ export function DmInventoryPanel({
             borderRadius: "6px",
             padding: "8px 16px",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontWeight: "bold",
             cursor: "pointer",
             letterSpacing: "0.5px",
@@ -153,7 +153,7 @@ export function DmInventoryPanel({
             borderRadius: "6px",
             padding: "8px 16px",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontWeight: "bold",
             cursor: "pointer",
             letterSpacing: "0.5px",
@@ -171,7 +171,7 @@ export function DmInventoryPanel({
               borderRadius: "6px",
               padding: "8px 16px",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: "pointer",
               letterSpacing: "0.5px",
@@ -193,7 +193,7 @@ export function DmInventoryPanel({
             background: "rgba(30,15,5,0.9)",
             border: "1px solid rgba(201,168,76,0.4)",
             color: GOLD_BRIGHT,
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             borderRadius: "6px",
             padding: "8px 12px",
             width: "100%",
@@ -276,7 +276,7 @@ export function DmInventoryPanel({
                       style={{
                         color: GOLD_BRIGHT,
                         fontSize: "13px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       {isExpanded ? "\u25BC" : "\u25B6"} {item.itemName}
@@ -330,7 +330,7 @@ export function DmInventoryPanel({
                         style={{
                           color: GOLD,
                           fontSize: "11px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(201,168,76,0.15)",
                           padding: "2px 8px",
                           borderRadius: "4px",
@@ -348,7 +348,7 @@ export function DmInventoryPanel({
                         style={{
                           color: "#4a8c3f",
                           fontSize: "9px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(74,140,63,0.15)",
                           padding: "2px 6px",
                           borderRadius: "4px",
@@ -373,7 +373,7 @@ export function DmInventoryPanel({
                       fontSize: "14px",
                       cursor: removeInventoryItem.isPending ? "default" : "pointer",
                       padding: "4px 6px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       opacity: removeInventoryItem.isPending ? 0.5 : 1,
                     }}
                     title="Remove item"
@@ -576,11 +576,11 @@ export function DmInventoryPanel({
         isPending={addInventoryItem.isPending}
       >
         {addItemSearch.length < 2 ? (
-          <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: "'Georgia', serif", textAlign: "center", padding: "20px" }}>
+          <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", textAlign: "center", padding: "20px" }}>
             Type at least 2 characters to search.
           </p>
         ) : addItemFilteredResults.length === 0 ? (
-          <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: "'Georgia', serif", textAlign: "center", padding: "20px" }}>
+          <p style={{ color: GOLD_MUTED, fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", textAlign: "center", padding: "20px" }}>
             No items found.
           </p>
         ) : (
@@ -618,10 +618,10 @@ export function DmInventoryPanel({
                     "transparent";
                 }}
               >
-                <span style={{ color: GOLD_BRIGHT, fontSize: "13px", fontFamily: "'Georgia', serif", flex: 1 }}>
+                <span style={{ color: GOLD_BRIGHT, fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", flex: 1 }}>
                   {item.name}
                 </span>
-                <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: "'Georgia', serif", minWidth: "70px" }}>
+                <span style={{ color: GOLD_MUTED, fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif", minWidth: "70px" }}>
                   {item.type}
                 </span>
                 <RarityBadge rarity={item.rarity} />

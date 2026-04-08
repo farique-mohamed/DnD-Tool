@@ -19,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
         flexDirection: isMobile ? "column" : "row",
         minHeight: "100vh",
         background: palette.bgGradient,
-        fontFamily: "'Georgia', 'Times New Roman', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
       }}
     >
       <NavBar />

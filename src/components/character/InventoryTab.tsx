@@ -46,7 +46,7 @@ function InventoryItemDescription({
         style={{
           color: "rgba(232,213,163,0.6)",
           fontSize: "13px",
-          fontFamily: "'Georgia', 'Times New Roman', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           fontStyle: "italic",
         }}
       >
@@ -62,7 +62,7 @@ function InventoryItemDescription({
           style={{
             color: "#a89060",
             fontSize: "10px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             letterSpacing: "1px",
             textTransform: "uppercase",
             marginBottom: "6px",
@@ -101,7 +101,7 @@ function InventoryItemDescription({
                 style={{
                   color: "#a89060",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontStyle: "italic",
                 }}
               >
@@ -112,7 +112,7 @@ function InventoryItemDescription({
               <span
                 style={{
                   fontSize: "10px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   letterSpacing: "0.5px",
                   textTransform: "uppercase",
                   padding: "2px 8px",
@@ -146,7 +146,7 @@ function InventoryItemDescription({
               gap: "4px",
               marginBottom: "12px",
               fontSize: "13px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {displayItemData.weight != null && (
@@ -178,7 +178,7 @@ function InventoryItemDescription({
                 gap: "4px",
                 marginBottom: "12px",
                 fontSize: "13px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               <div>
@@ -218,11 +218,11 @@ function InventoryItemDescription({
                           padding: "8px 12px",
                         }}
                       >
-                        <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                        <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                           {displayName}
                         </div>
                         {WEAPON_PROPERTY_DESCRIPTIONS[prop] && (
-                          <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                          <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
                             {WEAPON_PROPERTY_DESCRIPTIONS[prop]}
                           </div>
                         )}
@@ -243,11 +243,11 @@ function InventoryItemDescription({
                         padding: "8px 12px",
                       }}
                     >
-                      <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'Georgia', 'Times New Roman', serif" }}>
+                      <div style={{ color: "#c9a84c", fontWeight: "bold", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                         {mastery}
                       </div>
                       {WEAPON_MASTERY_DESCRIPTIONS[mastery] && (
-                        <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
+                        <div style={{ color: "#e8d5a3", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", fontStyle: "italic", marginTop: "2px", lineHeight: "1.5" }}>
                           {WEAPON_MASTERY_DESCRIPTIONS[mastery]}
                         </div>
                       )}
@@ -264,7 +264,7 @@ function InventoryItemDescription({
               style={{
                 marginBottom: "12px",
                 fontSize: "13px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {displayItemData.ac != null && (
@@ -294,7 +294,7 @@ function InventoryItemDescription({
                 style={{
                   color: "#e8d5a3",
                   fontSize: "13px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   lineHeight: "1.6",
                 }}
                 dangerouslySetInnerHTML={{
@@ -322,7 +322,7 @@ function InventoryItemDescription({
             style={{
               color: "#a89060",
               fontSize: "10px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               letterSpacing: "1px",
               textTransform: "uppercase",
               marginBottom: "6px",
@@ -334,7 +334,7 @@ function InventoryItemDescription({
             style={{
               color: "#e8d5a3",
               fontSize: "13px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               lineHeight: "1.6",
               whiteSpace: "pre-wrap",
               margin: 0,
@@ -464,7 +464,7 @@ function CharacterStartingItemsModal({
             fontWeight: "bold",
             letterSpacing: "1px",
             textTransform: "uppercase",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             marginBottom: "20px",
           }}
         >
@@ -481,7 +481,7 @@ function CharacterStartingItemsModal({
                 fontWeight: "bold",
                 letterSpacing: "2px",
                 textTransform: "uppercase",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "12px",
                 paddingBottom: "8px",
                 borderBottom: "1px solid rgba(201,168,76,0.2)",
@@ -512,7 +512,7 @@ function CharacterStartingItemsModal({
                     style={{
                       color: "#e8d5a3",
                       fontSize: "13px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                       marginBottom: "4px",
                       fontWeight: "bold",
                     }}
@@ -523,7 +523,7 @@ function CharacterStartingItemsModal({
                     style={{
                       color: "#a89060",
                       fontSize: "12px",
-                      fontFamily: "'Georgia', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {preset.items.map((it) => it.displayName ?? it.name).join(", ")}
@@ -544,7 +544,7 @@ function CharacterStartingItemsModal({
                 fontWeight: "bold",
                 letterSpacing: "2px",
                 textTransform: "uppercase",
-                fontFamily: "'Georgia', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 marginBottom: "12px",
                 paddingBottom: "8px",
                 borderBottom: "1px solid rgba(201,168,76,0.2)",
@@ -564,7 +564,7 @@ function CharacterStartingItemsModal({
                 style={{
                   color: "#a89060",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                 }}
               >
                 {bgItems.map((it) => it.displayName ?? it.name).join(", ")}
@@ -584,7 +584,7 @@ function CharacterStartingItemsModal({
               borderRadius: "6px",
               padding: "8px 20px",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               cursor: "pointer",
             }}
           >
@@ -600,7 +600,7 @@ function CharacterStartingItemsModal({
               borderRadius: "6px",
               padding: "8px 20px",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontWeight: "bold",
               cursor: addStartingItems.isPending ? "default" : "pointer",
               opacity: addStartingItems.isPending ? 0.6 : 1,
@@ -685,7 +685,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
           textAlign: "center",
         }}
       >
-        <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'Georgia', serif" }}>
+        <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
           No accepted adventure found.
         </p>
       </div>
@@ -694,7 +694,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
 
   if (isLoading) {
     return (
-      <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+      <p style={{ color: "#a89060", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
         Loading inventory...
       </p>
     );
@@ -711,7 +711,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
         style={{
           color: "#a89060",
           fontSize: "11px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           letterSpacing: "1px",
           textTransform: "uppercase",
           marginBottom: "16px",
@@ -731,7 +731,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
             borderRadius: "6px",
             padding: "10px 24px",
             fontSize: "14px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             fontWeight: "bold",
             cursor: "pointer",
             letterSpacing: "0.5px",
@@ -753,7 +753,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
             background: "rgba(30,15,5,0.9)",
             border: "1px solid rgba(201,168,76,0.4)",
             color: "#e8d5a3",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             borderRadius: "6px",
             padding: "10px 14px",
             width: "100%",
@@ -780,14 +780,14 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
             style={{
               color: "#a89060",
               fontSize: "16px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               fontStyle: "italic",
               marginBottom: "8px",
             }}
           >
             Your pack is empty, adventurer...
           </p>
-          <p style={{ color: "rgba(232,213,163,0.6)", fontSize: "13px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ color: "rgba(232,213,163,0.6)", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             Add starting items or wait for your DM to grant you equipment.
           </p>
         </div>
@@ -801,7 +801,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
             textAlign: "center",
           }}
         >
-          <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ color: "#a89060", fontSize: "14px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             No items match your search.
           </p>
         </div>
@@ -850,7 +850,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                       style={{
                         color: "#e8d5a3",
                         fontSize: "14px",
-                        fontFamily: "'Georgia', serif",
+                        fontFamily: "'EB Garamond', 'Georgia', serif",
                       }}
                     >
                       {isExpanded ? "\u25BC" : "\u25B6"} {item.itemName}
@@ -860,7 +860,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                         style={{
                           color: "#c9a84c",
                           fontSize: "12px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(201,168,76,0.15)",
                           padding: "2px 8px",
                           borderRadius: "4px",
@@ -886,7 +886,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                       <span
                         style={{
                           fontSize: "10px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           letterSpacing: "0.5px",
                           textTransform: "uppercase",
                           padding: "2px 8px",
@@ -903,7 +903,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                         style={{
                           color: "#4a8c3f",
                           fontSize: "10px",
-                          fontFamily: "'Georgia', serif",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
                           background: "rgba(74,140,63,0.15)",
                           padding: "2px 8px",
                           borderRadius: "4px",
@@ -919,7 +919,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                     style={{
                       color: "#a89060",
                       fontSize: "12px",
-                      fontFamily: "'Georgia', 'Times New Roman', serif",
+                      fontFamily: "'EB Garamond', 'Georgia', serif",
                     }}
                   >
                     {isExpanded ? "\u25B2" : "\u25BC"}
@@ -963,7 +963,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                               borderRadius: "6px",
                               padding: "6px 14px",
                               fontSize: "12px",
-                              fontFamily: "'Georgia', serif",
+                              fontFamily: "'EB Garamond', 'Georgia', serif",
                               cursor: "pointer",
                             }}
                           >
@@ -987,7 +987,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                               style={{
                                 color: "#a89060",
                                 fontSize: "12px",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                               }}
                             >
                               Remove
@@ -1002,7 +1002,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                                 background: "rgba(30,15,5,0.9)",
                                 border: "1px solid rgba(201,168,76,0.4)",
                                 color: "#e8d5a3",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                                 borderRadius: "4px",
                                 padding: "4px 8px",
                                 width: "60px",
@@ -1015,7 +1015,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                               style={{
                                 color: "#a89060",
                                 fontSize: "12px",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                               }}
                             >
                               of {item.quantity}
@@ -1035,7 +1035,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                                 borderRadius: "4px",
                                 padding: "4px 12px",
                                 fontSize: "12px",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                                 fontWeight: "bold",
                                 cursor: splitItem.isPending ? "default" : "pointer",
                                 opacity: splitItem.isPending ? 0.6 : 1,
@@ -1052,7 +1052,7 @@ export function CharacterInventoryTab({ character }: { character: CharacterData 
                                 borderRadius: "4px",
                                 padding: "4px 10px",
                                 fontSize: "12px",
-                                fontFamily: "'Georgia', serif",
+                                fontFamily: "'EB Garamond', 'Georgia', serif",
                                 cursor: "pointer",
                               }}
                             >

@@ -52,7 +52,7 @@ export function DashboardCard({
             fontWeight: "bold",
             letterSpacing: "1px",
             textTransform: "uppercase",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             margin: 0,
           }}
         >
@@ -65,7 +65,7 @@ export function DashboardCard({
           style={{
             color: "#a89060",
             fontSize: "13px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           Consulting the arcane records...
@@ -89,7 +89,7 @@ export function DashboardCard({
               border: "none",
               color: "#c9a84c",
               fontSize: "12px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               cursor: "pointer",
               padding: 0,
               letterSpacing: "0.5px",

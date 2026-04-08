@@ -29,7 +29,8 @@ All UI is inline-styled (no CSS framework). The aesthetic is dark, medieval, and
 
 ## Typography
 
-- **Font:** `'Georgia', 'Times New Roman', serif` — used everywhere
+- **Body font:** `'EB Garamond', 'Georgia', serif` — used for body/content text (`SERIF` token)
+- **Heading font:** `'Cinzel', 'Georgia', serif` — used for headings (`HEADING_FONT` token)
 - **Headings:** uppercase, letter-spacing `1px`–`2px`, color `#c9a84c`
 - **Body:** `#e8d5a3` on dark backgrounds
 - **Labels:** uppercase, `0.08em` letter-spacing, `#b8934a`
@@ -64,7 +65,7 @@ import { Card, Button, PageHeader, Input, Select, Badge, Modal, Alert, GOLD, GOL
 
 Centralises every color constant, font, and common style object. The existing `src/components/adventure/shared.tsx` was updated to re-export from `theme.ts`, so older imports continue to work.
 
-Exported constants: `GOLD`, `GOLD_GLOW`, `GOLD_MUTED`, `GOLD_DARK`, `GOLD_BRIGHT`, `GOLD_FADED`, `TEXT_DIM`, `DARK_NAVY_1`, `DARK_NAVY_2`, `DARK_NAVY_3`, `CARD_BG`, `INPUT_BG`, `DANGER_RED`, `SUCCESS_GREEN_BORDER`, `ERROR_RED_BORDER`, `SERIF`.
+Exported constants: `GOLD`, `GOLD_GLOW`, `GOLD_MUTED`, `GOLD_DARK`, `GOLD_BRIGHT`, `GOLD_FADED`, `TEXT_DIM`, `DARK_NAVY_1`, `DARK_NAVY_2`, `DARK_NAVY_3`, `CARD_BG`, `INPUT_BG`, `DANGER_RED`, `SUCCESS_GREEN_BORDER`, `ERROR_RED_BORDER`, `SERIF`, `HEADING_FONT`.
 
 Exported style objects: `baseTextStyle`, `headingStyle`, `cardStyle`, `inputStyle`.
 

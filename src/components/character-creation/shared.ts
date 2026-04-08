@@ -57,7 +57,7 @@ export const labelStyle: React.CSSProperties = {
   textTransform: "uppercase",
   letterSpacing: "0.08em",
   marginBottom: "8px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
 };
 
 export const inputStyle: React.CSSProperties = {
@@ -68,7 +68,7 @@ export const inputStyle: React.CSSProperties = {
   borderRadius: "6px",
   color: "#e8d5a3",
   fontSize: "14px",
-  fontFamily: "'Georgia', 'Times New Roman', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   outline: "none",
   boxSizing: "border-box",
 };
@@ -88,7 +88,7 @@ export const chipBaseStyle: React.CSSProperties = {
   borderRadius: "20px",
   padding: "4px 12px",
   fontSize: "11px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   cursor: "pointer",
   border: "1px solid",
   transition: "all 0.15s ease",
@@ -104,6 +104,6 @@ export const bonusBadgeStyle: React.CSSProperties = {
   fontSize: "10px",
   fontWeight: "bold",
   color: "#c9a84c",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
   lineHeight: "16px",
 };

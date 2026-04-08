@@ -45,7 +45,7 @@ export function AbilityScoreSection({
           flexDirection: "column",
           gap: "12px",
         }}>
-          <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif" }}>
+          <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
             Ability Score Increase — Choose your bonuses
           </p>
           {/* Mode toggle */}
@@ -73,7 +73,7 @@ export function AbilityScoreSection({
                   fontWeight: xphbAsiMode === opt.value ? "bold" : "normal",
                   padding: "7px 16px",
                   fontSize: "11px",
-                  fontFamily: "'Georgia', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   cursor: "pointer",
                   letterSpacing: "0.3px",
                   borderRadius: opt.value === "2-1" ? "6px 0 0 6px" : "0 6px 6px 0",
@@ -88,7 +88,7 @@ export function AbilityScoreSection({
           {xphbAsiMode === "2-1" && (
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
               <div>
-                <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", marginRight: "10px" }}>
+                <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", marginRight: "10px" }}>
                   +2 to:
                 </span>
                 <div style={{ display: "inline-flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
@@ -132,7 +132,7 @@ export function AbilityScoreSection({
                 </div>
               </div>
               <div>
-                <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", marginRight: "10px" }}>
+                <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", marginRight: "10px" }}>
                   +1 to:
                 </span>
                 <div style={{ display: "inline-flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
@@ -181,7 +181,7 @@ export function AbilityScoreSection({
           {/* +1/+1/+1 mode */}
           {xphbAsiMode === "1-1-1" && (
             <div>
-              <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', serif", marginRight: "10px" }}>
+              <span style={{ color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", marginRight: "10px" }}>
                 +1 to three different scores:
               </span>
               <div style={{ display: "inline-flex", flexWrap: "wrap", gap: "6px", marginTop: "4px" }}>
@@ -242,7 +242,7 @@ export function AbilityScoreSection({
             flexDirection: "column",
             gap: "10px",
           }}>
-            <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'Georgia', serif" }}>
+            <p style={{ margin: 0, color: "#c9a84c", fontSize: "11px", textTransform: "uppercase", letterSpacing: "1.2px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
               {raceInfo.name} — Choose {choiceCount} ability score{choiceCount !== 1 ? "s" : ""} to gain +{choiceBonus.amount}
               {racialAsiChoices.length > 0 && (
                 <span style={{ marginLeft: "8px" }}>({racialAsiChoices.length}/{choiceCount})</span>

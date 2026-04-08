@@ -167,7 +167,7 @@ export function renderEntries(
             fontSize: "14px",
             lineHeight: "1.7",
             marginBottom: "10px",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
           dangerouslySetInnerHTML={{ __html: parseTaggedText(entry) }}
         />
@@ -192,7 +192,7 @@ export function renderEntries(
                 style={{
                   color: "#a89060",
                   fontSize: "12px",
-                  fontFamily: "'Georgia', 'Times New Roman', serif",
+                  fontFamily: "'EB Garamond', 'Georgia', serif",
                   fontStyle: "italic",
                   marginTop: "6px",
                 }}
@@ -222,7 +222,7 @@ export function renderEntries(
                   style={{ maxWidth: "600px" }}
                 />
                 {typeof img.title === "string" && (
-                  <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'Georgia', 'Times New Roman', serif", fontStyle: "italic", marginTop: "6px" }}>
+                  <p style={{ color: "#a89060", fontSize: "12px", fontFamily: "'EB Garamond', 'Georgia', serif", fontStyle: "italic", marginTop: "6px" }}>
                     {img.title}
                   </p>
                 )}
@@ -247,7 +247,7 @@ export function renderEntries(
                 letterSpacing: "1px",
                 textTransform: "uppercase",
                 marginBottom: "8px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {parseTaggedText(e.name)}
@@ -269,7 +269,7 @@ export function renderEntries(
             color: "#e8d5a3",
             fontSize: "14px",
             lineHeight: "1.7",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {items.map((item, j) => {
@@ -337,7 +337,7 @@ export function renderEntries(
                 marginBottom: "8px",
                 fontStyle: "normal",
                 letterSpacing: "0.5px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
               }}
             >
               {parseTaggedText(e.name)}
@@ -364,7 +364,7 @@ export function renderEntries(
                 fontSize: "13px",
                 fontWeight: "bold",
                 marginBottom: "6px",
-                fontFamily: "'Georgia', 'Times New Roman', serif",
+                fontFamily: "'EB Garamond', 'Georgia', serif",
                 letterSpacing: "0.5px",
               }}
             >
@@ -376,7 +376,7 @@ export function renderEntries(
               width: "100%",
               borderCollapse: "collapse",
               fontSize: "13px",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               color: "#e8d5a3",
             }}
           >
@@ -449,7 +449,7 @@ export function renderEntries(
             marginBottom: "16px",
             fontStyle: "italic",
             color: "#a89060",
-            fontFamily: "'Georgia', 'Times New Roman', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {e.entries &&
@@ -485,7 +485,7 @@ export function SourceBadge({ source }: { source: string }) {
         background: "rgba(201,168,76,0.15)",
         color: "#c9a84c",
         fontSize: "10px",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         padding: "2px 8px",
         borderRadius: "4px",
         letterSpacing: "0.5px",
@@ -516,7 +516,7 @@ export function RarityBadge({ rarity }: { rarity: string }) {
       style={{
         color,
         fontSize: "11px",
-        fontFamily: "'Georgia', serif",
+        fontFamily: "'EB Garamond', 'Georgia', serif",
         fontStyle: "italic",
       }}
     >
@@ -590,7 +590,7 @@ export function SearchModal({
               fontWeight: "bold",
               letterSpacing: "1.5px",
               textTransform: "uppercase",
-              fontFamily: "'Georgia', 'Times New Roman', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
             }}
           >
             {title}
@@ -620,7 +620,7 @@ export function SearchModal({
             background: "rgba(30,15,5,0.9)",
             border: "1px solid rgba(201,168,76,0.4)",
             color: "#e8d5a3",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
             borderRadius: "6px",
             padding: "10px 14px",
             width: "100%",
@@ -636,7 +636,7 @@ export function SearchModal({
             style={{
               color: "#a89060",
               fontSize: "13px",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textAlign: "center",
               padding: "12px",
             }}

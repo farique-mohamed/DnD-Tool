@@ -33,7 +33,7 @@ const subLabelStyle: React.CSSProperties = {
   margin: "0 0 8px 0",
   color: "#a89060",
   fontSize: "12px",
-  fontFamily: "'Georgia', serif",
+  fontFamily: "'EB Garamond', 'Georgia', serif",
 };
 
 export function ClassFeatureChoicesSection({
@@ -131,10 +131,10 @@ export function ClassFeatureChoicesSection({
                             borderRadius: "0 6px 6px 0",
                           }}
                         >
-                          <span style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'Georgia', serif" }}>
+                          <span style={{ color: "#c9a84c", fontSize: "12px", fontWeight: "bold", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
                             {sel}
                           </span>
-                          <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
+                          <p style={{ color: "#e8d5a3", fontSize: "13px", fontFamily: "'EB Garamond', 'Georgia', serif", lineHeight: 1.5, margin: "4px 0 0" }}>
                             {desc}
                           </p>
                         </div>

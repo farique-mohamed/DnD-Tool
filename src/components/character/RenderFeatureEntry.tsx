@@ -13,7 +13,7 @@ export function RenderFeatureEntry({
         style={{
           color: "#e8d5a3",
           fontSize: "13px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           lineHeight: 1.7,
           marginBottom: "6px",
         }}
@@ -29,7 +29,7 @@ export function RenderFeatureEntry({
         style={{
           color: "#e8d5a3",
           fontSize: "13px",
-          fontFamily: "'Georgia', serif",
+          fontFamily: "'EB Garamond', 'Georgia', serif",
           lineHeight: 1.7,
           paddingLeft: "20px",
           marginBottom: "6px",
@@ -53,7 +53,7 @@ export function RenderFeatureEntry({
               color: "#c9a84c",
               fontSize: "12px",
               fontWeight: "bold",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "4px",
               letterSpacing: "0.5px",
             }}
@@ -77,7 +77,7 @@ export function RenderFeatureEntry({
               color: "#c9a84c",
               fontSize: "12px",
               fontWeight: "bold",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               marginBottom: "6px",
               letterSpacing: "0.5px",
             }}
@@ -90,7 +90,7 @@ export function RenderFeatureEntry({
             width: "100%",
             borderCollapse: "collapse",
             fontSize: "12px",
-            fontFamily: "'Georgia', serif",
+            fontFamily: "'EB Garamond', 'Georgia', serif",
           }}
         >
           {entry.colLabels && entry.colLabels.length > 0 && (
@@ -156,7 +156,7 @@ export function RenderFeatureEntry({
               color: "#c9a84c",
               fontSize: "11px",
               fontWeight: "bold",
-              fontFamily: "'Georgia', serif",
+              fontFamily: "'EB Garamond', 'Georgia', serif",
               textTransform: "uppercase",
               letterSpacing: "1px",
               marginBottom: "6px",
