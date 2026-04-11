@@ -3,7 +3,6 @@ import { useRouter } from "next/router";
 import { useState, useRef, useEffect } from "react";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
-import { ImportCharacterModal } from "@/components/ImportCharacterModal";
 import { useIsMobile } from "@/hooks/useIsMobile";
 import { api } from "@/utils/api";
 import { downloadCharacterJson } from "@/lib/characterJsonExport";
@@ -44,13 +43,11 @@ function ExportDropdown({ character }: {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  // Lazy-fetch export data only when the user clicks JSON export
   const exportQuery = api.character.export.useQuery(
     { id: character.id },
     { enabled: false },
   );
 
-  // Close on outside click
   useEffect(() => {
     if (!open) return;
     const handler = (e: MouseEvent) => {
@@ -92,7 +89,7 @@ function ExportDropdown({ character }: {
           borderRadius: "4px",
           color: "#a89060",
           fontSize: "11px",
-          fontFamily: "'EB Garamond', 'Georgia', serif",
+          fontFamily: SERIF,
           padding: "3px 8px",
           cursor: "pointer",
           letterSpacing: "0.5px",
@@ -128,7 +125,7 @@ function ExportDropdown({ character }: {
               border: "none",
               color: "#e8d5a3",
               fontSize: "12px",
-              fontFamily: "'EB Garamond', 'Georgia', serif",
+              fontFamily: SERIF,
               padding: "8px 14px",
               cursor: "pointer",
               textAlign: "left",
@@ -147,7 +144,7 @@ function ExportDropdown({ character }: {
               border: "none",
               color: "#e8d5a3",
               fontSize: "12px",
-              fontFamily: "'EB Garamond', 'Georgia', serif",
+              fontFamily: SERIF,
               padding: "8px 14px",
               cursor: "pointer",
               textAlign: "left",
@@ -164,10 +161,10 @@ function ExportDropdown({ character }: {
 }
 
 // ---------------------------------------------------------------------------
-// Character Card
+// Retired Character Card — same as CharacterCard but with RETIRED badge
 // ---------------------------------------------------------------------------
 
-function CharacterCard({ character, onClick, isMobile }: { character: {
+function RetiredCharacterCard({ character, onClick, isMobile }: { character: {
   id: string;
   name: string;
   race: string;
@@ -185,7 +182,6 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
   wisdom: number;
   charisma: number;
   backstory?: string | null;
-  isRetired?: boolean;
   adventurePlayers?: Array<{
     status: string;
     adventure: { id: string; name: string; source: string };
@@ -224,42 +220,20 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
             Level {character.level} {character.race} {character.characterClass}
           </p>
           <p style={{ color: "#a89060", fontSize: "12px", marginTop: "2px" }}>{character.alignment}</p>
-          {character.adventurePlayers && character.adventurePlayers.length > 0 && (() => {
-            const ap = character.adventurePlayers[0]!;
-            return (
-              <span style={{
-                display: "inline-block",
-                marginTop: "6px",
-                padding: "2px 10px",
-                borderRadius: "12px",
-                fontSize: "11px",
-                fontFamily: SERIF,
-                letterSpacing: "0.3px",
-                background: ap.status === "ACCEPTED" ? "rgba(74,124,42,0.2)" : "rgba(201,168,76,0.15)",
-                border: ap.status === "ACCEPTED" ? "1px solid rgba(74,124,42,0.4)" : "1px solid rgba(201,168,76,0.3)",
-                color: ap.status === "ACCEPTED" ? "#4a7c2a" : "#a89060",
-              }}>
-                {ap.status === "ACCEPTED" ? "In" : "Pending"}: {ap.adventure.name}
-              </span>
-            );
-          })()}
-          {character.isRetired && (
-            <span style={{
-              display: "inline-block",
-              marginTop: "6px",
-              marginLeft: character.adventurePlayers && character.adventurePlayers.length > 0 ? "6px" : "0",
-              padding: "2px 10px",
-              borderRadius: "12px",
-              fontSize: "11px",
-              fontFamily: SERIF,
-              letterSpacing: "0.3px",
-              background: "rgba(231,76,60,0.15)",
-              border: "1px solid rgba(231,76,60,0.4)",
-              color: "#e74c3c",
-            }}>
-              RETIRED
-            </span>
-          )}
+          <span style={{
+            display: "inline-block",
+            marginTop: "6px",
+            padding: "2px 10px",
+            borderRadius: "12px",
+            fontSize: "11px",
+            fontFamily: SERIF,
+            letterSpacing: "0.3px",
+            background: "rgba(231,76,60,0.15)",
+            border: "1px solid rgba(231,76,60,0.4)",
+            color: "#e74c3c",
+          }}>
+            RETIRED
+          </span>
         </div>
         <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "8px" }}>
           <div style={{ textAlign: "right" }}>
@@ -287,13 +261,13 @@ function CharacterCard({ character, onClick, isMobile }: { character: {
       }}>
         {abilities.map(({ label, value }) => (
           <div key={label} style={{ textAlign: "center" }}>
-            <div style={{ color: "#b8934a", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: "'EB Garamond', 'Georgia', serif", marginBottom: "4px" }}>
+            <div style={{ color: "#b8934a", fontSize: "10px", textTransform: "uppercase", letterSpacing: "0.08em", fontFamily: SERIF, marginBottom: "4px" }}>
               {label}
             </div>
-            <div style={{ color: "#e8d5a3", fontSize: "16px", fontWeight: "bold", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
+            <div style={{ color: "#e8d5a3", fontSize: "16px", fontWeight: "bold", fontFamily: SERIF }}>
               {value}
             </div>
-            <div style={{ color: "#a89060", fontSize: "11px", fontFamily: "'EB Garamond', 'Georgia', serif" }}>
+            <div style={{ color: "#a89060", fontSize: "11px", fontFamily: SERIF }}>
               {abilityModifier(value)}
             </div>
           </div>
@@ -381,15 +355,14 @@ function CharacterTabs({ currentTab, onTabChange }: { currentTab: "Active" | "Re
 }
 
 // ---------------------------------------------------------------------------
-// Page content
+// Retired characters page content
 // ---------------------------------------------------------------------------
 
-function CharactersContent() {
+function RetiredCharactersContent() {
   const router = useRouter();
   const isMobile = useIsMobile();
   const [page, setPage] = useState(1);
-  const { data, isLoading } = api.character.listActive.useQuery({ page, pageSize: PAGE_SIZE });
-  const [importOpen, setImportOpen] = useState(false);
+  const { data, isLoading } = api.character.listRetired.useQuery({ page, pageSize: PAGE_SIZE });
 
   const characters = data?.characters;
   const total = data?.total ?? 0;
@@ -398,7 +371,7 @@ function CharactersContent() {
   return (
     <>
       <Head>
-        <title>My Characters — DnD Tool</title>
+        <title>Retired Characters — DnD Tool</title>
       </Head>
       <div style={{ maxWidth: "900px" }}>
         <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "flex-start" : "flex-start", justifyContent: "space-between", marginBottom: "8px", gap: isMobile ? "12px" : "0" }}>
@@ -410,78 +383,51 @@ function CharactersContent() {
               Your roster of heroes and villains.
             </p>
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            <button
-              onClick={() => setImportOpen(true)}
-              style={{
-                background: "transparent",
-                color: "#c9a84c",
-                border: "1px solid #c9a84c",
-                borderRadius: "6px",
-                padding: "12px 20px",
-                fontSize: "13px",
-                fontFamily: SERIF,
-                fontWeight: "bold",
-                cursor: "pointer",
-                letterSpacing: "0.5px",
-                whiteSpace: "nowrap",
-              }}
-            >
-              Import Character
-            </button>
-            <button
-              onClick={() => void router.push("/characters/new")}
-              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 24px", fontSize: "13px", fontFamily: SERIF, fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px", whiteSpace: "nowrap" }}
-            >
-              + Create Character
-            </button>
-          </div>
         </div>
         <div style={{ width: "80px", height: "2px", background: "#c9a84c", marginBottom: "32px", opacity: 0.6 }} />
 
         <CharacterTabs
-          currentTab="Active"
+          currentTab="Retired"
           onTabChange={(tab) => {
-            if (tab === "Retired") void router.push("/characters/retired");
+            if (tab === "Active") void router.push("/characters");
           }}
         />
 
         {isLoading ? (
           <p style={{ color: "#a89060", fontFamily: SERIF, fontSize: "14px" }}>
-            Summoning your adventurers...
+            Summoning your retired adventurers...
           </p>
         ) : !characters || characters.length === 0 ? (
           <div style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(201,168,76,0.2)", borderRadius: "12px", padding: isMobile ? "32px 16px" : "60px 40px", textAlign: "center" }}>
             <div style={{ fontSize: "40px", marginBottom: "16px" }}>🛡️</div>
-            <p style={{ color: "#e8d5a3", fontSize: "15px", marginBottom: "8px" }}>No characters yet.</p>
-            <p style={{ color: "#a89060", fontSize: "13px", marginBottom: "24px" }}>Every legend begins with a single character sheet.</p>
-            <button
-              onClick={() => void router.push("/characters/new")}
-              style={{ background: "linear-gradient(135deg, #8b6914, #c9a84c)", color: "#1a1a2e", border: "none", borderRadius: "6px", padding: "12px 28px", fontSize: "14px", fontFamily: SERIF, fontWeight: "bold", cursor: "pointer", letterSpacing: "0.5px" }}
-            >
-              Create Your First Character
-            </button>
+            <p style={{ color: "#e8d5a3", fontSize: "15px", marginBottom: "8px" }}>No retired characters.</p>
+            <p style={{ color: "#a89060", fontSize: "13px" }}>Your heroes are all still adventuring.</p>
           </div>
         ) : (
           <>
             <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
-              {characters.map((c) => <CharacterCard key={c.id} character={c} onClick={() => void router.push(`/characters/${c.id}`)} isMobile={isMobile} />)}
+              {characters.map((c) => (
+                <RetiredCharacterCard
+                  key={c.id}
+                  character={c}
+                  onClick={() => void router.push(`/characters/${c.id}`)}
+                  isMobile={isMobile}
+                />
+              ))}
             </div>
             <Pagination page={page} totalPages={totalPages} onPageChange={setPage} />
           </>
         )}
       </div>
-
-      <ImportCharacterModal open={importOpen} onClose={() => setImportOpen(false)} />
     </>
   );
 }
 
-export default function CharactersPage() {
+export default function RetiredCharactersPage() {
   return (
     <ProtectedRoute>
       <Layout>
-        <CharactersContent />
+        <RetiredCharactersContent />
       </Layout>
     </ProtectedRoute>
   );

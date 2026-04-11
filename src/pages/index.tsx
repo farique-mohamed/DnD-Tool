@@ -1,11 +1,20 @@
 import { type NextPage } from "next";
 import Head from "next/head";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/router";
 import { api } from "../utils/api";
+import { useAuth } from "@/hooks/useAuth";
 
 const LoginPage: NextPage = () => {
   const router = useRouter();
+  const { isAuthenticated, isLoading: authLoading } = useAuth();
+
+  useEffect(() => {
+    if (!authLoading && isAuthenticated) {
+      void router.push("/dashboard");
+    }
+  }, [authLoading, isAuthenticated, router]);
+
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [message, setMessage] = useState<{ text: string; type: "success" | "error" } | null>(null);
@@ -46,6 +55,10 @@ const LoginPage: NextPage = () => {
   };
 
   const isLoading = login.isPending || register.isPending;
+
+  if (authLoading || isAuthenticated) {
+    return null;
+  }
 
   return (
     <>

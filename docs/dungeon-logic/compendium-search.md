@@ -2,7 +2,7 @@
 
 ## Overview
 
-The Compendium Search page (`/search`) provides a unified, client-side search across all six compendium data sources: Spells, Monsters, Items, Classes, Races, and Feats.
+The Compendium Search page (`/search`) provides a unified, client-side search across all six compendium data sources: Spells, Monsters, Items, Classes, Races, and Feats. Selecting a search result shows the full detail panel inline (right column on desktop, full-screen on mobile) instead of navigating to another page.
 
 ## Route
 
@@ -47,19 +47,41 @@ Each result card shows:
 | Races | Source, speed |
 | Feats | Category, prerequisite (or source) |
 
-## Navigation
+## Layout
 
-Clicking a result navigates to the relevant compendium page:
+**Two-column layout** (same pattern as Items/Spells/Races/Feats pages):
 
-| Category | Target route |
-|----------|-------------|
-| Spells | `/spells` |
-| Monsters | `/dm/monster-manual` |
-| Items | `/items` |
-| Classes | `/classes` |
-| Races | `/races` |
-| Feats | `/classes` (no dedicated feats page) |
+- **Left column (flex: 3)**: Search input, category filter buttons, results count, and scrollable grouped results list.
+- **Right column (flex: 2)**: Detail panel for the currently selected entity. When nothing is selected, an empty placeholder reads "Select a result to view details."
+
+The selected result card is highlighted with a left gold border and subtle background tint (`isActive` prop), matching the Items page pattern.
+
+### Inline Detail Panels
+
+Clicking a result renders the appropriate detail panel in the right column (no page navigation):
+
+| Category | Component | Source |
+|----------|-----------|--------|
+| Spells | `SpellDetailPanel` | `@/components/spells/SpellDetailPanel` |
+| Monsters | `MonsterDetailPanel` | `@/components/monster-manual/MonsterDetailPanel` |
+| Items | `ItemDetailPanel` | `@/components/items/ItemDetailPanel` |
+| Classes | `ClassInfoCard` (summary only) | `@/components/classes/ClassInfoCard` |
+| Races | `RaceDetailPanel` | `@/components/races/RaceDetailPanel` |
+| Feats | `FeatDetailPanel` | `@/components/feats/FeatDetailPanel` |
+
+The detail panel switching logic is in `@/components/search/SearchDetailPanel`, which receives a `SelectedSearchResult` (containing the category and the actual entity data object) and renders the matching panel.
+
+Each `SearchResult` stores the original entity data object in a `data` field so the detail panel can render without re-fetching.
+
+### Mobile Behaviour
+
+Same list/detail toggle pattern as the Items and Spells pages:
+
+- When no result is selected, the search input, filters, and results list are shown full-width.
+- When a result is selected, the left column is hidden (`display: "none"`) and only the detail panel is shown with a "Back to list" button.
+- The empty detail placeholder is hidden on mobile.
+- Height uses `calc(100vh - 48px)` on mobile, `calc(100vh - 80px)` on desktop.
 
 ## UI Components Used
 
-`PageHeader`, `Input`, `Badge`, `Card` (variant `light`) from `@/components/ui`.
+`PageHeader`, `Input`, `Badge`, `Card` (variant `light`) from `@/components/ui`. Detail panels imported from shared component files.

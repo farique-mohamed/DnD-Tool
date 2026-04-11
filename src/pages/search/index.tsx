@@ -1,6 +1,5 @@
 import Head from "next/head";
 import { useState, useMemo } from "react";
-import { useRouter } from "next/router";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { Layout } from "@/components/Layout";
 import { useIsMobile } from "@/hooks/useIsMobile";
@@ -21,6 +20,10 @@ import { ITEMS, type Item } from "@/lib/itemsData";
 import { CLASS_LIST, type ClassInfo } from "@/lib/classData";
 import { RACES, type RaceInfo } from "@/lib/raceData";
 import { FEATS, type Feat } from "@/lib/featData";
+import {
+  SearchDetailPanel,
+  type SelectedSearchResult,
+} from "@/components/search/SearchDetailPanel";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -28,11 +31,15 @@ import { FEATS, type Feat } from "@/lib/featData";
 
 type Category = "All" | "Spells" | "Monsters" | "Items" | "Classes" | "Races" | "Feats";
 
+type EntityCategory = Exclude<Category, "All">;
+
+type EntityData = Spell | MonsterInfo | Item | ClassInfo | RaceInfo | Feat;
+
 interface SearchResult {
   name: string;
-  category: Category;
+  category: EntityCategory;
   detail: string;
-  href: string;
+  data: EntityData;
 }
 
 // ---------------------------------------------------------------------------
@@ -51,6 +58,8 @@ const CATEGORY_COLORS: Record<Category, string> = {
   Feats: "#e91e8c",
 };
 
+const GOLD_BORDER = "rgba(201,168,76,0.25)";
+const GOLD_DIM = "rgba(201,168,76,0.15)";
 const MAX_PER_CATEGORY = 20;
 
 // ---------------------------------------------------------------------------
@@ -68,9 +77,9 @@ function buildSpellResults(query: string): SearchResult[] {
   const q = query.toLowerCase();
   return SPELLS.filter((s) => s.name.toLowerCase().includes(q)).map((s: Spell) => ({
     name: s.name,
-    category: "Spells" as Category,
+    category: "Spells" as EntityCategory,
     detail: `${levelLabel(s.level)} · ${s.school} · ${s.castingTime}`,
-    href: "/spells",
+    data: s,
   }));
 }
 
@@ -78,9 +87,9 @@ function buildMonsterResults(query: string): SearchResult[] {
   const q = query.toLowerCase();
   return MONSTER_LIST.filter((m) => m.name.toLowerCase().includes(q)).map((m: MonsterInfo) => ({
     name: m.name,
-    category: "Monsters" as Category,
+    category: "Monsters" as EntityCategory,
     detail: `CR ${m.cr} · ${m.type}${m.hp != null ? ` · ${m.hp} HP` : ""}`,
-    href: "/dm/monster-manual",
+    data: m,
   }));
 }
 
@@ -88,9 +97,9 @@ function buildItemResults(query: string): SearchResult[] {
   const q = query.toLowerCase();
   return ITEMS.filter((i) => i.name.toLowerCase().includes(q)).map((i: Item) => ({
     name: i.name,
-    category: "Items" as Category,
+    category: "Items" as EntityCategory,
     detail: `${i.type} · ${i.rarity}`,
-    href: "/items",
+    data: i,
   }));
 }
 
@@ -98,9 +107,9 @@ function buildClassResults(query: string): SearchResult[] {
   const q = query.toLowerCase();
   return CLASS_LIST.filter((c) => c.name.toLowerCase().includes(q)).map((c: ClassInfo) => ({
     name: c.name,
-    category: "Classes" as Category,
+    category: "Classes" as EntityCategory,
     detail: `Source: ${c.source}`,
-    href: "/classes",
+    data: c,
   }));
 }
 
@@ -108,9 +117,9 @@ function buildRaceResults(query: string): SearchResult[] {
   const q = query.toLowerCase();
   return RACES.filter((r) => r.name.toLowerCase().includes(q)).map((r: RaceInfo) => ({
     name: r.name,
-    category: "Races" as Category,
+    category: "Races" as EntityCategory,
     detail: `Source: ${r.source} · Speed: ${r.speed} ft`,
-    href: "/races",
+    data: r,
   }));
 }
 
@@ -118,14 +127,14 @@ function buildFeatResults(query: string): SearchResult[] {
   const q = query.toLowerCase();
   return FEATS.filter((f) => f.name.toLowerCase().includes(q)).map((f: Feat) => ({
     name: f.name,
-    category: "Feats" as Category,
+    category: "Feats" as EntityCategory,
     detail: [
       f.category ? `Category: ${f.category}` : null,
       f.prerequisiteText ? `Prereq: ${f.prerequisiteText}` : null,
     ]
       .filter(Boolean)
       .join(" · ") || `Source: ${f.source}`,
-    href: "/classes", // feats don't have a dedicated page; link to classes
+    data: f,
   }));
 }
 
@@ -136,10 +145,12 @@ function buildFeatResults(query: string): SearchResult[] {
 function ResultCard({
   result,
   isMobile,
+  isActive,
   onClick,
 }: {
   result: SearchResult;
   isMobile: boolean;
+  isActive: boolean;
   onClick: () => void;
 }) {
   const catColor = CATEGORY_COLORS[result.category];
@@ -151,9 +162,10 @@ function ResultCard({
         width: "100%",
         textAlign: "left",
         padding: isMobile ? "12px 14px" : "10px 16px",
-        background: "transparent",
+        background: isActive ? "rgba(201,168,76,0.1)" : "transparent",
         border: "none",
-        borderBottom: "1px solid rgba(201,168,76,0.15)",
+        borderLeft: isActive ? `3px solid ${GOLD}` : "3px solid transparent",
+        borderBottom: `1px solid ${GOLD_DIM}`,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -162,11 +174,15 @@ function ResultCard({
         transition: "background 0.12s",
       }}
       onMouseEnter={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background =
-          "rgba(201,168,76,0.06)";
+        if (!isActive) {
+          (e.currentTarget as HTMLButtonElement).style.background =
+            "rgba(201,168,76,0.06)";
+        }
       }}
       onMouseLeave={(e) => {
-        (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+        if (!isActive) {
+          (e.currentTarget as HTMLButtonElement).style.background = "transparent";
+        }
       }}
     >
       {/* Category dot */}
@@ -184,10 +200,10 @@ function ResultCard({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            color: GOLD_BRIGHT,
+            color: isActive ? GOLD : GOLD_BRIGHT,
             fontSize: "14px",
             fontFamily: SERIF,
-            fontWeight: "bold",
+            fontWeight: isActive ? "bold" : "bold",
             whiteSpace: "nowrap",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -221,15 +237,15 @@ function ResultCard({
 // ---------------------------------------------------------------------------
 
 function SearchContent() {
-  const router = useRouter();
   const isMobile = useIsMobile();
   const [query, setQuery] = useState("");
   const [activeCategory, setActiveCategory] = useState<Category>("All");
+  const [selectedResult, setSelectedResult] = useState<SelectedSearchResult | null>(null);
 
   const results = useMemo(() => {
-    if (query.length < 2) return { grouped: {} as Record<Category, SearchResult[]>, total: 0 };
+    if (query.length < 2) return { grouped: {} as Record<EntityCategory, SearchResult[]>, total: 0 };
 
-    const builders: Array<{ key: Category; fn: (q: string) => SearchResult[] }> = [
+    const builders: Array<{ key: EntityCategory; fn: (q: string) => SearchResult[] }> = [
       { key: "Spells", fn: buildSpellResults },
       { key: "Monsters", fn: buildMonsterResults },
       { key: "Items", fn: buildItemResults },
@@ -248,11 +264,25 @@ function SearchContent() {
       grouped[key] = matches;
     }
 
-    return { grouped: grouped as Record<Category, SearchResult[]>, total };
+    return { grouped: grouped as Record<EntityCategory, SearchResult[]>, total };
   }, [query, activeCategory]);
 
   const handleResultClick = (result: SearchResult) => {
-    void router.push(result.href);
+    setSelectedResult({
+      name: result.name,
+      category: result.category,
+      data: result.data,
+    });
+  };
+
+  const handleBack = () => {
+    setSelectedResult(null);
+  };
+
+  // Check if a result is the currently selected one
+  const isResultActive = (result: SearchResult): boolean => {
+    if (!selectedResult) return false;
+    return selectedResult.name === result.name && selectedResult.category === result.category;
   };
 
   return (
@@ -261,205 +291,265 @@ function SearchContent() {
         <title>Compendium Search — DnD Tool</title>
       </Head>
 
-      <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-        <PageHeader
-          title="Compendium Search"
-          subtitle="Search across all compendiums"
-        />
-
-        {/* Search input */}
-        <div style={{ marginBottom: "16px" }}>
-          <Input
-            type="text"
-            placeholder="Search spells, monsters, items, classes, races, feats..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            autoFocus
-            style={{ fontSize: "16px", padding: "14px 18px" }}
+      {/* Outer wrapper fills viewport height minus Layout padding */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          height: isMobile ? "calc(100vh - 48px)" : "calc(100vh - 80px)",
+          overflow: "hidden",
+        }}
+      >
+        {/* Page header */}
+        <div style={{ flexShrink: 0, marginBottom: "16px" }}>
+          <PageHeader
+            title="Compendium Search"
+            subtitle="Search across all compendiums"
           />
         </div>
 
-        {/* Category filters */}
+        {/* Two-column layout: list (flex:3) | detail (flex:2) */}
         <div
           style={{
             display: "flex",
-            flexWrap: "wrap",
-            gap: "8px",
-            marginBottom: "20px",
+            flexDirection: isMobile ? "column" : "row",
+            gap: "24px",
+            flex: 1,
+            overflow: isMobile ? "auto" : "hidden",
+            minHeight: 0,
           }}
         >
-          {CATEGORIES.map((cat) => {
-            const isActive = activeCategory === cat;
-            const color = CATEGORY_COLORS[cat];
-            return (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                style={{
-                  background: isActive ? `${color}33` : "transparent",
-                  border: `1px solid ${isActive ? color : "rgba(201,168,76,0.25)"}`,
-                  borderRadius: "6px",
-                  padding: "6px 14px",
-                  color: isActive ? color : GOLD_MUTED,
-                  fontSize: "12px",
-                  fontFamily: SERIF,
-                  fontWeight: isActive ? "bold" : "normal",
-                  cursor: "pointer",
-                  letterSpacing: "0.5px",
-                  transition: "all 0.15s",
-                }}
-                onMouseEnter={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor = color;
-                    (e.currentTarget as HTMLButtonElement).style.color = color;
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!isActive) {
-                    (e.currentTarget as HTMLButtonElement).style.borderColor =
-                      "rgba(201,168,76,0.25)";
-                    (e.currentTarget as HTMLButtonElement).style.color = GOLD_MUTED;
-                  }
-                }}
-              >
-                {cat}
-              </button>
-            );
-          })}
-        </div>
+          {/* Left column: search + filters + results */}
+          <div
+            style={{
+              flex: 3,
+              minWidth: 0,
+              display: isMobile && selectedResult ? "none" : "flex",
+              flexDirection: "column",
+              gap: "10px",
+              height: isMobile ? "auto" : "100%",
+              overflow: isMobile ? "visible" : "hidden",
+            }}
+          >
+            {/* Search input */}
+            <Input
+              type="text"
+              placeholder="Search spells, monsters, items, classes, races, feats..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                setSelectedResult(null);
+              }}
+              autoFocus
+              style={{ fontSize: "14px", padding: "12px 16px" }}
+            />
 
-        {/* Results area */}
-        {query.length < 2 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              color: GOLD_MUTED,
-              fontFamily: SERIF,
-              fontSize: "14px",
-              fontStyle: "italic",
-            }}
-          >
-            Type at least 2 characters to begin your search.
-          </div>
-        ) : results.total === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: "60px 20px",
-              color: GOLD_MUTED,
-              fontFamily: SERIF,
-              fontSize: "14px",
-              fontStyle: "italic",
-            }}
-          >
-            No results found for &quot;{query}&quot;.
-          </div>
-        ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-            {/* Total count */}
+            {/* Category filters */}
             <div
               style={{
-                color: GOLD_MUTED,
-                fontSize: "12px",
-                fontFamily: SERIF,
-                textAlign: "right",
+                display: "flex",
+                flexWrap: "wrap",
+                gap: "8px",
+                flexShrink: 0,
               }}
             >
-              {results.total} result{results.total !== 1 ? "s" : ""} found
-            </div>
-
-            {/* Grouped results */}
-            {(Object.entries(results.grouped) as Array<[Category, SearchResult[]]>)
-              .filter(([, items]) => items.length > 0)
-              .map(([category, items]) => {
-                const truncated = items.length > MAX_PER_CATEGORY;
-                const displayItems = truncated
-                  ? items.slice(0, MAX_PER_CATEGORY)
-                  : items;
-                const catColor = CATEGORY_COLORS[category];
-
+              {CATEGORIES.map((cat) => {
+                const isActive = activeCategory === cat;
+                const color = CATEGORY_COLORS[cat];
                 return (
-                  <Card key={category} variant="light" padding="0">
-                    {/* Category header */}
-                    <div
-                      style={{
-                        padding: isMobile ? "12px 14px" : "10px 16px",
-                        borderBottom: "1px solid rgba(201,168,76,0.15)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: "8px",
-                        }}
-                      >
-                        <span
-                          style={{
-                            width: "10px",
-                            height: "10px",
-                            borderRadius: "50%",
-                            background: catColor,
-                          }}
-                        />
-                        <span
-                          style={{
-                            color: GOLD,
-                            fontSize: "14px",
-                            fontFamily: SERIF,
-                            fontWeight: "bold",
-                            letterSpacing: "1px",
-                            textTransform: "uppercase",
-                          }}
-                        >
-                          {category}
-                        </span>
-                      </div>
-                      <span
-                        style={{
-                          color: GOLD_MUTED,
-                          fontSize: "11px",
-                          fontFamily: SERIF,
-                        }}
-                      >
-                        {items.length} match{items.length !== 1 ? "es" : ""}
-                      </span>
-                    </div>
-
-                    {/* Result rows */}
-                    {displayItems.map((result, idx) => (
-                      <ResultCard
-                        key={`${result.name}-${idx}`}
-                        result={result}
-                        isMobile={isMobile}
-                        onClick={() => handleResultClick(result)}
-                      />
-                    ))}
-
-                    {/* Truncation notice */}
-                    {truncated && (
-                      <div
-                        style={{
-                          padding: "10px 16px",
-                          textAlign: "center",
-                          color: GOLD_MUTED,
-                          fontSize: "12px",
-                          fontFamily: SERIF,
-                          fontStyle: "italic",
-                        }}
-                      >
-                        and {items.length - MAX_PER_CATEGORY} more...
-                      </div>
-                    )}
-                  </Card>
+                  <button
+                    key={cat}
+                    onClick={() => {
+                      setActiveCategory(cat);
+                      setSelectedResult(null);
+                    }}
+                    style={{
+                      background: isActive ? `${color}33` : "transparent",
+                      border: `1px solid ${isActive ? color : GOLD_BORDER}`,
+                      borderRadius: "6px",
+                      padding: "6px 14px",
+                      color: isActive ? color : GOLD_MUTED,
+                      fontSize: "12px",
+                      fontFamily: SERIF,
+                      fontWeight: isActive ? "bold" : "normal",
+                      cursor: "pointer",
+                      letterSpacing: "0.5px",
+                      transition: "all 0.15s",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = color;
+                        (e.currentTarget as HTMLButtonElement).style.color = color;
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isActive) {
+                        (e.currentTarget as HTMLButtonElement).style.borderColor = GOLD_BORDER;
+                        (e.currentTarget as HTMLButtonElement).style.color = GOLD_MUTED;
+                      }
+                    }}
+                  >
+                    {cat}
+                  </button>
                 );
               })}
+            </div>
+
+            {/* Results area */}
+            {query.length < 2 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "60px 20px",
+                  color: GOLD_MUTED,
+                  fontFamily: SERIF,
+                  fontSize: "14px",
+                  fontStyle: "italic",
+                }}
+              >
+                Type at least 2 characters to begin your search.
+              </div>
+            ) : results.total === 0 ? (
+              <div
+                style={{
+                  textAlign: "center",
+                  padding: "60px 20px",
+                  color: GOLD_MUTED,
+                  fontFamily: SERIF,
+                  fontSize: "14px",
+                  fontStyle: "italic",
+                }}
+              >
+                No results found for &quot;{query}&quot;.
+              </div>
+            ) : (
+              <>
+                {/* Total count */}
+                <div
+                  style={{
+                    color: GOLD_MUTED,
+                    fontSize: "11px",
+                    fontFamily: SERIF,
+                    textAlign: "right",
+                    flexShrink: 0,
+                  }}
+                >
+                  {results.total} result{results.total !== 1 ? "s" : ""} found
+                </div>
+
+                {/* Scrollable grouped results */}
+                <div
+                  style={{
+                    flex: 1,
+                    overflowY: "auto",
+                    minHeight: 0,
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                    ...(isMobile ? { maxHeight: "50vh" } : {}),
+                  }}
+                >
+                  {(Object.entries(results.grouped) as Array<[EntityCategory, SearchResult[]]>)
+                    .filter(([, items]) => items.length > 0)
+                    .map(([category, items]) => {
+                      const truncated = items.length > MAX_PER_CATEGORY;
+                      const displayItems = truncated
+                        ? items.slice(0, MAX_PER_CATEGORY)
+                        : items;
+                      const catColor = CATEGORY_COLORS[category];
+
+                      return (
+                        <Card key={category} variant="light" padding="0">
+                          {/* Category header */}
+                          <div
+                            style={{
+                              padding: isMobile ? "12px 14px" : "10px 16px",
+                              borderBottom: `1px solid ${GOLD_DIM}`,
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                            }}
+                          >
+                            <div
+                              style={{
+                                display: "flex",
+                                alignItems: "center",
+                                gap: "8px",
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: "10px",
+                                  height: "10px",
+                                  borderRadius: "50%",
+                                  background: catColor,
+                                }}
+                              />
+                              <span
+                                style={{
+                                  color: GOLD,
+                                  fontSize: "14px",
+                                  fontFamily: SERIF,
+                                  fontWeight: "bold",
+                                  letterSpacing: "1px",
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                {category}
+                              </span>
+                            </div>
+                            <span
+                              style={{
+                                color: GOLD_MUTED,
+                                fontSize: "11px",
+                                fontFamily: SERIF,
+                              }}
+                            >
+                              {items.length} match{items.length !== 1 ? "es" : ""}
+                            </span>
+                          </div>
+
+                          {/* Result rows */}
+                          {displayItems.map((result, idx) => (
+                            <ResultCard
+                              key={`${result.name}-${idx}`}
+                              result={result}
+                              isMobile={isMobile}
+                              isActive={isResultActive(result)}
+                              onClick={() => handleResultClick(result)}
+                            />
+                          ))}
+
+                          {/* Truncation notice */}
+                          {truncated && (
+                            <div
+                              style={{
+                                padding: "10px 16px",
+                                textAlign: "center",
+                                color: GOLD_MUTED,
+                                fontSize: "12px",
+                                fontFamily: SERIF,
+                                fontStyle: "italic",
+                              }}
+                            >
+                              and {items.length - MAX_PER_CATEGORY} more...
+                            </div>
+                          )}
+                        </Card>
+                      );
+                    })}
+                </div>
+              </>
+            )}
           </div>
-        )}
+
+          {/* Right column: detail panel */}
+          <SearchDetailPanel
+            result={selectedResult}
+            isMobile={isMobile}
+            onBack={handleBack}
+          />
+        </div>
       </div>
     </>
   );

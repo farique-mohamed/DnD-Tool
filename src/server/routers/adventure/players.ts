@@ -91,7 +91,12 @@ export const joinByCode = protectedProcedure
       if (existingPlayer.status === "REJECTED") {
         await ctx.db.adventurePlayer.update({
           where: { id: existingPlayer.id },
-          data: { status: "PENDING", resolvedAt: null, characterId: input.characterId },
+          data: {
+            status: "PENDING",
+            characterId: input.characterId,
+            joinedAt: new Date(),
+            resolvedAt: null,
+          },
         });
         return { success: true, adventureName: adventure.name };
       }

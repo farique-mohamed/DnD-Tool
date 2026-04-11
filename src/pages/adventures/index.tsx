@@ -686,61 +686,78 @@ function AdventuresContent() {
                       Head to &quot;My Characters&quot; to create one.
                     </p>
                   </div>
-                ) : (
-                  <div style={{ marginBottom: "16px" }}>
-                    <select
-                      value={selectedCharacterId}
-                      onChange={(e) => {
-                        setSelectedCharacterId(e.target.value);
-                        setJoinMessage(null);
-                      }}
-                      style={{
-                        width: "100%",
-                        padding: "10px 14px",
-                        background: "rgba(30,15,5,0.9)",
-                        border: "1px solid rgba(201,168,76,0.3)",
-                        borderRadius: "6px",
-                        color: "#e8d5a3",
-                        fontFamily: "'EB Garamond', 'Georgia', serif",
-                        fontSize: "14px",
-                        boxSizing: "border-box",
-                        outline: "none",
-                      }}
-                    >
-                      <option value="" style={{ background: "#1a1a2e", color: "#a89060" }}>
-                        -- Select a character --
-                      </option>
-                      {characters.map((c) => {
-                        const char = c as unknown as {
-                          id: string;
-                          name: string;
-                          level: number;
-                          characterClass: string;
-                          adventurePlayers?: Array<{
-                            status: string;
-                            adventure: { id: string; name: string; source: string };
-                          }>;
-                        };
-                        const inAdventure = char.adventurePlayers && char.adventurePlayers.length > 0;
-                        const adventureName = inAdventure ? char.adventurePlayers![0]!.adventure.name : "";
-                        return (
-                          <option
-                            key={char.id}
-                            value={char.id}
-                            disabled={!!inAdventure}
-                            style={{
-                              background: "#1a1a2e",
-                              color: inAdventure ? "#665e4a" : "#e8d5a3",
-                            }}
-                          >
-                            {char.name} — Level {char.level} {char.characterClass}
-                            {inAdventure ? ` (In: ${adventureName})` : ""}
-                          </option>
-                        );
-                      })}
-                    </select>
-                  </div>
-                )}
+                ) : (() => {
+                  // Sort characters: recently retired (has retiredAt) first
+                  const sorted = [...characters].sort((a, b) => {
+                    const aRetired = !!(a as unknown as { retiredAt?: string | null }).retiredAt;
+                    const bRetired = !!(b as unknown as { retiredAt?: string | null }).retiredAt;
+                    if (aRetired && !bRetired) return -1;
+                    if (!aRetired && bRetired) return 1;
+                    return 0;
+                  });
+                  return (
+                    <div style={{ marginBottom: "16px" }}>
+                      <select
+                        value={selectedCharacterId}
+                        onChange={(e) => {
+                          setSelectedCharacterId(e.target.value);
+                          setJoinMessage(null);
+                        }}
+                        style={{
+                          width: "100%",
+                          padding: "10px 14px",
+                          background: "rgba(30,15,5,0.9)",
+                          border: "1px solid rgba(201,168,76,0.3)",
+                          borderRadius: "6px",
+                          color: "#e8d5a3",
+                          fontFamily: "'EB Garamond', 'Georgia', serif",
+                          fontSize: "14px",
+                          boxSizing: "border-box",
+                          outline: "none",
+                        }}
+                      >
+                        <option value="" style={{ background: "#1a1a2e", color: "#a89060" }}>
+                          -- Select a character --
+                        </option>
+                        {sorted.map((c) => {
+                          const char = c as unknown as {
+                            id: string;
+                            name: string;
+                            level: number;
+                            characterClass: string;
+                            isRetired?: boolean;
+                            retiredAt?: string | null;
+                            adventurePlayers?: Array<{
+                              status: string;
+                              adventure: { id: string; name: string; source: string };
+                            }>;
+                          };
+                          const inAdventure = char.adventurePlayers && char.adventurePlayers.length > 0;
+                          const adventureName = inAdventure ? char.adventurePlayers![0]!.adventure.name : "";
+                          const isDisabled = !!inAdventure || !!char.isRetired;
+                          const recentlyRetired = !!char.retiredAt && !char.isRetired;
+                          return (
+                            <option
+                              key={char.id}
+                              value={char.id}
+                              disabled={isDisabled}
+                              style={{
+                                background: "#1a1a2e",
+                                color: isDisabled ? "#665e4a" : "#e8d5a3",
+                                fontStyle: recentlyRetired ? "italic" : "normal",
+                              }}
+                            >
+                              {char.name} — Level {char.level} {char.characterClass}
+                              {inAdventure ? ` (In: ${adventureName})` : ""}
+                              {char.isRetired ? " (Retired)" : ""}
+                              {recentlyRetired ? " (Recently Retired)" : ""}
+                            </option>
+                          );
+                        })}
+                      </select>
+                    </div>
+                  );
+                })()}
 
                 {joinMessage && (
                   <p
