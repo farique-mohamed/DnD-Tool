@@ -26,6 +26,7 @@ const compendiumPlayer: NavGroup = {
     { label: "Spells", href: "/spells" },
     { label: "Classes", href: "/classes" },
     { label: "Races", href: "/races" },
+    { label: "Feats", href: "/feats" },
     { label: "Backgrounds", href: "/backgrounds" },
     { label: "Conditions", href: "/conditions" },
     { label: "Languages", href: "/languages" },

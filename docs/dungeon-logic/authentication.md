@@ -94,6 +94,10 @@ Browser
   |-- "Flee to the Login Scroll" button for immediate exit
 ```
 
+### Login Page Redirect
+
+The login page (`/`) checks for an existing valid token on mount. If the user is already authenticated, they are redirected to `/dashboard` automatically.
+
 ### Logout
 
 ```

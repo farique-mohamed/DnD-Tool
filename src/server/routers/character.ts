@@ -108,21 +108,139 @@ const baseCharacterRouter = createTRPCRouter({
       });
     }),
 
-  list: protectedProcedure.query(async ({ ctx }) => {
-    return ctx.db.character.findMany({
-      where: { userId: ctx.user.userId },
-      orderBy: { createdAt: "desc" },
-      include: {
-        adventurePlayers: {
-          where: { status: { in: ["PENDING", "ACCEPTED"] } },
-          include: {
-            adventure: { select: { id: true, name: true, source: true } },
-          },
-          take: 1,
+  list: protectedProcedure
+    .input(z.object({ isRetired: z.boolean().optional() }).optional())
+    .query(async ({ ctx, input }) => {
+      return ctx.db.character.findMany({
+        where: {
+          userId: ctx.user.userId,
+          ...(input?.isRetired !== undefined ? { isRetired: input.isRetired } : {}),
         },
-      },
-    });
-  }),
+        orderBy: { createdAt: "desc" },
+        include: {
+          adventurePlayers: {
+            where: { status: { in: ["PENDING", "ACCEPTED"] } },
+            include: {
+              adventure: { select: { id: true, name: true, source: true } },
+            },
+            take: 1,
+          },
+        },
+      });
+    }),
+
+  listActive: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(50).default(20),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize } = input;
+      const where = { userId: ctx.user.userId, isRetired: false };
+
+      const [characters, total] = await Promise.all([
+        ctx.db.character.findMany({
+          where,
+          orderBy: { createdAt: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: {
+            adventurePlayers: {
+              where: { status: { in: ["PENDING", "ACCEPTED"] } },
+              include: {
+                adventure: { select: { id: true, name: true, source: true } },
+              },
+              take: 1,
+            },
+          },
+        }),
+        ctx.db.character.count({ where }),
+      ]);
+
+      return { characters, total, page, pageSize };
+    }),
+
+  listRetired: protectedProcedure
+    .input(
+      z.object({
+        page: z.number().int().min(1).default(1),
+        pageSize: z.number().int().min(1).max(50).default(20),
+      }),
+    )
+    .query(async ({ ctx, input }) => {
+      const { page, pageSize } = input;
+      const where = { userId: ctx.user.userId, isRetired: true };
+
+      const [characters, total] = await Promise.all([
+        ctx.db.character.findMany({
+          where,
+          orderBy: { retiredAt: "desc" },
+          skip: (page - 1) * pageSize,
+          take: pageSize,
+          include: {
+            adventurePlayers: {
+              where: { status: { in: ["PENDING", "ACCEPTED"] } },
+              include: {
+                adventure: { select: { id: true, name: true, source: true } },
+              },
+              take: 1,
+            },
+          },
+        }),
+        ctx.db.character.count({ where }),
+      ]);
+
+      return { characters, total, page, pageSize };
+    }),
+
+  retire: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+
+      // Reject any ACCEPTED adventure memberships for this character
+      await ctx.db.adventurePlayer.updateMany({
+        where: {
+          characterId: input.id,
+          status: "ACCEPTED",
+        },
+        data: { status: "REJECTED" },
+      });
+
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { isRetired: true, retiredAt: new Date() },
+      });
+    }),
+
+  activate: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const character = await ctx.db.character.findFirst({
+        where: { id: input.id, userId: ctx.user.userId },
+      });
+      if (!character) {
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Character not found",
+        });
+      }
+
+      return ctx.db.character.update({
+        where: { id: input.id },
+        data: { isRetired: false },
+      });
+    }),
 
   getById: protectedProcedure
     .input(z.object({ id: z.string() }))

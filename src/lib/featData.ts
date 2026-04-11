@@ -73,7 +73,7 @@ interface RawPrerequisiteAbility {
 }
 
 interface RawPrerequisite {
-  level?: number;
+  level?: number | { level: number; class?: { name: string; visible?: boolean } };
   ability?: RawPrerequisiteAbility[];
   feat?: string[];
   feature?: string[];
@@ -194,10 +194,20 @@ function parsePrerequisites(prereqs: RawPrerequisite[]): {
     const groupParts: string[] = [];
 
     if (prereq.level !== undefined) {
-      if (minLevel === undefined || prereq.level < minLevel) {
-        minLevel = prereq.level;
+      let levelNum: number;
+      let className: string | undefined;
+
+      if (typeof prereq.level === "number") {
+        levelNum = prereq.level;
+      } else {
+        levelNum = prereq.level.level;
+        className = prereq.level.class?.name;
       }
-      groupParts.push(`Level ${prereq.level}`);
+
+      if (minLevel === undefined || levelNum < minLevel) {
+        minLevel = levelNum;
+      }
+      groupParts.push(className ? `Level ${levelNum} ${className}` : `Level ${levelNum}`);
     }
 
     if (prereq.ability) {

@@ -152,6 +152,9 @@ model Character {
   levelUpSelections  String  @default("{}")           // JSON: Record<string, string[]> — fighting styles, tool profs, metamagic, invocations, etc.
   equippedItems      String  @default("{\"mainHand\":null,\"offHand\":null,\"armor\":null,\"shield\":null}") // JSON: EquippedItems
 
+  isRetired  Boolean  @default(false)
+  retiredAt  DateTime?
+
   adventurePlayers AdventurePlayer[]
   dmNotes          DmNote[]
 
